@@ -6,10 +6,12 @@ class Ship:
     def __init__(self, x, y):
         self.position = Vector2(x, y)
         self.velocity = Vector2(0, 0)
+        self.acceleration = Vector2(0, 0)
+        self.heading = Vector2(0, -1)  # Points upward initially
 
         # Physics constants
-        self.THRUST_FORCE = 200
-        self.DRAG_COEFFICIENT = 0.98
+        self.THRUST_FORCE = 300
+        self.DRAG_COEFFICIENT = 0.99
         self.MAX_SPEED = 400
         self.ROTATION_SPEED = 180 # degrees per second
 
@@ -30,33 +32,38 @@ class Ship:
         # Rotation
         if keys[pygame.K_LEFT]:
             self.rotation -= self.ROTATION_SPEED * delta_time
+            # Update heading vector
+            angle_rad = math.radians(self.rotation)
+            self.heading = Vector2(-math.sin(angle_rad), -math.cos(angle_rad))
+
         if keys[pygame.K_RIGHT]:
             self.rotation += self.ROTATION_SPEED * delta_time
+            # Update heading vector
+            angle_rad = math.radians(self.rotation)
+            self.heading = Vector2(-math.sin(angle_rad), -math.cos(angle_rad))
             
-        # Thrust
+        # Thrust in ship's heading direction
         self.thrusting = keys[pygame.K_UP]
         if self.thrusting:
-            # Convert rotation to radians for calculation
-            angle_rad = math.radians(self.rotation)
-            thrust_vector = Vector2(-math.sin(angle_rad), -math.cos(angle_rad))
-            self.acceleration = thrust_vector * self.THRUST_FORCE
+            self.acceleration = self.heading * self.THRUST_FORCE
         else:
             self.acceleration = Vector2(0, 0)
 
         # Brake/reverse thrusters
         if keys[pygame.K_DOWN]:
-            self.velocity *= 0.98
+            self.velocity *= 0.95
 
     def update(self, delta_time):
-        # Apply acceleration
+        # Apply acceleration in ships heading direction
         self.velocity += self.acceleration * delta_time
         
         # Apply drag
         self.velocity *= self.DRAG_COEFFICIENT
         
         # Limit speed
-        if self.velocity.length() > self.MAX_SPEED:
-            self.velocity.scale_to_length(self.MAX_SPEED)
+        speed = self.velocity.length()
+        if speed > self.MAX_SPEED:
+            self.velocity = self.velocity.normalize() * self.MAX_SPEED
             
         # Update position
         self.position += self.velocity * delta_time
@@ -92,6 +99,13 @@ class Ship:
                 flame_transformed.append(transformed_point)
                 
             pygame.draw.polygon(screen, (255, 165, 0), flame_transformed)
+
+        # Draw direction indicator (debug)
+        direction_end = self.position + self.heading * 30
+        pygame.draw.line(screen, (0, 255, 0), 
+                         self.position, 
+                         direction_end, 
+                         2)
 
     def check_collision(self, other_object):
         # Check for collision with another object
