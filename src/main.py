@@ -4,6 +4,8 @@ from pygame.locals import *
 from entities.ship import Ship
 from entities.station import Station
 from entities.commodity import Market
+from ui.minimap import Minimap
+
 
 class GameEngine:
     def __init__(self):
@@ -23,8 +25,10 @@ class GameEngine:
         # Add stations
         self.stations = [
             Station(200, 200),
-            Station(600, 400)
+            Station(600, 400),
+            Station(100, 500)
         ]
+        self.minimap = Minimap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
 
         # Add market
         self.market = Market()
@@ -42,19 +46,25 @@ class GameEngine:
                     self.running = False
 
     def update(self):
-        self.ship.handle_input()
-        self.ship.update()
+        # Get delta time in seconds
+        delta_time = self.clock.get_time() / 1000.0
+
+        self.ship.handle_input(delta_time)
+        self.ship.update(delta_time)
 
     def render(self):
         self.screen.fill((0, 0, 20))  # Dark blue background
 
-        # Draw stations
+        # Draw game objects
         for station in self.stations:
             station.draw(self.screen)
 
         # Draw ship
         self.ship.draw(self.screen)
 
+        # Draw minimap
+        self.minimap.draw(self.screen, self.ship, self.stations)
+                
         # Draw UI
         self.draw_ui()
         pygame.display.flip()
