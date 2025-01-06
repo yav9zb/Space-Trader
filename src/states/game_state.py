@@ -28,6 +28,9 @@ class MenuState(State):
         self.selected_option = 0
 
     def render(self, screen):
+        # Clear screan first
+        screen.fill((0, 0, 20)) # Dark blue background
+
         # Draw menu
         font = pygame.font.Font(None, 74)
         title = font.render(self.title, True, (255, 255, 255))
@@ -61,11 +64,22 @@ class PlayingState(State):
         self.game.ship.update(delta_time)
 
     def render(self, screen):
+        # Clear the screen
+        screen.fill((0, 0, 20))  # Dark blue background
+
         # Draw all game objects
         for station in self.game.stations:
             station.draw(screen)
+        
+        # Draw ship
         self.game.ship.draw(screen)
+
+        # Draw minimap
         self.game.minimap.draw(screen, self.game.ship, self.game.stations)
+
+        # Draw UI
+        self.game.draw_ui()
+
 
     def handle_input(self, event):
         if event.type == pygame.KEYDOWN:

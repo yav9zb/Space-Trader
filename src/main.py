@@ -52,11 +52,11 @@ class GameEngine:
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.running = False
-            elif event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    self.running = False
             else:
-                self.states[self.current_state].handle_input(event)
+                if event.type == KEYDOWN and event.key == K_ESCAPE:
+                    self.running = False
+                else:
+                    self.states[self.current_state].handle_input(event)
 
     def update(self):
         # Get delta time in seconds
