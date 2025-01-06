@@ -32,15 +32,12 @@ class Ship:
         # Rotation
         if keys[pygame.K_LEFT]:
             self.rotation -= self.ROTATION_SPEED * delta_time
-            # Update heading vector
-            angle_rad = math.radians(self.rotation)
-            self.heading = Vector2(-math.sin(angle_rad), -math.cos(angle_rad))
-
         if keys[pygame.K_RIGHT]:
             self.rotation += self.ROTATION_SPEED * delta_time
-            # Update heading vector
-            angle_rad = math.radians(self.rotation)
-            self.heading = Vector2(-math.sin(angle_rad), -math.cos(angle_rad))
+        
+        # Update heading vector after any rotation
+        angle_rad = math.radians(self.rotation - 90)
+        self.heading = Vector2(math.cos(angle_rad), math.sin(angle_rad))
             
         # Thrust in ship's heading direction
         self.thrusting = keys[pygame.K_UP]
