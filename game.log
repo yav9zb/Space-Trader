@@ -1,0 +1,40 @@
+2025-01-06 18:45:16,266 - src.main - INFO - Starting Space Trading Simulator
+2025-01-06 18:45:16,266 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-01-06 18:45:16,891 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-01-06 18:45:16,891 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-01-06 18:45:16,891 - src.engine.game_engine - INFO - Starting game loop
+2025-01-06 18:47:49,844 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-01-06 18:47:49,945 - src.main - INFO - Game terminated
+2025-01-06 18:47:52,748 - src.main - INFO - Starting Space Trading Simulator
+2025-01-06 18:47:52,748 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-01-06 18:47:53,321 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-01-06 18:47:53,321 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-01-06 18:47:53,321 - src.engine.game_engine - INFO - Starting game loop
+2025-01-06 18:50:37,842 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-01-06 18:50:37,957 - src.main - INFO - Game terminated
+2025-01-06 18:50:39,169 - src.main - INFO - Starting Space Trading Simulator
+2025-01-06 18:50:39,169 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-01-06 18:50:39,724 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-01-06 18:50:39,725 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-01-06 18:50:39,725 - src.engine.game_engine - INFO - Starting game loop
+2025-01-06 18:50:41,415 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-01-06 18:50:41,417 - src.engine.game_engine - ERROR - Error in game loop: 'GameEngine' object has no attribute 'draw_ui'
+2025-01-06 18:50:41,417 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-01-06 18:50:41,526 - src.main - ERROR - Fatal error: 'GameEngine' object has no attribute 'draw_ui'
+2025-01-06 18:50:41,527 - src.main - INFO - Game terminated
+2025-01-06 18:52:47,429 - src.main - INFO - Starting Space Trading Simulator
+2025-01-06 18:52:47,429 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-01-06 18:52:47,997 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-01-06 18:52:47,998 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-01-06 18:52:47,998 - src.engine.game_engine - INFO - Starting game loop
+2025-01-06 18:52:48,821 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-01-06 18:53:16,838 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-01-06 18:53:16,951 - src.main - INFO - Game terminated
+2025-01-06 18:54:33,106 - src.main - INFO - Starting Space Trading Simulator
+2025-01-06 18:54:33,106 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-01-06 18:54:33,681 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-01-06 18:54:33,681 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-01-06 18:54:33,681 - src.engine.game_engine - INFO - Starting game loop
+2025-01-06 18:54:36,956 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-01-06 18:54:45,420 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-01-06 18:54:45,530 - src.main - INFO - Game terminated

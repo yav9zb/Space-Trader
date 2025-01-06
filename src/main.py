@@ -1,95 +1,24 @@
-import pygame
-import sys
-from pygame.locals import *
-from entities.ship import Ship
-from entities.station import Station
-from entities.commodity import Market
-from ui.minimap import Minimap
-from states.game_state import GameStates, MenuState, PlayingState, PausedState
+import logging
+from .engine.game_engine import GameEngine
 
-class GameEngine:
-    def __init__(self):
-        # Initialize Pygame first
-        pygame.init()
-        
-        # Set up display
-        self.WINDOW_SIZE = (800, 600)
-        self.screen = pygame.display.set_mode(self.WINDOW_SIZE)
-        pygame.display.set_caption('Space Trading Simulator')
-        
-        # Set up game objects
-        self.clock = pygame.time.Clock()
-        self.running = True
-        self.ship = Ship(400, 300)  # Create ship at center of screen
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    filename='game.log'
+)
+logger = logging.getLogger(__name__)
 
-        # Add stations
-        self.stations = [
-            Station(200, 200),
-            Station(600, 400),
-            Station(100, 500)
-        ]
-        self.minimap = Minimap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
-
-        # Add market
-        self.market = Market()
-
-        # Add player inventory
-        self.credits = 1000
-        self.cargo = {}
-
-        # Initialize states
-        self.states = {
-            GameStates.MAIN_MENU: MenuState(self),
-            GameStates.PLAYING: PlayingState(self),
-            GameStates.PAUSED: PausedState(self)
-        }
-        self.current_state = GameStates.MAIN_MENU
-
-    def change_state(self, new_state):
-        self.current_state = new_state
-
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                self.running = False
-            else:
-                if event.type == KEYDOWN and event.key == K_ESCAPE:
-                    self.running = False
-                else:
-                    self.states[self.current_state].handle_input(event)
-
-    def update(self):
-        # Get delta time in seconds
-        delta_time = self.clock.get_time() / 1000.0
-        
-        # Only update the current state
-        self.states[self.current_state].update(delta_time)
-
-    def render(self):
-        # Clear the screen
-        self.screen.fill((0, 0, 20))  # Dark blue background
-    
-        # Only render the current state
-        self.states[self.current_state].render(self.screen)
-    
-        pygame.display.flip()
-
-    def draw_ui(self):
-        # Draw credits
-        font = pygame.font.Font(None, 36)
-        credits_text = font.render(f'Credits: {self.credits}', True, (255, 255, 255))
-        self.screen.blit(credits_text, (10, 10))
-
-    def run(self):
-        while self.running:
-            self.handle_events()
-            self.update()
-            self.render()
-            self.clock.tick(60)
-
-        pygame.quit()
-        sys.exit()
+def main():
+    try:
+        logger.info("Starting Space Trading Simulator")
+        game = GameEngine()
+        game.run()
+    except Exception as e:
+        logger.error(f"Fatal error: {str(e)}")
+        raise
+    finally:
+        logger.info("Game terminated")
 
 if __name__ == '__main__':
-    game = GameEngine()
-    game.run()
+    main()

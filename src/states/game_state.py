@@ -32,17 +32,20 @@ class MenuState(State):
         # Clear screan first
         screen.fill((0, 0, 20)) # Dark blue background
 
-        # Draw menu
-        font = pygame.font.Font(None, 74)
-        title = font.render(self.title, True, (255, 255, 255))
-        screen.blit(title, (400 - title.get_width() // 2, 100))
+        # Draw title
+        title_font = pygame.font.Font(None, 74)
+        title = title_font.render(self.title, True, (255, 255, 255))
+        title_rect = title.get_rect(center=(screen.get_width() // 2, 100))
+        screen.blit(title, title_rect)
 
         # Draw menu options
-        font = pygame.font.Font(None, 36)
+        option_font = pygame.font.Font(None, 48)  # Slightly larger font for options
         for i, option in enumerate(self.menu_options):
             color = (255, 255, 0) if i == self.selected_option else (255, 255, 255)
-            text = font.render(option, True, color)
-            screen.blit(text, (400 - text.get_width() // 2, 300 + i * 50))
+            text = option_font.render(option, True, color)
+            # Position each option, centered horizontally and spaced vertically
+            text_rect = text.get_rect(center=(screen.get_width() // 2, 300 + i * 60))
+            screen.blit(text, text_rect)
 
     def handle_input(self, event):
         if event.type == pygame.KEYDOWN:
@@ -61,10 +64,13 @@ class PlayingState(State):
         super().__init__(game)
 
     def update(self, delta_time):
+        # Handle ship movement
         self.game.ship.handle_input(delta_time)
         self.game.ship.update(delta_time)
 
     def render(self, screen):
+        """Render the playing state"""
+
         # Clear the screen
         screen.fill((0, 0, 20))  # Dark blue background
 
@@ -78,8 +84,9 @@ class PlayingState(State):
         # Draw minimap
         self.game.minimap.draw(screen, self.game.ship, self.game.stations)
 
-        # Draw UI
-        self.game.draw_ui()
+        # Draw UI elements
+        if hasattr(self.game, 'draw_ui'):
+            self.game.draw_ui()
 
 
     def handle_input(self, event):

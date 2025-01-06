@@ -5,7 +5,11 @@ from enum import Enum
 from pygame.locals import *
 from typing import Dict, Optional
 
-from src.states.game_state import GameStates
+from ..states.game_state import GameStates
+from ..entities.ship import Ship
+from ..entities.station import Station
+from ..entities.commodity import Market
+from ..ui.minimap import Minimap
 
 # Set up logging
 logging.basicConfig(
@@ -33,6 +37,20 @@ class GameEngine:
         self.clock = pygame.time.Clock()
         self.FPS = 60
         self.delta_time = 0
+
+        # Game objects
+        self.ship = Ship(400, 300)
+        self.stations = [
+            Station(200, 200),
+            Station(600, 400),
+            Station(100, 500)
+        ]
+        self.minimap = Minimap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        self.market = Market()
+        
+        # Player data
+        self.credits = 1000
+        self.cargo = {}
         
         # Game state
         self.running = True
@@ -45,6 +63,14 @@ class GameEngine:
         
         # Initialize resources
         self._init_resources()
+
+        # Initialize states
+        from src.states.game_state import MenuState, PlayingState, PausedState
+        self.states = {
+            GameStates.MAIN_MENU: MenuState(self),
+            GameStates.PLAYING: PlayingState(self),
+            GameStates.PAUSED: PausedState(self)
+        }
         
         logger.info("GameEngine initialization complete")
 
@@ -69,6 +95,19 @@ class GameEngine:
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.running = False
+                return
+            # Let the current state handle the event first
+            current_state = self.states[self.current_state]
+            current_state.handle_input(event)
+
+            # Global key handling (ESC)
+            if event.type == KEYDOWN and event.key == K_ESCAPE:
+                if self.current_state == GameStates.PLAYING:
+                    self.change_state(GameStates.PAUSED)
+                elif self.current_state == GameStates.PAUSED:
+                    self.change_state(GameStates.PLAYING)
+                else:
+                    self.running = False
                 
             elif event.type == KEYDOWN:
                 self._handle_keydown(event.key)
@@ -109,12 +148,9 @@ class GameEngine:
         """Update game logic based on current state"""
         self.delta_time = self.clock.get_time() / 1000.0  # Convert to seconds
         
-        if self.current_state == GameStates.PLAYING:
-            self._update_playing_state()
-        elif self.current_state == GameStates.MAIN_MENU:
-            self._update_menu_state()
-        elif self.current_state == GameStates.PAUSED:
-            self._update_paused_state()
+        # Update current state
+        current_state = self.states[self.current_state]
+        current_state.update(self.delta_time)
 
     def _update_playing_state(self) -> None:
         """Update game logic during gameplay"""
@@ -136,12 +172,9 @@ class GameEngine:
         # Clear the screen
         self.screen.fill((0, 0, 20))  # Dark blue background
         
-        if self.current_state == GameStates.PLAYING:
-            self._render_playing_state()
-        elif self.current_state == GameStates.MAIN_MENU:
-            self._render_menu_state()
-        elif self.current_state == GameStates.PAUSED:
-            self._render_paused_state()
+        # Get current state and render it
+        current_state = self.states[self.current_state]
+        current_state.render(self.screen)
         
         pygame.display.flip()
 
@@ -206,3 +239,19 @@ class StarField:
     def draw(self, screen):
         for x, y, brightness in self.stars:
             pygame.draw.circle(screen, (brightness, brightness, brightness), (x, y), 1)
+
+    
+    def draw_ui(self) -> None:
+        """Draw user interface elements"""
+        # Draw credits
+        credits_text = self.fonts['main'].render(f'Credits: {self.credits}', True, (255, 255, 255))
+        self.screen.blit(credits_text, (10, 10))
+    
+        # Draw minimap if in playing state
+        if self.current_state == GameStates.PLAYING:
+            self.minimap.draw(self.screen, self.ship, self.stations)
+        
+        # Draw FPS counter (optional, for debugging)
+        fps = self.clock.get_fps()
+        fps_text = self.fonts['small'].render(f'FPS: {int(fps)}', True, (255, 255, 255))
+        self.screen.blit(fps_text, (10, 40))
