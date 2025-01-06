@@ -5,7 +5,7 @@ from entities.ship import Ship
 from entities.station import Station
 from entities.commodity import Market
 from ui.minimap import Minimap
-
+from states.game_state import GameStates, MenuState, PlayingState, PausedState
 
 class GameEngine:
     def __init__(self):
@@ -37,6 +37,17 @@ class GameEngine:
         self.credits = 1000
         self.cargo = {}
 
+        # Initialize states
+        self.states = {
+            GameStates.MENU: MenuState(self),
+            GameStates.PLAYING: PlayingState(self),
+            GameStates.PAUSED: PausedState(self)
+        }
+        self.current_state = GameStates.MENU
+
+    def change_state(self, new_state):
+        self.current_state = new_state
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -44,16 +55,20 @@ class GameEngine:
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.running = False
+            else:
+                self.states[self.current_state].handle_input(event)
 
     def update(self):
         # Get delta time in seconds
         delta_time = self.clock.get_time() / 1000.0
+        self.states[self.current_state].update(delta_time)
 
         self.ship.handle_input(delta_time)
         self.ship.update(delta_time)
 
     def render(self):
         self.screen.fill((0, 0, 20))  # Dark blue background
+        self.states[self.current_state].render(self.screen)
 
         # Draw game objects
         for station in self.stations:
