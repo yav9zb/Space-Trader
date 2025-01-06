@@ -61,27 +61,17 @@ class GameEngine:
     def update(self):
         # Get delta time in seconds
         delta_time = self.clock.get_time() / 1000.0
+        
+        # Only update the current state
         self.states[self.current_state].update(delta_time)
 
-        self.ship.handle_input(delta_time)
-        self.ship.update(delta_time)
-
     def render(self):
+        # Clear the screen
         self.screen.fill((0, 0, 20))  # Dark blue background
+    
+        # Only render the current state
         self.states[self.current_state].render(self.screen)
-
-        # Draw game objects
-        for station in self.stations:
-            station.draw(self.screen)
-
-        # Draw ship
-        self.ship.draw(self.screen)
-
-        # Draw minimap
-        self.minimap.draw(self.screen, self.ship, self.stations)
-                
-        # Draw UI
-        self.draw_ui()
+    
         pygame.display.flip()
 
     def draw_ui(self):
