@@ -5,6 +5,8 @@ from enum import Enum
 from pygame.locals import *
 from typing import Dict, Optional
 
+from src.states.game_state import GameStates
+
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -12,14 +14,6 @@ logging.basicConfig(
     filename='game.log'
 )
 logger = logging.getLogger(__name__)
-
-class GameState(Enum):
-    """Enum for different game states"""
-    MAIN_MENU = 1
-    PLAYING = 2
-    PAUSED = 3
-    TRADING = 4
-    GAME_OVER = 5
 
 class GameEngine:
 
@@ -42,7 +36,7 @@ class GameEngine:
         
         # Game state
         self.running = True
-        self.current_state = GameState.MAIN_MENU
+        self.current_state = GameStates.MAIN_MENU
         
         # Resource management
         self.fonts: Dict[str, pygame.font.Font] = {}
@@ -85,15 +79,15 @@ class GameEngine:
     def _handle_keydown(self, key: int) -> None:
         """Handle keyboard input based on game state"""
         if key == K_ESCAPE:
-            if self.current_state == GameState.PLAYING:
-                self.current_state = GameState.PAUSED
-            elif self.current_state == GameState.PAUSED:
-                self.current_state = GameState.PLAYING
+            if self.current_state == GameStates.PLAYING:
+                self.current_state = GameStates.PAUSED
+            elif self.current_state == GameStates.PAUSED:
+                self.current_state = GameStates.PLAYING
             else:
                 self.running = False
 
         # Add more key handling based on game state
-        if self.current_state == GameState.PLAYING:
+        if self.current_state == GameStates.PLAYING:
             self._handle_playing_keys(key)
 
     def _handle_playing_keys(self, key: int) -> None:
@@ -103,7 +97,7 @@ class GameEngine:
 
     def _handle_mousedown(self, pos: tuple) -> None:
         """Handle mouse input based on game state"""
-        if self.current_state == GameState.MAIN_MENU:
+        if self.current_state == GameStates.MAIN_MENU:
             self._handle_menu_click(pos)
 
     def _handle_menu_click(self, pos: tuple) -> None:
@@ -115,11 +109,11 @@ class GameEngine:
         """Update game logic based on current state"""
         self.delta_time = self.clock.get_time() / 1000.0  # Convert to seconds
         
-        if self.current_state == GameState.PLAYING:
+        if self.current_state == GameStates.PLAYING:
             self._update_playing_state()
-        elif self.current_state == GameState.MAIN_MENU:
+        elif self.current_state == GameStates.MAIN_MENU:
             self._update_menu_state()
-        elif self.current_state == GameState.PAUSED:
+        elif self.current_state == GameStates.PAUSED:
             self._update_paused_state()
 
     def _update_playing_state(self) -> None:
@@ -142,11 +136,11 @@ class GameEngine:
         # Clear the screen
         self.screen.fill((0, 0, 20))  # Dark blue background
         
-        if self.current_state == GameState.PLAYING:
+        if self.current_state == GameStates.PLAYING:
             self._render_playing_state()
-        elif self.current_state == GameState.MAIN_MENU:
+        elif self.current_state == GameStates.MAIN_MENU:
             self._render_menu_state()
-        elif self.current_state == GameState.PAUSED:
+        elif self.current_state == GameStates.PAUSED:
             self._render_paused_state()
         
         pygame.display.flip()
@@ -194,7 +188,7 @@ class GameEngine:
         logger.info("Cleaning up and shutting down")
         pygame.quit()
 
-    def change_state(self, new_state: GameState) -> None:
+    def change_state(self, new_state: GameStates) -> None:
         """Safely change the game state"""
         logger.info(f"Changing game state from {self.current_state} to {new_state}")
         self.current_state = new_state

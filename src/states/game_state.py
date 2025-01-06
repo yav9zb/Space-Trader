@@ -1,11 +1,12 @@
 import pygame
 from enum import Enum, auto
 
-
 class GameStates(Enum):
-    MENU = auto()
+    MAIN_MENU = auto()
     PLAYING = auto()
     PAUSED = auto()
+    TRADING = auto()  # Added for market interface
+    GAME_OVER = auto()
 
 class State:
     def __init__(self, game):

@@ -39,11 +39,11 @@ class GameEngine:
 
         # Initialize states
         self.states = {
-            GameStates.MENU: MenuState(self),
+            GameStates.MAIN_MENU: MenuState(self),
             GameStates.PLAYING: PlayingState(self),
             GameStates.PAUSED: PausedState(self)
         }
-        self.current_state = GameStates.MENU
+        self.current_state = GameStates.MAIN_MENU
 
     def change_state(self, new_state):
         self.current_state = new_state
