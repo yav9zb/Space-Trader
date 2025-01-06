@@ -53,3 +53,8 @@ class Ship:
 
         # Draw the ship
         pygame.draw.polygon(screen, (255, 255, 255), transformed_points)
+
+    def check_collision(self, other_object):
+        # Check for collision with another object
+        distance = (self.position - other_object.position).length()
+        return distance < (self.size + other_object.size)
