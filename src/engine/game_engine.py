@@ -10,6 +10,8 @@ from ..entities.ship import Ship
 from ..entities.station import Station
 from ..entities.commodity import Market
 from ..ui.minimap import Minimap
+from ..entities.starfield import StarField
+
 
 # Set up logging
 logging.basicConfig(
@@ -37,6 +39,10 @@ class GameEngine:
         self.clock = pygame.time.Clock()
         self.FPS = 60
         self.delta_time = 0
+                
+        # Initialize starfield first
+        self.starfield = StarField(100, self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        
 
         # Game objects
         self.ship = Ship(400, 300)
@@ -225,33 +231,3 @@ class GameEngine:
         """Safely change the game state"""
         logger.info(f"Changing game state from {self.current_state} to {new_state}")
         self.current_state = new_state
-
-
-class StarField:
-    def __init__(self, num_stars, screen_width, screen_height):
-        self.stars = []
-        for _ in range(num_stars):
-            x = random.randint(0, screen_width)
-            y = random.randint(0, screen_height)
-            brightness = random.randint(100, 255)
-            self.stars.append([x, y, brightness])
-    
-    def draw(self, screen):
-        for x, y, brightness in self.stars:
-            pygame.draw.circle(screen, (brightness, brightness, brightness), (x, y), 1)
-
-    
-    def draw_ui(self) -> None:
-        """Draw user interface elements"""
-        # Draw credits
-        credits_text = self.fonts['main'].render(f'Credits: {self.credits}', True, (255, 255, 255))
-        self.screen.blit(credits_text, (10, 10))
-    
-        # Draw minimap if in playing state
-        if self.current_state == GameStates.PLAYING:
-            self.minimap.draw(self.screen, self.ship, self.stations)
-        
-        # Draw FPS counter (optional, for debugging)
-        fps = self.clock.get_fps()
-        fps_text = self.fonts['small'].render(f'FPS: {int(fps)}', True, (255, 255, 255))
-        self.screen.blit(fps_text, (10, 40))

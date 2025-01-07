@@ -74,6 +74,9 @@ class PlayingState(State):
         # Clear the screen
         screen.fill((0, 0, 20))  # Dark blue background
 
+        # Draw starfield first (so it's in background)
+        self.game.starfield.draw(screen)
+
         # Draw all game objects
         for station in self.game.stations:
             station.draw(screen)
