@@ -1,6 +1,8 @@
+import math
+
 import pygame
 from pygame import Vector2
-import math
+
 
 class Ship:
     def __init__(self, x, y):
@@ -20,7 +22,7 @@ class Ship:
         
         # Ship characteristics
         # Create a simple triangle shape for the ship
-        self.size = 20
+        self.size = 15 # slighly smaller collision radius
         self.mass = 1.0 # kg
         self.points = [Vector2(0, -self.size), 
                       Vector2(-self.size/2, self.size/2),
@@ -70,9 +72,11 @@ class Ship:
         self.position.x = self.position.x % screen_width
         self.position.y = self.position.y % screen_height
 
-    def draw(self, screen):
+    def draw(self, screen, camera_offset):
         # Transform points based on position and rotation
         transformed_points = []
+        screen_pos = self.position - camera_offset
+        
         for point in self.points:
             rotated_point = point.rotate(self.rotation)
             transformed_point = (rotated_point + self.position)
@@ -103,8 +107,43 @@ class Ship:
                          self.position, 
                          direction_end, 
                          2)
+        
+        # Debug: Draw collision circle
+        if hasattr(self, 'in_collision'):
+            color = (255, 0, 0) if self.in_collision else (0, 255, 0)
+            pygame.draw.circle(screen, color, 
+                             (int(self.position.x), int(self.position.y)), 
+                             int(self.size), 
+                             1)  # Draw ship's collision radius
 
-    def check_collision(self, other_object):
-        # Check for collision with another object
-        distance = (self.position - other_object.position).length()
-        return distance < (self.size + other_object.size)
+    def check_collision_detailed(self, other_object):
+        """Enhanced collision detection with visual debugging"""
+        # Calculate distance between objects
+        distance_vec = other_object.position - self.position
+        distance = distance_vec.length()
+
+        # Define collision radius
+        collision_radius = self.size + other_object.size
+        
+        # Check for collision
+        if distance < collision_radius:
+            # Calculate collision normal
+            collision_normal = distance_vec.normalize()
+        
+            # Calculate relative velocity
+            approach_speed = self.velocity.dot(collision_normal)
+        
+            # Bounce with energy loss
+            self.velocity = self.velocity.reflect(collision_normal) * 0.5
+        
+            # Push ship out of collision
+            overlap = collision_radius - distance
+            self.position -= collision_normal * overlap
+        
+            # Add some logging to debug
+            print(f"Collision detected! Distance: {distance}, Radius: {collision_radius}")
+            print(f"Ship position: {self.position}, Station position: {other_object.position}")
+            print(f"New velocity: {self.velocity}")
+        
+            return True
+        return False

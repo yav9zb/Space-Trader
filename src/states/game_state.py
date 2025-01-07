@@ -1,3 +1,4 @@
+from venv import logger
 import pygame
 from enum import Enum, auto
 
@@ -67,6 +68,11 @@ class PlayingState(State):
         # Handle ship movement
         self.game.ship.handle_input(delta_time)
         self.game.ship.update(delta_time)
+        
+        # Check collisions after movement
+        for station in self.game.stations:
+            if self.game.ship.check_collision_detailed(station):
+                logger.info("Collision detected in PlayingState")
 
     def render(self, screen):
         """Render the playing state"""
@@ -74,22 +80,31 @@ class PlayingState(State):
         # Clear the screen
         screen.fill((0, 0, 20))  # Dark blue background
 
-        # Draw starfield first (so it's in background)
-        self.game.starfield.draw(screen)
+        # Get camera offset
+        camera_offset = self.game.camera.get_offset()
 
-        # Draw all game objects
-        for station in self.game.stations:
-            station.draw(screen)
+        # Draw starfield first (so it's in background)
+        self.game.starfield.draw(screen, camera_offset)
+
+        # Draw all planets
+        for planet in self.game.universe.planets:
+            planet.draw(screen, camera_offset)
+
+        # Draw all stations
+        for station in self.game.universe.stations:
+            station.draw(screen, camera_offset)
         
         # Draw ship
-        self.game.ship.draw(screen)
-
-        # Draw minimap
-        self.game.minimap.draw(screen, self.game.ship, self.game.stations)
+        self.game.ship.draw(screen, camera_offset)
 
         # Draw UI elements
         if hasattr(self.game, 'draw_ui'):
             self.game.draw_ui()
+
+        # Draw minimap last (so it's on top)
+        self.game.minimap.draw(screen, self.game.ship,
+                             self.game.universe.stations,
+                             self.game.universe.planets)
 
 
     def handle_input(self, event):

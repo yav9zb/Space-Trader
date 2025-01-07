@@ -4,6 +4,9 @@ import logging
 from enum import Enum
 from pygame.locals import *
 from typing import Dict, Optional
+from src.camera import Camera
+
+from src.universe import Universe
 
 from ..states.game_state import GameStates
 from ..entities.ship import Ship
@@ -11,6 +14,7 @@ from ..entities.station import Station
 from ..entities.commodity import Market
 from ..ui.minimap import Minimap
 from ..entities.starfield import StarField
+from ..universe import Universe
 
 
 # Set up logging
@@ -43,7 +47,10 @@ class GameEngine:
         # Initialize starfield first
         self.starfield = StarField(100, self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
         
-
+        # Create universe before creating ship
+        self.universe = Universe()
+        self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        
         # Game objects
         self.ship = Ship(400, 300)
         self.stations = [
@@ -53,6 +60,17 @@ class GameEngine:
         ]
         self.minimap = Minimap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
         self.market = Market()
+        self.universe = Universe()
+        self.universe.generate_universe()
+        self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+    
+        # Place ship at first station
+        if self.universe.stations:
+            first_station = self.universe.stations[0]
+            self.ship = Ship(first_station.position.x + 100,
+                        first_station.position.y)
+        else:
+            self.ship = Ship(400, 300)
         
         # Player data
         self.credits = 1000
@@ -80,21 +98,32 @@ class GameEngine:
         
         logger.info("GameEngine initialization complete")
 
+        self.debug_mode = True  # Add this for collision debugging
+
+
     def _init_resources(self):
         """Initialize game resources like fonts, images, and sounds"""
         try:
             # Initialize fonts
             self.fonts['main'] = pygame.font.Font(None, 36)
+            if not self.fonts['main']:
+                raise ResourceLoadError("Failed to load main font")
+            
             self.fonts['small'] = pygame.font.Font(None, 24)
+            if not self.fonts['small']:
+                raise ResourceLoadError("Failed to load small font")
             
             # Here you would load images and sounds
             # self.images['ship'] = pygame.image.load('assets/ship.png')
             # self.sounds['engine'] = pygame.mixer.Sound('assets/engine.wav')
             
             logger.info("Resources initialized successfully")
-        except Exception as e:
-            logger.error(f"Error initializing resources: {str(e)}")
+        except ResourceLoadError as e:
+            logger.error(f"Resource loading error: {str(e)}")
             raise
+        except Exception as e:
+            logger.error(f"Unexpected error loading resources: {str(e)}")
+            raise GameError(f"Failed to initialize resources: {str(e)}")
 
     def handle_events(self) -> None:
         """Process all game events"""
@@ -120,6 +149,12 @@ class GameEngine:
                 
             elif event.type == MOUSEBUTTONDOWN:
                 self._handle_mousedown(event.pos)
+
+            # Debug controls
+            if event.type == KEYDOWN:
+                if event.key == K_F3:  # F3 to toggle debug mode
+                    self.debug_mode = not self.debug_mode
+                    logger.info(f"Debug mode: {self.debug_mode}")
 
     def _handle_keydown(self, key: int) -> None:
         """Handle keyboard input based on game state"""
@@ -158,10 +193,37 @@ class GameEngine:
         current_state = self.states[self.current_state]
         current_state.update(self.delta_time)
 
-    def _update_playing_state(self) -> None:
+        # If we're in playing state, check collisions
+        if self.current_state == GameStates.PLAYING:
+            self._check_collisions()  # Add this new method call
+    
+    def _check_collisions(self):
+        """Handle all collision checks"""
+        # Check ship collision with each station
+        for station in self.stations:
+            if self.ship.check_collision_detailed(station):
+                logger.info("Collision detected with station")
+
+    def _update_playing_state(self):
         """Update game logic during gameplay"""
-        # Add gameplay update logic here
-        pass
+        # Update ship first
+        self.ship.update(self.delta_time)
+
+        # Check collisions with stations
+        collision_occurred = False
+        for station in self.stations:
+            if self.ship.check_collision_detailed(station):
+                collision_occurred = True
+                logger.info(f"Collision detected with station at {station.position}")
+                
+                # Check if we should dock (low velocity near station)
+                if self.ship.velocity.length() < 50:
+                    # Optional: Check if we're in docking range
+                    dock_distance = (station.position - self.ship.position).length()
+                    if dock_distance < station.size + self.ship.size + 10:
+                        logger.info("Docking conditions met")
+                        self.change_state(GameStates.TRADING)
+                        break
 
     def _update_menu_state(self) -> None:
         """Update logic for main menu"""
@@ -173,16 +235,53 @@ class GameEngine:
         # Add pause state update logic here
         pass
 
-    def render(self) -> None:
+    def render(self):
         """Render the game based on current state"""
         # Clear the screen
         self.screen.fill((0, 0, 20))  # Dark blue background
+
+        if self.current_state == GameStates.PLAYING:
+            # Update camera to follow ship
+            self.camera.follow(self.ship)
+            camera_offset = self.camera.get_offset()
+        
+            # Draw starfield
+            self.starfield.draw(self.screen, camera_offset)
+        
+            # Draw planets
+            for planet in self.universe.planets:
+                planet.draw(self.screen, camera_offset)
+        
+            # Draw stations
+            for station in self.universe.stations:
+                station.draw(self.screen, camera_offset)
+        
+            # Draw ship
+            self.ship.draw(self.screen, camera_offset)
+        
+            # Draw minimap
+            self.minimap.draw(self.screen, self.ship,
+                         self.universe.stations,
+                         self.universe.planets)
         
         # Get current state and render it
         current_state = self.states[self.current_state]
         current_state.render(self.screen)
         
         pygame.display.flip()
+
+        # Debug rendering
+        if self.debug_mode and self.current_state == GameStates.PLAYING:
+            self._render_debug()
+
+    def _render_debug(self):
+        """Render debug information"""
+        # Draw collision circles for stations
+        for station in self.stations:
+            pygame.draw.circle(self.screen, (0, 255, 0),
+                             (int(station.position.x), int(station.position.y)),
+                             station.size + self.ship.size,
+                             1)  # Draw combined collision radius
 
     def _render_playing_state(self) -> None:
         """Render the game during gameplay"""
@@ -231,3 +330,11 @@ class GameEngine:
         """Safely change the game state"""
         logger.info(f"Changing game state from {self.current_state} to {new_state}")
         self.current_state = new_state
+
+class GameError(Exception):
+    """Base class for game-related exceptions"""
+    pass
+
+class ResourceLoadError(GameError):
+    """Raised when a resource fails to load"""
+    pass
