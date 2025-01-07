@@ -86,9 +86,37 @@ class PlayingState(State):
         # Draw starfield first (so it's in background)
         self.game.starfield.draw(screen, camera_offset)
 
+        # Add debug visualization
+        pygame.draw.circle(screen, (255, 0, 0), 
+                          (int(screen.get_width()/2), int(screen.get_height()/2)), 
+                          5)  # Center point reference
+    
+        # Draw coordinate grid
+        grid_size = 100
+        for x in range(0, screen.get_width(), grid_size):
+            pygame.draw.line(screen, (50, 50, 50), 
+                            (x, 0), (x, screen.get_height()))
+        for y in range(0, screen.get_height(), grid_size):
+            pygame.draw.line(screen, (50, 50, 50),
+                            (0, y), (screen.get_width(), y))
+
         # Draw all stations
         for station in self.game.universe.stations:
             station.draw(screen, camera_offset)
+            can_dock, distance = self.game.ship.check_docking(station)
+            if can_dock:
+                screen_pos = station.position - camera_offset
+                pygame.draw.circle(screen, (0, 255, 0),
+                                 (int(screen_pos.x), int(screen_pos.y)),
+                                 station.size + 20,
+                                 1)
+            
+                # Optional: Draw distance indicator
+                font = pygame.font.Font(None, 24)
+                distance_text = font.render(f"Distance: {int(distance)}", True, (0, 255, 0))
+                screen.blit(distance_text, 
+                           (int(screen_pos.x - distance_text.get_width()/2),
+                            int(screen_pos.y - station.size - 30)))
 
         # Draw all planets
         for planet in self.game.universe.planets:

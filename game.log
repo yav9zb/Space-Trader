@@ -1281,3 +1281,23 @@
 2025-01-06 23:22:35,837 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
 2025-01-06 23:22:36,842 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-01-06 23:22:36,952 - src.main - INFO - Game terminated
+2025-01-06 23:46:40,279 - src.main - INFO - Starting Space Trading Simulator
+2025-01-06 23:46:40,280 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-01-06 23:46:42,943 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-01-06 23:46:42,943 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-01-06 23:46:42,943 - src.engine.game_engine - INFO - Starting game loop
+2025-01-06 23:46:43,999 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-01-06 23:46:59,631 - venv - INFO - Collision detected in PlayingState
+2025-01-06 23:46:59,631 - src.engine.game_engine - INFO - Collision detected with station
+2025-01-06 23:46:59,648 - venv - INFO - Collision detected in PlayingState
+2025-01-06 23:47:01,308 - venv - INFO - Collision detected in PlayingState
+2025-01-06 23:47:01,308 - src.engine.game_engine - INFO - Collision detected with station
+2025-01-06 23:47:01,324 - venv - INFO - Collision detected in PlayingState
+2025-01-06 23:47:01,324 - src.engine.game_engine - INFO - Collision detected with station
+2025-01-06 23:47:01,342 - venv - INFO - Collision detected in PlayingState
+2025-01-06 23:47:13,394 - venv - INFO - Collision detected in PlayingState
+2025-01-06 23:47:21,611 - venv - INFO - Collision detected in PlayingState
+2025-01-06 23:47:27,004 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-01-06 23:47:27,004 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-01-06 23:47:28,267 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-01-06 23:47:28,379 - src.main - INFO - Game terminated

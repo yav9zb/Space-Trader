@@ -147,3 +147,15 @@ class Ship:
         
             return True
         return False
+
+    # Add to Ship class:
+    def check_docking(self, station):
+        """Check if ship can dock with station, return tuple of (can_dock, distance)"""
+        # Calculate distance to station
+        distance = (station.position - self.position).length()
+    
+        # Check if in docking range and moving slowly enough
+        can_dock = (distance < station.size + self.size + 20 and 
+                    self.velocity.length() < 50)
+    
+        return can_dock, distance
