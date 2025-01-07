@@ -50,7 +50,7 @@ class GameEngine:
         # Create universe before creating ship
         self.universe = Universe()
         self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
-        
+
         # Game objects
         self.ship = Ship(400, 300)
         self.stations = [
@@ -98,7 +98,7 @@ class GameEngine:
         
         logger.info("GameEngine initialization complete")
 
-        self.debug_mode = True  # Add this for collision debugging
+        self.debug_mode = True
 
 
     def _init_resources(self):
@@ -237,32 +237,6 @@ class GameEngine:
 
     def render(self):
         """Render the game based on current state"""
-        # Clear the screen
-        self.screen.fill((0, 0, 20))  # Dark blue background
-
-        if self.current_state == GameStates.PLAYING:
-            # Update camera to follow ship
-            self.camera.follow(self.ship)
-            camera_offset = self.camera.get_offset()
-        
-            # Draw starfield
-            self.starfield.draw(self.screen, camera_offset)
-        
-            # Draw planets
-            for planet in self.universe.planets:
-                planet.draw(self.screen, camera_offset)
-        
-            # Draw stations
-            for station in self.universe.stations:
-                station.draw(self.screen, camera_offset)
-        
-            # Draw ship
-            self.ship.draw(self.screen, camera_offset)
-        
-            # Draw minimap
-            self.minimap.draw(self.screen, self.ship,
-                         self.universe.stations,
-                         self.universe.planets)
         
         # Get current state and render it
         current_state = self.states[self.current_state]

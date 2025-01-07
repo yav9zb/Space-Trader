@@ -1,7 +1,9 @@
+import math
 import pygame
 from pygame import Vector2
 import random
 from enum import Enum
+
 
 
 class PlanetType(Enum):
@@ -25,9 +27,10 @@ class Planet:
         self.position = Vector2(x, y)
         self.planet_type = random.choice(list(PlanetType))
         self.size = self._get_size_for_type()
-        self.base_color = random.choice(self.PLANET_COLORS[self.planet_type])
+        self.color = random.choice(self.PLANET_COLORS[self.planet_type])  # Changed from base_color to color
         self.features = [] # List to store surface features
-        self.rotation = random.uniform(-0.5, 0.5)
+        self.rotation = random.uniform(0, 360)
+        self.rotation_speed = random.uniform(-0.5, 0.5)
         self.name = self._generate_name()
 
         # Generate surface features
@@ -115,11 +118,53 @@ class Planet:
                 rect = pygame.Rect(pos.x - self.size, y - height//2, self.size * 2, height)
                 pygame.draw.rect(screen, feature['color'], rect)
 
+    def _draw_ice_features(self, screen, pos):
+        """Draw features for ice worlds"""
+        # Draw ice caps
+        cap_size = self.size * 0.4
+        pygame.draw.circle(screen, (220, 220, 255),
+                          (int(pos.x), int(pos.y - self.size * 0.6)), int(cap_size))
+        pygame.draw.circle(screen, (220, 220, 255),
+                          (int(pos.x), int(pos.y + self.size * 0.6)), int(cap_size))
+    
+        # Draw cracks in the ice
+        for _ in range(3):
+            start_angle = random.uniform(0, 360)
+            length = random.uniform(0.3, 0.7) * self.size
+            end_x = pos.x + length * math.cos(math.radians(start_angle))
+            end_y = pos.y + length * math.sin(math.radians(start_angle))
+            pygame.draw.line(screen, (200, 200, 255),
+                            (int(pos.x), int(pos.y)),
+                            (int(end_x), int(end_y)), 2)
+
+    def _draw_lava_features(self, screen, pos):
+        """Draw features for lava worlds"""
+        # Draw lava flows
+        for _ in range(4):
+            start_x = pos.x + random.uniform(-0.7, 0.7) * self.size
+            start_y = pos.y + random.uniform(-0.7, 0.7) * self.size
+            length = random.uniform(0.2, 0.4) * self.size
+            angle = random.uniform(0, 360)
+            end_x = start_x + length * math.cos(math.radians(angle))
+            end_y = start_y + length * math.sin(math.radians(angle))
+        
+            pygame.draw.line(screen, (255, 165, 0),
+                            (int(start_x), int(start_y)),
+                            (int(end_x), int(end_y)), 3)
+    
+        # Draw bright spots (lava pools)
+        for _ in range(5):
+            x = pos.x + random.uniform(-0.6, 0.6) * self.size
+            y = pos.y + random.uniform(-0.6, 0.6) * self.size
+            radius = random.uniform(0.1, 0.2) * self.size
+            pygame.draw.circle(screen, (255, 200, 0),
+                             (int(x), int(y)), int(radius))
+
     def _draw_atmosphere(self, screen, pos):
         """Draw atmospheric glow effect"""
         # Create a slightly larger, semi-transparent circle for atmosphere
         atmosphere_surf = pygame.Surface((self.size * 2 + 10, self.size * 2 + 10), pygame.SRCALPHA)
-        pygame.draw.circle(atmosphere_surf, (*self.base_color, 30),
+        pygame.draw.circle(atmosphere_surf, (*self.color, 30),
                          (self.size + 5, self.size + 5), self.size + 5)
         screen.blit(atmosphere_surf,
                    (pos.x - self.size - 5, pos.y - self.size - 5))

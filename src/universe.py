@@ -2,6 +2,7 @@ import random
 from pygame import Vector2
 from .entities.station import Station
 from .entities.planet import Planet
+from .entities.debris import Debris
 
 class Universe:
     def __init__(self, width=10000, height=10000):
@@ -15,9 +16,10 @@ class Universe:
         self.planets = []
 
         # Generate the universe immediately
+        self.debris = []
         self.generate_universe()
         
-    def generate_universe(self, num_stations=10, num_planets=5):
+    def generate_universe(self, num_stations=10, num_planets=5, num_debris=100):
         """Generate the universe with stations and planets"""
         # Generate stations
         for _ in range(num_stations):
@@ -32,6 +34,18 @@ class Universe:
             y = random.randint(0, self.height)
             planet = Planet(x, y)
             self.planets.append(planet)
+
+        # Generate debris
+        for _ in range(num_debris):
+            x = random.randint(0, self.width)
+            y = random.randint(0, self.height)
+            self.debris.append(Debris(x, y))
+
+    
+    def update(self, delta_time):
+        """Update all dynamic objects in the universe"""
+        for debris in self.debris:
+            debris.update(delta_time)
     
     def _add_station(self, x, y):
         """Add a station to the universe"""

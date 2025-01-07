@@ -86,26 +86,53 @@ class PlayingState(State):
         # Draw starfield first (so it's in background)
         self.game.starfield.draw(screen, camera_offset)
 
+        # Draw all stations
+        for station in self.game.universe.stations:
+            station.draw(screen, camera_offset)
+
         # Draw all planets
         for planet in self.game.universe.planets:
             planet.draw(screen, camera_offset)
 
-        # Draw all stations
-        for station in self.game.universe.stations:
-            station.draw(screen, camera_offset)
+        # Draw debris
+        for debris in self.game.universe.debris:
+            debris.draw(screen, camera_offset)
+        
+
+        # Draw UI elements
+        if hasattr(self.game.universe, 'debris'):
+            for debris in self.game.universe.debris:
+                debris.draw(screen, camera_offset)
         
         # Draw ship
         self.game.ship.draw(screen, camera_offset)
-
-        # Draw UI elements
-        if hasattr(self.game, 'draw_ui'):
-            self.game.draw_ui()
-
+        
         # Draw minimap last (so it's on top)
         self.game.minimap.draw(screen, self.game.ship,
                              self.game.universe.stations,
                              self.game.universe.planets)
+        
+        if self.game.debug_mode:
+            self._draw_debug_info(screen, camera_offset)
 
+    def _draw_debug_info(self, screen, camera_offset):
+        """Draw debug information for object positions"""
+        font = pygame.font.Font(None, 24)
+    
+        # Draw station positions
+        for i, station in enumerate(self.game.universe.stations):
+            screen_pos = station.position - camera_offset
+            text = font.render(f"Station {i}: {station.position}", True, (255, 255, 255))
+            screen.blit(text, (10, 30 + i * 20))
+        
+            # Draw a bright debug circle at station position
+            pygame.draw.circle(screen, (255, 0, 0), 
+                             (int(screen_pos.x), int(screen_pos.y)), 5)
+    
+        # Debug info
+        print(f"Number of stations: {len(self.game.universe.stations)}")
+        print(f"Ship position: {self.game.ship.position}")
+        print(f"Camera offset: {camera_offset}")
 
     def handle_input(self, event):
         if event.type == pygame.KEYDOWN:
