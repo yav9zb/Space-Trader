@@ -49,6 +49,7 @@ class GameEngine:
         
         # Create universe before creating ship
         self.universe = Universe()
+        self.universe.generate_universe()
         self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
 
         # Game objects
@@ -60,9 +61,6 @@ class GameEngine:
         ]
         self.minimap = Minimap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
         self.market = Market()
-        self.universe = Universe()
-        self.universe.generate_universe()
-        self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
     
         # Place ship at first station
         if self.universe.stations:
@@ -298,11 +296,43 @@ class GameEngine:
     def cleanup(self) -> None:
         """Clean up resources and quit the game"""
         logger.info("Cleaning up and shutting down")
+
+        # Clean up resources
+        for sound in self.sounds.values():
+            sound.stop()
+        self.sounds.clear()
+    
+        # Clear other resources
+        self.fonts.clear()
+        self.images.clear()
+    
+        # Reset game objects
+        self.universe = None
+        self.ship = None
+        self.camera = None
+        
         pygame.quit()
 
     def change_state(self, new_state: GameStates) -> None:
         """Safely change the game state"""
         logger.info(f"Changing game state from {self.current_state} to {new_state}")
+    
+        # Handle cleanup of old state
+        if self.current_state == GameStates.TRADING:
+            # Save market state
+            pass
+        elif self.current_state == GameStates.PLAYING:
+            # Save game state
+            pass
+    
+        # Handle initialization of new state
+        if new_state == GameStates.TRADING:
+            # Initialize market interface
+            pass
+        elif new_state == GameStates.PLAYING:
+            # Resume game
+            pass
+    
         self.current_state = new_state
 
 class GameError(Exception):

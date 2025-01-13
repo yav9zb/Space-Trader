@@ -1,6 +1,10 @@
-from venv import logger
-import pygame
+import logging
 from enum import Enum, auto
+
+import pygame
+
+logger = logging.getLogger(__name__)
+
 
 class GameStates(Enum):
     MAIN_MENU = auto()
@@ -68,6 +72,9 @@ class PlayingState(State):
         # Handle ship movement
         self.game.ship.handle_input(delta_time)
         self.game.ship.update(delta_time)
+
+        # Update camera position to follow ship
+        self.game.camera.follow(self.game.ship)
         
         # Check collisions after movement
         for station in self.game.stations:
@@ -102,7 +109,11 @@ class PlayingState(State):
 
         # Draw all stations
         for station in self.game.universe.stations:
-            station.draw(screen, camera_offset)
+            screen_pos = self.game.camera.world_to_screen(station.position)
+            # Only draw if on screen
+            if (0 <= screen_pos.x <= self.game.WINDOW_SIZE[0] and 
+                0 <= screen_pos.y <= self.game.WINDOW_SIZE[1]):
+                station.draw(screen, screen_pos)
             can_dock, distance = self.game.ship.check_docking(station)
             if can_dock:
                 screen_pos = station.position - camera_offset
@@ -126,14 +137,10 @@ class PlayingState(State):
         for debris in self.game.universe.debris:
             debris.draw(screen, camera_offset)
         
-
-        # Draw UI elements
-        if hasattr(self.game.universe, 'debris'):
-            for debris in self.game.universe.debris:
-                debris.draw(screen, camera_offset)
-        
-        # Draw ship
-        self.game.ship.draw(screen, camera_offset)
+        # Draw ship at center
+        ship_screen_pos = pygame.Vector2(self.game.WINDOW_SIZE[0]/2, 
+                                 self.game.WINDOW_SIZE[1]/2)
+        self.game.ship.draw(screen, ship_screen_pos)
         
         # Draw minimap last (so it's on top)
         self.game.minimap.draw(screen, self.game.ship,
@@ -146,16 +153,44 @@ class PlayingState(State):
     def _draw_debug_info(self, screen, camera_offset):
         """Draw debug information for object positions"""
         font = pygame.font.Font(None, 24)
+        y_offset = 30
+
+        # Draw FPS
+        fps = self.game.clock.get_fps()
+        fps_text = font.render(f"FPS: {int(fps)}", True, (255, 255, 255))
+        screen.blit(fps_text, (10, y_offset))
+        y_offset += 20
+
+        # Draw ship info
+        ship_pos = self.game.ship.position
+        ship_text = font.render(
+            f"Ship Pos: ({int(ship_pos.x)}, {int(ship_pos.y)})", 
+            True, (255, 255, 255))
+        screen.blit(ship_text, (10, y_offset))
+        y_offset += 20
+
     
-        # Draw station positions
+        # Draw station positions with proper camera offset
         for i, station in enumerate(self.game.universe.stations):
             screen_pos = station.position - camera_offset
-            text = font.render(f"Station {i}: {station.position}", True, (255, 255, 255))
-            screen.blit(text, (10, 30 + i * 20))
-        
-            # Draw a bright debug circle at station position
-            pygame.draw.circle(screen, (255, 0, 0), 
-                             (int(screen_pos.x), int(screen_pos.y)), 5)
+            # Create station text for each station
+            station_text = font.render(
+                f"Station {i}: ({int(station.position.x)}, {int(station.position.y)})", 
+                True, (255, 255, 255))
+            
+            if 0 <= screen_pos.x <= screen.get_width() and 0 <= screen_pos.y <= screen.get_height():
+                screen.blit(station_text, (10, y_offset))
+                y_offset += 20
+
+                # Draw station position indicator
+                pygame.draw.circle(screen, (255, 0, 0), 
+                                 (int(screen_pos.x), int(screen_pos.y)), 5)
+    
+        # Draw camera info
+        camera_text = font.render(
+            f"Camera: ({int(camera_offset.x)}, {int(camera_offset.y)})", 
+            True, (255, 255, 255))
+        screen.blit(camera_text, (10, y_offset))
     
         # Debug info
         print(f"Number of stations: {len(self.game.universe.stations)}")
@@ -195,3 +230,25 @@ class PausedState(State):
                 self.game.change_state(GameStates.PLAYING)
             elif event.key == pygame.K_q:
                 self.game.change_state(GameStates.MENU)
+
+class TradingState(State):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def render(self, screen):
+        # Render trading interface
+        pass
+        
+    def handle_input(self, event):
+        pass
+
+class GameOverState(State):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def render(self, screen):
+        # Render game over screen
+        pass
+        
+    def handle_input(self, event):
+        pass

@@ -17,6 +17,7 @@ class Ship:
         self.MAX_SPEED = 400
         self.ROTATION_SPEED = 180 # degrees per second
 
+        self.rotation_speed = 0  # Current rotation speed
         self.rotation = 0 # in degrees
         self.thrusting = False
         
@@ -123,22 +124,61 @@ class Ship:
         distance = distance_vec.length()
 
         # Define collision radius
-        collision_radius = self.size + other_object.size
+        collision_radius = self.size + other_object.size + self.COLLISION_BUFFER
         
         # Check for collision
         if distance < collision_radius:
-            # Calculate collision normal
+            # Added minimum separation to prevent oscillation
+            MIN_SEPARATION = 2.0
+
+            if hasattr(self, 'last_collision_time'):
+                if pygame.time.get_ticks() - self.last_collision_time < 100:  # 100ms cooldown
+                    return False
+
+            self.last_collision_time = pygame.time.get_ticks()
+
+            # Calculate normalized collision normal
             collision_normal = distance_vec.normalize()
+
+            # Calculate penetration depth
+            penetration = collision_radius - distance
         
-            # Calculate relative velocity
-            approach_speed = self.velocity.dot(collision_normal)
+
+            # Move ship out of collision 
+            self.position -= collision_normal * penetration
+
+            # Softer bounce with more dampening
+            bounce_factor = 0.15 # reduce this for softer bounces
+            speed = self.velocity.length
+
+            # Calculate reflection but maintain some forward momentum
+            reflection = self.velocity.reflect(collision_normal)
+            self.velocity = reflection * bounce_factor
+            
+            # Limit minimum and maximum bounce speed
+            if self.velocity.length() < self.MAX_SPEED * 0.5:
+                self.velocity.scale_to_length(self.MAX_SPEED * 0.5)
+            elif self.velocity.length() < 50:
+                self.velocity.scale_to_length(50)
+                
+            # Push objects apart with minimum separation
+            separation = (collision_radius - distance + MIN_SEPARATION) 
+            self.position -= collision_normal * separation
         
-            # Bounce with energy loss
-            self.velocity = self.velocity.reflect(collision_normal) * 0.5
+            # Dampen the reflection more
+            self.velocity = self.velocity.reflect(collision_normal) * 0.25
+            self.rotation_speed = 0  # Stop rotation on collision
         
-            # Push ship out of collision
-            overlap = collision_radius - distance
-            self.position -= collision_normal * overlap
+            # Add angular dampening
+            self.rotation_speed *= 0.5# Push objects apart with minimum separation
+            separation = (collision_radius - distance + MIN_SEPARATION) 
+            self.position -= collision_normal * separation
+        
+            # Dampen the reflection more
+            self.velocity = self.velocity.reflect(collision_normal) * 0.25
+        
+            # Add angular dampening
+            self.rotation_speed *= 0.5
         
             # Add some logging to debug
             print(f"Collision detected! Distance: {distance}, Radius: {collision_radius}")
@@ -148,7 +188,6 @@ class Ship:
             return True
         return False
 
-    # Add to Ship class:
     def check_docking(self, station):
         """Check if ship can dock with station, return tuple of (can_dock, distance)"""
         # Calculate distance to station
