@@ -82,6 +82,7 @@ def test_ship_screen_wrapping():
 
 def test_ship_collision_detection():
     ship = Ship(100, 100)
+    ship.velocity = Vector2(50, 0)  # Give ship some velocity to avoid zero-length vector
     station = Station(120, 120)  # Close to ship
     
     # Should detect collision
