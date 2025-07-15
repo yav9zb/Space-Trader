@@ -3,6 +3,10 @@ from enum import Enum, auto
 
 import pygame
 from src.docking.docking_state import DockingResult
+try:
+    from ..trading.commodity import commodity_registry
+except ImportError:
+    from trading.commodity import commodity_registry
 
 logger = logging.getLogger(__name__)
 
@@ -455,6 +459,10 @@ class PlayingState(State):
                 )
                 if result != DockingResult.SUCCESS:
                     logger.info(f"Docking failed: {result.value}")
+            elif event.key == pygame.K_t:  # Trading
+                if self.game.docking_manager.is_docked():
+                    station = self.game.docking_manager.get_target_station()
+                    self.game.change_state(GameStates.TRADING, station)
             elif event.key == pygame.K_u:  # Undocking
                 if self.game.docking_manager.is_docked():
                     result = self.game.docking_manager.attempt_undocking(self.game.ship)
@@ -488,18 +496,280 @@ class PausedState(State):
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state(GameStates.PLAYING)
             elif event.key == pygame.K_q:
-                self.game.change_state(GameStates.MENU)
+                self.game.change_state(GameStates.MAIN_MENU)
 
 class TradingState(State):
-    def __init__(self, game):
+    def __init__(self, game, station=None):
         super().__init__(game)
+        self.station = station
+        self.selected_commodity_index = 0
+        self.viewing_cargo = False  # False = station market, True = ship cargo
+        self.transaction_quantity = 1
+        self.message = ""
+        self.message_timer = 0
+        
+        # Get ship and market references
+        self.ship = game.ship
+        self.market = station.market if station else None
+        
+        # Get available commodities
+        self.available_commodities = self.market.get_available_commodities() if self.market else []
+        
+    def update(self, delta_time):
+        # Update message timer
+        if self.message_timer > 0:
+            self.message_timer -= delta_time
+            if self.message_timer <= 0:
+                self.message = ""
         
     def render(self, screen):
-        # Render trading interface
-        pass
+        # Clear screen with dark background
+        screen.fill((20, 20, 30))
+        
+        # Fonts
+        title_font = pygame.font.Font(None, 48)
+        header_font = pygame.font.Font(None, 36)
+        text_font = pygame.font.Font(None, 24)
+        small_font = pygame.font.Font(None, 20)
+        
+        # Screen dimensions
+        width, height = screen.get_size()
+        
+        # Title
+        station_name = self.station.name if self.station else "Unknown Station"
+        station_type = self.station.station_type.value if self.station else "Unknown"
+        title_text = f"TRADING - {station_name} ({station_type})"
+        title_surface = title_font.render(title_text, True, (255, 255, 255))
+        title_rect = title_surface.get_rect(centerx=width//2, y=20)
+        screen.blit(title_surface, title_rect)
+        
+        # Credits and cargo info
+        credits_text = f"Credits: {self.ship.credits:,}"
+        cargo_summary = self.ship.cargo_hold.get_cargo_summary()
+        cargo_text = f"Cargo: {cargo_summary}"
+        
+        credits_surface = text_font.render(credits_text, True, (255, 255, 0))
+        cargo_surface = text_font.render(cargo_text, True, (255, 255, 0))
+        
+        screen.blit(credits_surface, (20, 80))
+        screen.blit(cargo_surface, (width - cargo_surface.get_width() - 20, 80))
+        
+        # Divider line
+        pygame.draw.line(screen, (100, 100, 100), (0, 120), (width, 120), 2)
+        
+        # Split screen layout
+        left_width = width // 2 - 10
+        right_width = width // 2 - 10
+        content_y = 140
+        
+        # Left panel - Station Market
+        market_header = header_font.render("STATION MARKET", True, (200, 200, 200))
+        screen.blit(market_header, (20, content_y))
+        
+        # Right panel - Ship Cargo
+        cargo_header = header_font.render("YOUR CARGO", True, (200, 200, 200))
+        screen.blit(cargo_header, (width//2 + 20, content_y))
+        
+        # Market commodities list
+        self._render_market_list(screen, 20, content_y + 40, left_width, text_font, small_font)
+        
+        # Ship cargo list  
+        self._render_cargo_list(screen, width//2 + 20, content_y + 40, right_width, text_font, small_font)
+        
+        # Controls and instructions
+        self._render_controls(screen, height, small_font)
+        
+        # Transaction message
+        if self.message:
+            msg_surface = text_font.render(self.message, True, (255, 255, 0))
+            msg_rect = msg_surface.get_rect(centerx=width//2, y=height - 80)
+            screen.blit(msg_surface, msg_rect)
+    
+    def _render_market_list(self, screen, x, y, width, text_font, small_font):
+        """Render the station's market commodity list."""
+        if not self.market:
+            return
+            
+        current_y = y
+        line_height = 30
+        
+        for i, commodity in enumerate(self.available_commodities):
+            # Highlight selected item if viewing market
+            if not self.viewing_cargo and i == self.selected_commodity_index:
+                pygame.draw.rect(screen, (50, 50, 100), (x-5, current_y-5, width, line_height))
+            
+            # Commodity name
+            name_surface = text_font.render(commodity.name, True, (255, 255, 255))
+            screen.blit(name_surface, (x, current_y))
+            
+            # Prices
+            buy_price = self.market.get_buy_price(commodity.id)
+            sell_price = self.market.get_sell_price(commodity.id)
+            
+            price_text = f"Buy: {buy_price}  Sell: {sell_price}"
+            price_surface = small_font.render(price_text, True, (200, 200, 200))
+            screen.blit(price_surface, (x + 20, current_y + 18))
+            
+            current_y += line_height + 10
+    
+    def _render_cargo_list(self, screen, x, y, width, text_font, small_font):
+        """Render the ship's cargo list."""
+        current_y = y
+        line_height = 30
+        
+        cargo_items = self.ship.cargo_hold.get_cargo_items()
+        
+        if not cargo_items:
+            empty_surface = text_font.render("Cargo hold empty", True, (150, 150, 150))
+            screen.blit(empty_surface, (x, current_y))
+            return
+        
+        for i, (commodity, quantity) in enumerate(cargo_items):
+            # Highlight selected item if viewing cargo
+            if self.viewing_cargo and i == self.selected_commodity_index:
+                pygame.draw.rect(screen, (50, 100, 50), (x-5, current_y-5, width, line_height))
+            
+            # Commodity name and quantity
+            name_text = f"{commodity.name}"
+            quantity_text = f"x{quantity}"
+            
+            name_surface = text_font.render(name_text, True, (255, 255, 255))
+            quantity_surface = text_font.render(quantity_text, True, (200, 200, 200))
+            
+            screen.blit(name_surface, (x, current_y))
+            screen.blit(quantity_surface, (x + width - quantity_surface.get_width(), current_y))
+            
+            # Value
+            if self.market:
+                sell_price = self.market.get_sell_price(commodity.id)
+                if sell_price:
+                    value = sell_price * quantity
+                    value_text = f"Value: {value}"
+                    value_surface = small_font.render(value_text, True, (200, 200, 200))
+                    screen.blit(value_surface, (x + 20, current_y + 18))
+            
+            current_y += line_height + 10
+    
+    def _render_controls(self, screen, height, font):
+        """Render control instructions."""
+        controls = [
+            "ARROW KEYS: Navigate",
+            "TAB: Switch between Market/Cargo",
+            "B: Buy selected commodity",
+            "S: Sell selected commodity", 
+            "ESC: Exit trading"
+        ]
+        
+        current_y = height - 140
+        for control in controls:
+            surface = font.render(control, True, (180, 180, 180))
+            screen.blit(surface, (20, current_y))
+            current_y += 20
         
     def handle_input(self, event):
-        pass
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.game.change_state(GameStates.PLAYING)
+                
+            elif event.key == pygame.K_TAB:
+                self.viewing_cargo = not self.viewing_cargo
+                self.selected_commodity_index = 0
+                
+            elif event.key == pygame.K_UP:
+                self._move_selection(-1)
+                
+            elif event.key == pygame.K_DOWN:
+                self._move_selection(1)
+                
+            elif event.key == pygame.K_b:
+                self._attempt_buy()
+                
+            elif event.key == pygame.K_s:
+                self._attempt_sell()
+    
+    def _move_selection(self, direction):
+        """Move the selection cursor up or down."""
+        if self.viewing_cargo:
+            max_items = len(self.ship.cargo_hold.get_cargo_items())
+        else:
+            max_items = len(self.available_commodities)
+        
+        if max_items > 0:
+            self.selected_commodity_index = (self.selected_commodity_index + direction) % max_items
+    
+    def _attempt_buy(self):
+        """Attempt to buy the selected commodity from the station."""
+        if self.viewing_cargo or not self.available_commodities:
+            self._show_message("Select a commodity from the station market to buy")
+            return
+        
+        if self.selected_commodity_index >= len(self.available_commodities):
+            return
+            
+        commodity = self.available_commodities[self.selected_commodity_index]
+        buy_price = self.market.get_buy_price(commodity.id)
+        
+        # Check if player has enough credits
+        if self.ship.credits < buy_price:
+            self._show_message("Insufficient credits")
+            return
+            
+        # Check if ship has cargo space
+        if not self.ship.cargo_hold.can_add(commodity.id, 1):
+            self._show_message("Insufficient cargo space")
+            return
+            
+        # Check if station has stock
+        if not self.market.can_buy_from_station(commodity.id, 1):
+            self._show_message("Station out of stock")
+            return
+            
+        # Execute transaction
+        if self.market.buy_from_station(commodity.id, 1):
+            if self.ship.cargo_hold.add_cargo(commodity.id, 1):
+                self.ship.credits -= buy_price
+                self._show_message(f"Bought {commodity.name} for {buy_price} credits")
+            else:
+                # Rollback market transaction if cargo add failed
+                self.market.sell_to_station(commodity.id, 1)
+                self._show_message("Transaction failed - cargo error")
+        else:
+            self._show_message("Transaction failed")
+    
+    def _attempt_sell(self):
+        """Attempt to sell the selected commodity to the station."""
+        if not self.viewing_cargo:
+            self._show_message("Select a commodity from your cargo to sell")
+            return
+            
+        cargo_items = self.ship.cargo_hold.get_cargo_items()
+        if not cargo_items or self.selected_commodity_index >= len(cargo_items):
+            return
+            
+        commodity, quantity = cargo_items[self.selected_commodity_index]
+        sell_price = self.market.get_sell_price(commodity.id)
+        
+        # Check if station will buy this commodity
+        if not self.market.can_sell_to_station(commodity.id, 1):
+            self._show_message("Station not buying this commodity")
+            return
+        
+        # Execute transaction  
+        if self.ship.cargo_hold.remove_cargo(commodity.id, 1):
+            if self.market.sell_to_station(commodity.id, 1):
+                self.ship.credits += sell_price
+                self._show_message(f"Sold {commodity.name} for {sell_price} credits")
+            else:
+                # Rollback cargo transaction if market transaction failed
+                self.ship.cargo_hold.add_cargo(commodity.id, 1)
+                self._show_message("Transaction failed - market error")
+        else:
+            self._show_message("Transaction failed")
+    
+    def _show_message(self, message):
+        """Display a temporary message to the player."""
+        self.message = message
+        self.message_timer = 3.0  # Show for 3 seconds
 
 class GameOverState(State):
     def __init__(self, game):

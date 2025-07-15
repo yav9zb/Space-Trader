@@ -3,6 +3,11 @@ import math
 import pygame
 from pygame import Vector2
 
+try:
+    from ..trading.cargo import CargoHold
+except ImportError:
+    from trading.cargo import CargoHold
+
 
 class Ship:
     def __init__(self, x, y):
@@ -29,6 +34,10 @@ class Ship:
         self.points = [Vector2(0, -self.size), 
                       Vector2(-self.size/2, self.size/2),
                       Vector2(self.size/2, self.size/2)]
+        
+        # Trading system
+        self.cargo_hold = CargoHold(capacity=20)  # Starting ship has 20 cargo units
+        self.credits = 1000  # Starting credits
 
     def handle_input(self, delta_time):
         keys = pygame.key.get_pressed()

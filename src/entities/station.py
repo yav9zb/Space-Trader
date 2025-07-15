@@ -5,6 +5,9 @@ from enum import Enum
 import pygame
 from pygame import Vector2
 
+# Import StationMarket - handle circular import
+StationMarket = None
+
 
 class StationType(Enum):
     TRADING = "Trading Post"
@@ -35,6 +38,34 @@ class Station:
 
         # Generate the station's shape points
         self.shape_points = self._generate_shape()
+        
+        # Trading system - import here to avoid circular dependency
+        global StationMarket
+        if StationMarket is None:
+            try:
+                from ..trading.market import StationMarket
+                from ..trading.market import StationType as MarketStationType
+            except ImportError:
+                from trading.market import StationMarket
+                from trading.market import StationType as MarketStationType
+        else:
+            # Import the market station type for mapping
+            try:
+                from ..trading.market import StationType as MarketStationType
+            except ImportError:
+                from trading.market import StationType as MarketStationType
+        
+        # Map station type to market type
+        market_type_mapping = {
+            StationType.TRADING: MarketStationType.TRADING,
+            StationType.MILITARY: MarketStationType.MILITARY,
+            StationType.MINING: MarketStationType.MINING,
+            StationType.RESEARCH: MarketStationType.RESEARCH,
+            StationType.SHIPYARD: MarketStationType.SHIPYARD
+        }
+        
+        market_type = market_type_mapping.get(self.station_type, MarketStationType.TRADING)
+        self.market = StationMarket(market_type, self.name)
 
     def _get_size_for_type(self):
         """Get appropriate size range based on station type"""

@@ -90,12 +90,13 @@ class GameEngine:
         self._init_resources()
 
         # Initialize states
-        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState
+        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState
         self.states = {
             GameStates.MAIN_MENU: MenuState(self),
             GameStates.PLAYING: PlayingState(self),
             GameStates.PAUSED: PausedState(self),
-            GameStates.SETTINGS: SettingsState(self)
+            GameStates.SETTINGS: SettingsState(self),
+            GameStates.TRADING: None  # Will be created dynamically with station parameter
         }
         
         logger.info("GameEngine initialization complete")
@@ -137,19 +138,11 @@ class GameEngine:
             current_state = self.states[self.current_state]
             current_state.handle_input(event)
 
-            # Global key handling (ESC)
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
-                if self.current_state == GameStates.PLAYING:
-                    self.change_state(GameStates.PAUSED)
-                elif self.current_state == GameStates.PAUSED:
-                    self.change_state(GameStates.PLAYING)
-                else:
-                    self.running = False
-                
-            elif event.type == KEYDOWN:
+            # Handle other keys globally (ESC is handled by individual states)
+            if event.type == KEYDOWN and event.key != K_ESCAPE:
                 self._handle_keydown(event.key)
                 
-            elif event.type == MOUSEBUTTONDOWN:
+            if event.type == MOUSEBUTTONDOWN:
                 self._handle_mousedown(event.pos)
 
             # Debug controls
@@ -160,14 +153,6 @@ class GameEngine:
 
     def _handle_keydown(self, key: int) -> None:
         """Handle keyboard input based on game state"""
-        if key == K_ESCAPE:
-            if self.current_state == GameStates.PLAYING:
-                self.current_state = GameStates.PAUSED
-            elif self.current_state == GameStates.PAUSED:
-                self.current_state = GameStates.PLAYING
-            else:
-                self.running = False
-
         # Add more key handling based on game state
         if self.current_state == GameStates.PLAYING:
             self._handle_playing_keys(key)
@@ -317,7 +302,7 @@ class GameEngine:
         
         pygame.quit()
 
-    def change_state(self, new_state: GameStates) -> None:
+    def change_state(self, new_state: GameStates, station=None) -> None:
         """Safely change the game state"""
         logger.info(f"Changing game state from {self.current_state} to {new_state}")
     
@@ -331,8 +316,9 @@ class GameEngine:
     
         # Handle initialization of new state
         if new_state == GameStates.TRADING:
-            # Initialize market interface
-            pass
+            # Create trading state with station parameter
+            from src.states.game_state import TradingState
+            self.states[GameStates.TRADING] = TradingState(self, station)
         elif new_state == GameStates.PLAYING:
             # Resume game
             pass
