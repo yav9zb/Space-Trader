@@ -2,6 +2,7 @@ import logging
 from enum import Enum, auto
 
 import pygame
+from src.docking.docking_state import DockingResult
 
 logger = logging.getLogger(__name__)
 
@@ -230,9 +231,10 @@ class PlayingState(State):
         super().__init__(game)
 
     def update(self, delta_time):
-        # Handle ship movement
-        self.game.ship.handle_input(delta_time)
-        self.game.ship.update(delta_time)
+        # Handle ship movement only if not docked
+        if not self.game.docking_manager.is_docked():
+            self.game.ship.handle_input(delta_time)
+            self.game.ship.update(delta_time)
 
         # Update camera position to follow ship
         self.game.camera.follow(self.game.ship, delta_time)
@@ -240,20 +242,28 @@ class PlayingState(State):
         # Generate new chunks as ship moves
         self.game.universe.ensure_chunks_around_position(self.game.ship.position)
         
-        # Check collisions after movement
-        for station in self.game.universe.stations:
-            if self.game.ship.check_collision_detailed(station):
-                logger.info("Collision detected in PlayingState")
+        # Update docking system
+        self.game.docking_manager.update(
+            self.game.ship, 
+            self.game.universe.stations, 
+            delta_time
+        )
         
-        # Check planet collisions
-        for planet in self.game.universe.planets:
-            if self.game.ship.check_collision_detailed(planet):
-                logger.info("Planet collision detected in PlayingState")
-        
-        # Check debris collisions
-        for debris in self.game.universe.debris:
-            if self.game.ship.check_collision_detailed(debris):
-                logger.info("Debris collision detected in PlayingState")
+        # Check collisions after movement (only if not docking/docked)
+        if not self.game.docking_manager.is_docking_in_progress() and not self.game.docking_manager.is_docked():
+            for station in self.game.universe.stations:
+                if self.game.ship.check_collision_detailed(station):
+                    logger.info("Collision detected in PlayingState")
+            
+            # Check planet collisions
+            for planet in self.game.universe.planets:
+                if self.game.ship.check_collision_detailed(planet):
+                    logger.info("Planet collision detected in PlayingState")
+            
+            # Check debris collisions
+            for debris in self.game.universe.debris:
+                if self.game.ship.check_collision_detailed(debris):
+                    logger.info("Debris collision detected in PlayingState")
 
     def render(self, screen):
         """Render the playing state"""
@@ -288,20 +298,74 @@ class PlayingState(State):
             if (0 <= screen_pos.x <= self.game.WINDOW_SIZE[0] and 
                 0 <= screen_pos.y <= self.game.WINDOW_SIZE[1]):
                 station.draw(screen, camera_offset)
-            can_dock, distance = self.game.ship.check_docking(station)
-            if can_dock:
-                screen_pos = station.position - camera_offset
-                pygame.draw.circle(screen, (0, 255, 0),
+                
+                # Draw docking zones and feedback
+                self._draw_docking_feedback(screen, station, camera_offset)
+
+    def _draw_docking_feedback(self, screen, station, camera_offset):
+        """Draw docking zones and visual feedback for stations."""
+        screen_pos = station.position - camera_offset
+        docking_manager = self.game.docking_manager
+        
+        # Draw approach detection zone (light blue, dotted)
+        approach_radius = station.size + docking_manager.approach_detection_range
+        if docking_manager.get_docking_state().value in ['approaching', 'docking', 'docked']:
+            if docking_manager.get_target_station() == station:
+                pygame.draw.circle(screen, (100, 150, 255), 
                                  (int(screen_pos.x), int(screen_pos.y)),
-                                 station.size + 20,
-                                 1)
+                                 int(approach_radius), 2)
+        
+        # Draw docking zone
+        docking_radius = station.size + self.game.ship.size + docking_manager.docking_range_buffer
+        distance = (self.game.ship.position - station.position).length()
+        
+        # Color based on docking status
+        if distance <= docking_radius:
+            ship_speed = self.game.ship.velocity.length()
+            if ship_speed <= docking_manager.max_docking_speed:
+                # Green - can dock
+                zone_color = (0, 255, 0)
+                zone_width = 3
+            else:
+                # Yellow - too fast
+                zone_color = (255, 255, 0)
+                zone_width = 2
+        else:
+            # Red - too far
+            zone_color = (255, 100, 100)
+            zone_width = 1
             
-                # Optional: Draw distance indicator
-                font = pygame.font.Font(None, 24)
-                distance_text = font.render(f"Distance: {int(distance)}", True, (0, 255, 0))
-                screen.blit(distance_text, 
-                           (int(screen_pos.x - distance_text.get_width()/2),
-                            int(screen_pos.y - station.size - 30)))
+        # Only draw docking zone if approaching or nearby
+        if (distance <= approach_radius or 
+            docking_manager.get_target_station() == station):
+            pygame.draw.circle(screen, zone_color,
+                             (int(screen_pos.x), int(screen_pos.y)),
+                             int(docking_radius), zone_width)
+        
+        # Draw status text for target station
+        if docking_manager.get_target_station() == station:
+            font = pygame.font.Font(None, 24)
+            status_message = docking_manager.get_status_message()
+            if status_message:
+                text_surface = font.render(status_message, True, (255, 255, 255))
+                text_rect = text_surface.get_rect()
+                text_rect.centerx = int(screen_pos.x)
+                text_rect.y = int(screen_pos.y - station.size - 40)
+                
+                # Draw background for text
+                bg_rect = text_rect.inflate(10, 4)
+                pygame.draw.rect(screen, (0, 0, 0, 180), bg_rect)
+                screen.blit(text_surface, text_rect)
+                
+        # Draw docking state indicator
+        if docking_manager.is_docked() and docking_manager.get_target_station() == station:
+            # Draw "DOCKED" indicator
+            font = pygame.font.Font(None, 32)
+            docked_text = font.render("DOCKED", True, (0, 255, 0))
+            text_rect = docked_text.get_rect()
+            text_rect.centerx = int(screen_pos.x)
+            text_rect.y = int(screen_pos.y + station.size + 10)
+            screen.blit(docked_text, text_rect)
 
         # Draw all planets
         for planet in self.game.universe.planets:
@@ -335,10 +399,21 @@ class PlayingState(State):
 
         # Draw ship info
         ship_pos = self.game.ship.position
+        ship_speed = self.game.ship.velocity.length()
         ship_text = font.render(
-            f"Ship Pos: ({int(ship_pos.x)}, {int(ship_pos.y)})", 
+            f"Ship Pos: ({int(ship_pos.x)}, {int(ship_pos.y)}) Speed: {int(ship_speed)}", 
             True, (255, 255, 255))
         screen.blit(ship_text, (10, y_offset))
+        y_offset += 20
+        
+        # Draw docking info
+        docking_state = self.game.docking_manager.get_docking_state()
+        target_station = self.game.docking_manager.get_target_station()
+        docking_text = font.render(
+            f"Docking: {docking_state.value}" + 
+            (f" -> {target_station.name}" if target_station else ""), 
+            True, (255, 255, 255))
+        screen.blit(docking_text, (10, y_offset))
         y_offset += 20
 
     
@@ -373,6 +448,18 @@ class PlayingState(State):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state(GameStates.PAUSED)
+            elif event.key == pygame.K_d:  # Manual docking
+                result = self.game.docking_manager.attempt_manual_docking(
+                    self.game.ship, 
+                    self.game.universe.stations
+                )
+                if result != DockingResult.SUCCESS:
+                    logger.info(f"Docking failed: {result.value}")
+            elif event.key == pygame.K_u:  # Undocking
+                if self.game.docking_manager.is_docked():
+                    result = self.game.docking_manager.attempt_undocking(self.game.ship)
+                    if result != DockingResult.SUCCESS:
+                        logger.info(f"Undocking failed: {result.value}")
 
 class PausedState(State):
     def __init__(self, game):

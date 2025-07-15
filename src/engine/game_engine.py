@@ -5,8 +5,8 @@ from enum import Enum
 from pygame.locals import *
 from typing import Dict, Optional
 from src.camera import Camera
-
 from src.universe import Universe
+from src.docking.docking_manager import DockingManager
 
 from ..states.game_state import GameStates
 from ..entities.ship import Ship
@@ -51,6 +51,9 @@ class GameEngine:
         self.universe = Universe()
         self.universe.generate_universe()
         self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        
+        # Initialize docking system
+        self.docking_manager = DockingManager()
 
         # Game objects
         self.ship = Ship(400, 300)

@@ -14,9 +14,9 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Settings System**: Comprehensive settings with JSON persistence and in-game configuration
 - **Debug Mode**: Toggle-able debug overlay with performance metrics and object information
 - **Minimap**: Real-time minimap showing nearby objects and ship position
+- **Docking System**: Complete station docking with approach detection, visual feedback, and state management
 
 ### In Development 🚧
-- **Docking System**: Station docking with approach requirements and visual feedback
 - **Trading Interface**: Buy/sell commodities with dynamic market pricing
 - **Resource Management**: Fuel system and cargo capacity management
 
@@ -32,6 +32,8 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 
 ### Gameplay
 - **Arrow Keys**: Ship movement (Left/Right to rotate, Up to thrust, Down to brake)
+- **D**: Manual docking when near a station
+- **U**: Undock from current station
 - **ESC**: Pause game
 - **F3**: Toggle debug mode
 
@@ -147,7 +149,7 @@ space_trader/
 ### Phase 1: Core Trading (Current)
 - [x] Basic ship movement and physics
 - [x] Universe generation and camera system
-- [ ] Docking system implementation
+- [x] Docking system implementation
 - [ ] Basic trading interface
 - [ ] Resource management (fuel/cargo)
 

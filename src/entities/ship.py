@@ -134,7 +134,11 @@ class Ship:
             self.last_collision_time = pygame.time.get_ticks()
 
             # Calculate normalized collision normal
-            collision_normal = distance_vec.normalize()
+            if distance_vec.length() > 0:
+                collision_normal = distance_vec.normalize()
+            else:
+                # Objects are at same position - use default separation direction
+                collision_normal = Vector2(1, 0)
 
             # Calculate penetration depth
             penetration = collision_radius - distance
@@ -143,38 +147,21 @@ class Ship:
             # Move ship out of collision 
             self.position -= collision_normal * penetration
 
-            # Softer bounce with more dampening
-            bounce_factor = 0.15 # reduce this for softer bounces
-            speed = self.velocity.length
-
-            # Calculate reflection but maintain some forward momentum
-            reflection = self.velocity.reflect(collision_normal)
-            self.velocity = reflection * bounce_factor
-            
-            # Limit minimum and maximum bounce speed
-            if self.velocity.length() < self.MAX_SPEED * 0.5:
-                self.velocity.scale_to_length(self.MAX_SPEED * 0.5)
-            elif self.velocity.length() < 50:
-                self.velocity.scale_to_length(50)
-                
             # Push objects apart with minimum separation
             separation = (collision_radius - distance + MIN_SEPARATION) 
             self.position -= collision_normal * separation
-        
-            # Dampen the reflection more
-            self.velocity = self.velocity.reflect(collision_normal) * 0.25
-            self.rotation_speed = 0  # Stop rotation on collision
-        
-            # Add angular dampening
-            self.rotation_speed *= 0.5# Push objects apart with minimum separation
-            separation = (collision_radius - distance + MIN_SEPARATION) 
-            self.position -= collision_normal * separation
-        
-            # Dampen the reflection more
-            self.velocity = self.velocity.reflect(collision_normal) * 0.25
-        
-            # Add angular dampening
-            self.rotation_speed *= 0.5
+
+            # Handle velocity reflection
+            if self.velocity.length() > 0:
+                # Calculate reflection but maintain some forward momentum
+                reflection = self.velocity.reflect(collision_normal)
+                self.velocity = reflection * 0.25  # Dampen the reflection
+            else:
+                # If velocity is zero, give ship a small bounce in collision normal direction
+                self.velocity = collision_normal * 50
+            
+            # Stop rotation on collision
+            self.rotation_speed = 0
         
             # Add some logging to debug
             print(f"Collision detected! Distance: {distance}, Radius: {collision_radius}")
