@@ -87,11 +87,12 @@ class GameEngine:
         self._init_resources()
 
         # Initialize states
-        from src.states.game_state import MenuState, PlayingState, PausedState
+        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState
         self.states = {
             GameStates.MAIN_MENU: MenuState(self),
             GameStates.PLAYING: PlayingState(self),
-            GameStates.PAUSED: PausedState(self)
+            GameStates.PAUSED: PausedState(self),
+            GameStates.SETTINGS: SettingsState(self)
         }
         
         logger.info("GameEngine initialization complete")

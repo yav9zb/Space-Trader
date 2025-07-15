@@ -11,6 +11,7 @@ class GameStates(Enum):
     PLAYING = auto()
     PAUSED = auto()
     TRADING = auto()  # Added for market interface
+    SETTINGS = auto()  # Added for settings menu
     GAME_OVER = auto()
 
 class State:
@@ -30,7 +31,7 @@ class MenuState(State):
     def __init__(self, game):
         super().__init__(game)
         self.title = "Space Trading Simulator"
-        self.menu_options = ["Play", "Exit"]
+        self.menu_options = ["Play", "Settings", "Exit"]
         self.selected_option = 0
 
     def render(self, screen):
@@ -61,8 +62,168 @@ class MenuState(State):
             elif event.key == pygame.K_RETURN:
                 if self.selected_option == 0:  # Play
                     self.game.change_state(GameStates.PLAYING)
-                elif self.selected_option == 1:  # Exit
+                elif self.selected_option == 1:  # Settings
+                    self.game.change_state(GameStates.SETTINGS)
+                elif self.selected_option == 2:  # Exit
                     self.game.running = False
+
+class SettingsState(State):
+    def __init__(self, game):
+        super().__init__(game)
+        from ..settings import game_settings, CameraMode
+        self.settings = game_settings
+        self.title = "Settings"
+        self.categories = ["Camera", "Display", "Back"]
+        self.selected_category = 0
+        
+        # Camera settings options
+        self.camera_options = ["Camera Mode", "Smoothing", "Deadzone", "Back"]
+        self.selected_camera_option = 0
+        self.viewing_camera = False
+        
+    def render(self, screen):
+        screen.fill((0, 0, 20))  # Dark blue background
+        
+        # Draw title
+        title_font = pygame.font.Font(None, 64)
+        title = title_font.render(self.title, True, (255, 255, 255))
+        title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
+        screen.blit(title, title_rect)
+        
+        if not self.viewing_camera:
+            self._render_main_categories(screen)
+        else:
+            self._render_camera_settings(screen)
+    
+    def _render_main_categories(self, screen):
+        """Render main settings categories"""
+        option_font = pygame.font.Font(None, 48)
+        for i, category in enumerate(self.categories):
+            color = (255, 255, 0) if i == self.selected_category else (255, 255, 255)
+            text = option_font.render(category, True, color)
+            text_rect = text.get_rect(center=(screen.get_width() // 2, 200 + i * 60))
+            screen.blit(text, text_rect)
+    
+    def _render_camera_settings(self, screen):
+        """Render camera settings submenu"""
+        option_font = pygame.font.Font(None, 40)
+        small_font = pygame.font.Font(None, 28)
+        
+        # Draw camera settings title
+        subtitle = option_font.render("Camera Settings", True, (200, 200, 255))
+        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 150))
+        screen.blit(subtitle, subtitle_rect)
+        
+        y_offset = 220
+        for i, option in enumerate(self.camera_options):
+            color = (255, 255, 0) if i == self.selected_camera_option else (255, 255, 255)
+            
+            if option == "Camera Mode":
+                mode_text = f"Camera Mode: {self.settings.camera_mode.value}"
+                text = option_font.render(mode_text, True, color)
+                # Add description
+                desc = small_font.render(self.settings.get_camera_description(), True, (150, 150, 150))
+                desc_rect = desc.get_rect(center=(screen.get_width() // 2, y_offset + 25))
+                screen.blit(desc, desc_rect)
+                y_offset += 25
+                
+            elif option == "Smoothing":
+                if self.settings.camera_mode.name == "SMOOTH":
+                    smooth_text = f"Smoothing: {self.settings.camera_smoothing:.2f}"
+                    color = color if self.settings.camera_mode.name == "SMOOTH" else (100, 100, 100)
+                else:
+                    smooth_text = f"Smoothing: {self.settings.camera_smoothing:.2f} (N/A)"
+                    color = (100, 100, 100)
+                text = option_font.render(smooth_text, True, color)
+                
+            elif option == "Deadzone":
+                if self.settings.camera_mode.name == "DEADZONE":
+                    deadzone_text = f"Deadzone: {self.settings.camera_deadzone_radius}px"
+                    color = color if self.settings.camera_mode.name == "DEADZONE" else (100, 100, 100)
+                else:
+                    deadzone_text = f"Deadzone: {self.settings.camera_deadzone_radius}px (N/A)"
+                    color = (100, 100, 100)
+                text = option_font.render(deadzone_text, True, color)
+                
+            else:  # Back
+                text = option_font.render(option, True, color)
+            
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(text, text_rect)
+            y_offset += 60
+        
+        # Instructions
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = "Use LEFT/RIGHT to change values, ENTER to select, ESC to go back"
+        instr_text = instruction_font.render(instructions, True, (150, 150, 150))
+        instr_rect = instr_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 40))
+        screen.blit(instr_text, instr_rect)
+    
+    def handle_input(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                if self.viewing_camera:
+                    self.viewing_camera = False
+                else:
+                    self.game.change_state(GameStates.MAIN_MENU)
+            elif not self.viewing_camera:
+                self._handle_main_input(event)
+            else:
+                self._handle_camera_input(event)
+    
+    def _handle_main_input(self, event):
+        """Handle input for main settings categories"""
+        if event.key == pygame.K_UP:
+            self.selected_category = (self.selected_category - 1) % len(self.categories)
+        elif event.key == pygame.K_DOWN:
+            self.selected_category = (self.selected_category + 1) % len(self.categories)
+        elif event.key == pygame.K_RETURN:
+            if self.selected_category == 0:  # Camera
+                self.viewing_camera = True
+                self.selected_camera_option = 0
+            elif self.selected_category == 1:  # Display (future feature)
+                pass  # TODO: Implement display settings
+            elif self.selected_category == 2:  # Back
+                self.game.change_state(GameStates.MAIN_MENU)
+    
+    def _handle_camera_input(self, event):
+        """Handle input for camera settings"""
+        from ..settings import CameraMode
+        
+        if event.key == pygame.K_UP:
+            self.selected_camera_option = (self.selected_camera_option - 1) % len(self.camera_options)
+        elif event.key == pygame.K_DOWN:
+            self.selected_camera_option = (self.selected_camera_option + 1) % len(self.camera_options)
+        elif event.key == pygame.K_LEFT:
+            self._adjust_camera_setting(-1)
+        elif event.key == pygame.K_RIGHT:
+            self._adjust_camera_setting(1)
+        elif event.key == pygame.K_RETURN:
+            if self.selected_camera_option == 3:  # Back
+                self.viewing_camera = False
+    
+    def _adjust_camera_setting(self, direction):
+        """Adjust camera setting values"""
+        from ..settings import CameraMode
+        
+        if self.selected_camera_option == 0:  # Camera Mode
+            modes = list(CameraMode)
+            current_index = modes.index(self.settings.camera_mode)
+            new_index = (current_index + direction) % len(modes)
+            self.settings.camera_mode = modes[new_index]
+            self.settings.save()
+            
+        elif self.selected_camera_option == 1:  # Smoothing
+            if self.settings.camera_mode.name == "SMOOTH":
+                self.settings.camera_smoothing = max(0.01, min(1.0, 
+                    self.settings.camera_smoothing + direction * 0.05))
+                self.settings.save()
+                
+        elif self.selected_camera_option == 2:  # Deadzone
+            if self.settings.camera_mode.name == "DEADZONE":
+                self.settings.camera_deadzone_radius = max(10, min(200, 
+                    self.settings.camera_deadzone_radius + direction * 10))
+                self.settings.save()
 
 class PlayingState(State):
     def __init__(self, game):
@@ -74,7 +235,7 @@ class PlayingState(State):
         self.game.ship.update(delta_time)
 
         # Update camera position to follow ship
-        self.game.camera.follow(self.game.ship)
+        self.game.camera.follow(self.game.ship, delta_time)
         
         # Generate new chunks as ship moves
         self.game.universe.ensure_chunks_around_position(self.game.ship.position)

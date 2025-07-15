@@ -78,3 +78,130 @@
 2025-07-15 17:50:04,639 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
 2025-07-15 17:50:05,854 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-07-15 17:50:05,958 - src.main - INFO - Game terminated
+2025-07-15 18:14:32,946 - src.main - INFO - Starting Space Trading Simulator
+2025-07-15 18:14:32,946 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:14:33,528 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:14:33,528 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:14:33,528 - src.engine.game_engine - INFO - Starting game loop
+2025-07-15 18:14:36,491 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-15 18:14:47,157 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:14:51,637 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-15 18:14:51,637 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-15 18:14:52,164 - src.states.game_state - INFO - Planet collision detected in PlayingState
+2025-07-15 18:14:52,792 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-15 18:14:52,909 - src.main - INFO - Game terminated
+2025-07-15 18:17:43,562 - src.main - INFO - Starting Space Trading Simulator
+2025-07-15 18:17:43,562 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:17:44,117 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:17:44,118 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:17:44,118 - src.engine.game_engine - INFO - Starting game loop
+2025-07-15 18:17:45,458 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-15 18:18:26,122 - src.main - INFO - Starting Space Trading Simulator
+2025-07-15 18:18:26,122 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:18:26,680 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:18:26,680 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:18:26,681 - src.engine.game_engine - INFO - Starting game loop
+2025-07-15 18:18:27,570 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-15 18:18:40,507 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:18:43,678 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:18:43,947 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:18:44,186 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:18:44,474 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:18:48,047 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:18:50,778 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:18:56,182 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-15 18:19:08,132 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-15 18:19:08,240 - src.main - INFO - Game terminated
+2025-07-15 18:28:18,380 - src.main - INFO - Starting Space Trading Simulator
+2025-07-15 18:28:18,380 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:28:18,940 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:28:18,940 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:28:18,940 - src.engine.game_engine - INFO - Starting game loop
+2025-07-15 18:28:23,176 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.SETTINGS
+2025-07-15 18:31:46,753 - src.main - INFO - Starting Space Trading Simulator
+2025-07-15 18:31:46,753 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:31:47,314 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:31:47,314 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:31:47,314 - src.engine.game_engine - INFO - Starting game loop
+2025-07-15 18:31:48,923 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.SETTINGS
+2025-07-15 18:31:56,957 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-15 18:31:57,072 - src.main - INFO - Game terminated
+2025-07-15 18:32:19,978 - src.main - INFO - Starting Space Trading Simulator
+2025-07-15 18:32:19,978 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:32:20,544 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:32:20,544 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:32:20,544 - src.engine.game_engine - INFO - Starting game loop
+2025-07-15 18:32:22,012 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.SETTINGS
+2025-07-15 18:32:42,304 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.MAIN_MENU
+2025-07-15 18:32:43,731 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-15 18:32:43,738 - src.engine.game_engine - ERROR - Error in game loop: 'Camera' object has no attribute 'position1'
+2025-07-15 18:32:43,738 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-15 18:32:43,848 - src.main - ERROR - Fatal error: 'Camera' object has no attribute 'position1'
+2025-07-15 18:32:43,848 - src.main - INFO - Game terminated
+2025-07-15 18:36:18,493 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:36:19,055 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:36:19,055 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:36:42,039 - src.main - INFO - Starting Space Trading Simulator
+2025-07-15 18:36:42,039 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:36:42,602 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:36:42,602 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:36:42,602 - src.engine.game_engine - INFO - Starting game loop
+2025-07-15 18:36:43,379 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-15 18:36:52,525 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-15 18:36:52,525 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-15 18:36:53,103 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-15 18:36:53,104 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-15 18:37:08,640 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:37:18,387 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:19,792 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:20,013 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:20,537 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:20,757 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:20,995 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:21,233 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:21,471 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:21,726 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:34,283 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:37:39,494 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:40,850 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:43,085 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:44,401 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:50,301 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:37:50,709 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-15 18:37:50,710 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-15 18:37:52,347 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-15 18:37:52,457 - src.main - INFO - Game terminated
+2025-07-15 18:37:56,406 - src.main - INFO - Starting Space Trading Simulator
+2025-07-15 18:37:56,406 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-15 18:37:56,969 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-15 18:37:56,969 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-15 18:37:56,969 - src.engine.game_engine - INFO - Starting game loop
+2025-07-15 18:37:58,000 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.SETTINGS
+2025-07-15 18:38:11,197 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.MAIN_MENU
+2025-07-15 18:38:12,556 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-15 18:38:15,047 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:17,303 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:17,554 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:29,211 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:29,736 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:29,957 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:30,194 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:32,343 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:38:33,619 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:38:33,874 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:38:34,244 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:38:38,764 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-15 18:38:42,579 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:42,952 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:44,562 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:44,799 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:45,020 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:45,599 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-15 18:38:49,174 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:38:49,496 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:38:49,817 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:38:51,463 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-15 18:38:51,870 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-15 18:38:52,108 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-15 18:39:15,923 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-15 18:39:16,029 - src.main - INFO - Game terminated

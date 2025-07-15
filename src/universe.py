@@ -40,31 +40,62 @@ class Universe:
         # Use chunk coordinates as seed for consistent generation
         random.seed(hash(chunk_key))
         
+        # Keep track of placed objects to avoid overlapping
+        placed_objects = []
+        
         # Generate 1-2 stations per chunk
         num_stations = random.randint(1, 2)
         for _ in range(num_stations):
-            x = random.randint(chunk_start_x, chunk_start_x + self.sector_size)
-            y = random.randint(chunk_start_y, chunk_start_y + self.sector_size)
-            station = Station(x, y)
-            self.stations.append(station)
+            pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=100)
+            if pos:
+                station = Station(pos.x, pos.y)
+                self.stations.append(station)
+                placed_objects.append((pos, station.size))
             
         # Generate 0-1 planets per chunk
         num_planets = random.randint(0, 1)
         for _ in range(num_planets):
-            x = random.randint(chunk_start_x, chunk_start_x + self.sector_size)
-            y = random.randint(chunk_start_y, chunk_start_y + self.sector_size)
-            planet = Planet(x, y)
-            self.planets.append(planet)
+            pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=150)
+            if pos:
+                planet = Planet(pos.x, pos.y)
+                self.planets.append(planet)
+                placed_objects.append((pos, planet.size))
 
         # Generate debris
         num_debris = random.randint(10, 20)
         for _ in range(num_debris):
-            x = random.randint(chunk_start_x, chunk_start_x + self.sector_size)
-            y = random.randint(chunk_start_y, chunk_start_y + self.sector_size)
-            self.debris.append(Debris(x, y))
+            pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=20)
+            if pos:
+                debris = Debris(pos.x, pos.y)
+                self.debris.append(debris)
+                placed_objects.append((pos, debris.size))
         
         # Reset random seed
         random.seed()
+        
+    def _find_safe_position(self, chunk_start_x, chunk_start_y, chunk_size, placed_objects, min_distance=50, max_attempts=100):
+        """Find a position that doesn't overlap with existing objects"""
+        for _ in range(max_attempts):
+            # Generate random position within chunk bounds
+            x = random.randint(chunk_start_x, chunk_start_x + chunk_size)
+            y = random.randint(chunk_start_y, chunk_start_y + chunk_size)
+            candidate_pos = Vector2(x, y)
+            
+            # Check if position is safe (doesn't overlap with existing objects)
+            safe = True
+            for existing_pos, existing_size in placed_objects:
+                distance = (candidate_pos - existing_pos).length()
+                required_distance = min_distance + existing_size
+                
+                if distance < required_distance:
+                    safe = False
+                    break
+            
+            if safe:
+                return candidate_pos
+        
+        # If we couldn't find a safe position after max_attempts, return None
+        return None
         
     def ensure_chunks_around_position(self, position, radius=2000):
         """Ensure chunks are generated around the given position"""

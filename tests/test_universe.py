@@ -132,3 +132,49 @@ def test_generate_universe_backward_compatibility():
     
     # Should have generated some content
     assert len(universe.stations) > 0 or len(universe.planets) > 0 or len(universe.debris) > 0
+
+def test_collision_free_object_placement():
+    universe = Universe()
+    universe.generate_chunk_around_position(Vector2(500, 500))
+    
+    # Check that no stations overlap
+    for i, station1 in enumerate(universe.stations):
+        for j, station2 in enumerate(universe.stations):
+            if i != j:
+                distance = (station1.position - station2.position).length()
+                min_distance = station1.size + station2.size + 50  # Plus some buffer
+                assert distance >= min_distance, f"Stations too close: {distance} < {min_distance}"
+    
+    # Check that stations don't overlap with planets
+    for station in universe.stations:
+        for planet in universe.planets:
+            distance = (station.position - planet.position).length()
+            min_distance = station.size + planet.size + 50  # Plus some buffer
+            assert distance >= min_distance, f"Station and planet too close: {distance} < {min_distance}"
+
+def test_find_safe_position():
+    universe = Universe()
+    
+    # Test with empty placed_objects list
+    pos = universe._find_safe_position(0, 0, 1000, [], min_distance=50)
+    assert pos is not None
+    assert 0 <= pos.x <= 1000
+    assert 0 <= pos.y <= 1000
+    
+    # Test with existing objects
+    placed_objects = [(Vector2(500, 500), 30)]
+    pos = universe._find_safe_position(0, 0, 1000, placed_objects, min_distance=100)
+    
+    if pos:  # Position found
+        distance = (pos - Vector2(500, 500)).length()
+        assert distance >= 100 + 30  # min_distance + existing object size
+
+def test_safe_position_respects_boundaries():
+    universe = Universe()
+    
+    # Test that positions are within chunk boundaries
+    for _ in range(10):
+        pos = universe._find_safe_position(100, 200, 500, [], min_distance=50)
+        if pos:
+            assert 100 <= pos.x <= 600  # chunk_start_x to chunk_start_x + chunk_size
+            assert 200 <= pos.y <= 700  # chunk_start_y to chunk_start_y + chunk_size

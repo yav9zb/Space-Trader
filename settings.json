@@ -1,0 +1,14 @@
+{
+    "camera_mode": "DEADZONE",
+    "camera_smoothing": 0.10000000000000002,
+    "camera_deadzone_radius": 50,
+    "window_width": 800,
+    "window_height": 600,
+    "fullscreen": false,
+    "show_debug": false,
+    "master_volume": 0.8,
+    "sfx_volume": 0.8,
+    "music_volume": 0.6,
+    "invert_y": false,
+    "mouse_sensitivity": 1.0
+}
