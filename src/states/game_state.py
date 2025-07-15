@@ -76,10 +76,23 @@ class PlayingState(State):
         # Update camera position to follow ship
         self.game.camera.follow(self.game.ship)
         
+        # Generate new chunks as ship moves
+        self.game.universe.ensure_chunks_around_position(self.game.ship.position)
+        
         # Check collisions after movement
-        for station in self.game.stations:
+        for station in self.game.universe.stations:
             if self.game.ship.check_collision_detailed(station):
                 logger.info("Collision detected in PlayingState")
+        
+        # Check planet collisions
+        for planet in self.game.universe.planets:
+            if self.game.ship.check_collision_detailed(planet):
+                logger.info("Planet collision detected in PlayingState")
+        
+        # Check debris collisions
+        for debris in self.game.universe.debris:
+            if self.game.ship.check_collision_detailed(debris):
+                logger.info("Debris collision detected in PlayingState")
 
     def render(self, screen):
         """Render the playing state"""

@@ -10,36 +10,73 @@ class Universe:
         self.height = height
         self.sectors = {}  # Grid-based sector system
         self.sector_size = 1000  # Size of each sector
+        self.generated_chunks = set()  # Track which chunks have been generated
         
         # Initialize containers
         self.stations = []
         self.planets = []
-
-        # Generate the universe immediately
         self.debris = []
-        self.generate_universe()
         
     def generate_universe(self, num_stations=10, num_planets=5, num_debris=100):
-        """Generate the universe with stations and planets"""
-        # Generate stations
+        """Generate initial universe content - kept for backward compatibility"""
+        # Generate initial area around spawn point
+        self.generate_chunk_around_position(Vector2(500, 500))
+        
+    def generate_chunk_around_position(self, position):
+        """Generate content for the chunk containing the given position"""
+        chunk_x = int(position.x // self.sector_size)
+        chunk_y = int(position.y // self.sector_size)
+        chunk_key = (chunk_x, chunk_y)
+        
+        if chunk_key in self.generated_chunks:
+            return  # Already generated
+            
+        self.generated_chunks.add(chunk_key)
+        
+        # Generate content for this chunk
+        chunk_start_x = chunk_x * self.sector_size
+        chunk_start_y = chunk_y * self.sector_size
+        
+        # Use chunk coordinates as seed for consistent generation
+        random.seed(hash(chunk_key))
+        
+        # Generate 1-2 stations per chunk
+        num_stations = random.randint(1, 2)
         for _ in range(num_stations):
-            x = random.randint(0, self.width)
-            y = random.randint(0, self.height)
+            x = random.randint(chunk_start_x, chunk_start_x + self.sector_size)
+            y = random.randint(chunk_start_y, chunk_start_y + self.sector_size)
             station = Station(x, y)
             self.stations.append(station)
             
-        # Generate planets
+        # Generate 0-1 planets per chunk
+        num_planets = random.randint(0, 1)
         for _ in range(num_planets):
-            x = random.randint(0, self.width)
-            y = random.randint(0, self.height)
+            x = random.randint(chunk_start_x, chunk_start_x + self.sector_size)
+            y = random.randint(chunk_start_y, chunk_start_y + self.sector_size)
             planet = Planet(x, y)
             self.planets.append(planet)
 
         # Generate debris
+        num_debris = random.randint(10, 20)
         for _ in range(num_debris):
-            x = random.randint(0, self.width)
-            y = random.randint(0, self.height)
+            x = random.randint(chunk_start_x, chunk_start_x + self.sector_size)
+            y = random.randint(chunk_start_y, chunk_start_y + self.sector_size)
             self.debris.append(Debris(x, y))
+        
+        # Reset random seed
+        random.seed()
+        
+    def ensure_chunks_around_position(self, position, radius=2000):
+        """Ensure chunks are generated around the given position"""
+        chunk_x = int(position.x // self.sector_size)
+        chunk_y = int(position.y // self.sector_size)
+        chunk_radius = int(radius // self.sector_size) + 1
+        
+        for dx in range(-chunk_radius, chunk_radius + 1):
+            for dy in range(-chunk_radius, chunk_radius + 1):
+                chunk_pos = Vector2((chunk_x + dx) * self.sector_size + self.sector_size // 2,
+                                   (chunk_y + dy) * self.sector_size + self.sector_size // 2)
+                self.generate_chunk_around_position(chunk_pos)
 
     
     def update(self, delta_time):

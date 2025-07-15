@@ -16,6 +16,7 @@ class Ship:
         self.DRAG_COEFFICIENT = 0.99
         self.MAX_SPEED = 400
         self.ROTATION_SPEED = 180 # degrees per second
+        self.COLLISION_BUFFER = 5  # Additional buffer for collision detection
 
         self.rotation_speed = 0  # Current rotation speed
         self.rotation = 0 # in degrees
