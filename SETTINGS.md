@@ -48,6 +48,12 @@ The Space Trader game now includes a comprehensive settings system that allows p
 - **ENTER**: Select option
 - **ESC**: Return to main settings
 
+### Gameplay Controls (Coming Soon)
+- **D**: Manual docking when in range
+- **TAB**: Target nearest station
+- **SPACE**: Emergency brake for docking approach
+- **I**: Open inventory/cargo interface
+
 ## File Structure
 
 Settings are stored in `settings.json` in the game directory with the following structure:
@@ -73,10 +79,19 @@ Settings are stored in `settings.json` in the game directory with the following 
 
 The settings system is designed to be extensible. Planned additions include:
 
-- **Display Settings**: Resolution, fullscreen mode, graphics quality
-- **Audio Settings**: Volume controls, sound effects toggle
+### Docking System Settings (Next Update)
+- **Auto-Dock**: Automatically dock when approaching stations at safe speeds
+- **Docking Assist**: Visual and audio cues for successful docking approaches
+- **Docking Sensitivity**: Adjust speed and distance requirements for docking
+- **Confirmation Prompts**: Require confirmation before initiating docking sequence
+
+### Upcoming Settings Categories
+- **Display Settings**: Resolution, fullscreen mode, graphics quality, UI scaling
+- **Audio Settings**: Master volume, SFX volume, music volume, ambient sounds
 - **Control Settings**: Key bindings, mouse sensitivity, controller support
-- **Gameplay Settings**: Difficulty, tutorial mode, auto-save options
+- **Gameplay Settings**: Difficulty, tutorial mode, auto-save options, time acceleration
+- **Trading Settings**: Market refresh rates, price display preferences, transaction confirmations
+- **Performance Settings**: Frame rate limits, particle effects, rendering distance
 
 ## Implementation Details
 
