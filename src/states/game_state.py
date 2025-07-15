@@ -287,7 +287,7 @@ class PlayingState(State):
             # Only draw if on screen
             if (0 <= screen_pos.x <= self.game.WINDOW_SIZE[0] and 
                 0 <= screen_pos.y <= self.game.WINDOW_SIZE[1]):
-                station.draw(screen, screen_pos)
+                station.draw(screen, camera_offset)
             can_dock, distance = self.game.ship.check_docking(station)
             if can_dock:
                 screen_pos = station.position - camera_offset
@@ -311,10 +311,8 @@ class PlayingState(State):
         for debris in self.game.universe.debris:
             debris.draw(screen, camera_offset)
         
-        # Draw ship at center
-        ship_screen_pos = pygame.Vector2(self.game.WINDOW_SIZE[0]/2, 
-                                 self.game.WINDOW_SIZE[1]/2)
-        self.game.ship.draw(screen, ship_screen_pos)
+        # Draw ship
+        self.game.ship.draw(screen, camera_offset)
         
         # Draw minimap last (so it's on top)
         self.game.minimap.draw(screen, self.game.ship,

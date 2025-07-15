@@ -68,11 +68,6 @@ class Ship:
             
         # Update position
         self.position += self.velocity * delta_time
-        
-        # Screen wrapping
-        screen_width, screen_height = 800, 600
-        self.position.x = self.position.x % screen_width
-        self.position.y = self.position.y % screen_height
 
     def draw(self, screen, camera_offset):
         # Transform points based on position and rotation
@@ -81,7 +76,7 @@ class Ship:
         
         for point in self.points:
             rotated_point = point.rotate(self.rotation)
-            transformed_point = (rotated_point + self.position)
+            transformed_point = (rotated_point + screen_pos)
             transformed_points.append(transformed_point)
 
         # Draw the ship
@@ -98,15 +93,15 @@ class Ship:
             flame_transformed = []
             for point in flame_points:
                 rotated_point = point.rotate(self.rotation)
-                transformed_point = (rotated_point + self.position)
+                transformed_point = (rotated_point + screen_pos)
                 flame_transformed.append(transformed_point)
                 
             pygame.draw.polygon(screen, (255, 165, 0), flame_transformed)
 
         # Draw direction indicator (debug)
-        direction_end = self.position + self.heading * 30
+        direction_end = screen_pos + self.heading * 30
         pygame.draw.line(screen, (0, 255, 0), 
-                         self.position, 
+                         screen_pos, 
                          direction_end, 
                          2)
         
@@ -114,7 +109,7 @@ class Ship:
         if hasattr(self, 'in_collision'):
             color = (255, 0, 0) if self.in_collision else (0, 255, 0)
             pygame.draw.circle(screen, color, 
-                             (int(self.position.x), int(self.position.y)), 
+                             (int(screen_pos.x), int(screen_pos.y)), 
                              int(self.size), 
                              1)  # Draw ship's collision radius
 

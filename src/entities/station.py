@@ -114,18 +114,18 @@ class Station:
 
         # Draw the station
         pygame.draw.circle(screen, self.color, 
-                         (int(self.position.x), int(self.position.y)), 
+                         (int(screen_pos.x), int(screen_pos.y)), 
                          self.size)
         
         # Draw docking zone (slightly larger than staton)
         pygame.draw.circle(screen, (100, 100, 100), 
-                           (int(self.position.x), int(self.position.y)), 
+                           (int(screen_pos.x), int(screen_pos.y)), 
                            self.size + 10,
                            1)
         
         # Draw collision boundary
         pygame.draw.circle(screen, (255, 0, 0), 
-                     (int(self.position.x), int(self.position.y)), 
+                     (int(screen_pos.x), int(screen_pos.y)), 
                      self.size, 
                      1)  # Draw collision radius
         

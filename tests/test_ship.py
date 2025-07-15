@@ -72,13 +72,13 @@ def test_ship_drag():
     # Velocity should be reduced by drag
     assert ship.velocity.length() < initial_speed
 
-def test_ship_screen_wrapping():
-    ship = Ship(850, 650)  # Outside screen bounds
+def test_ship_no_screen_wrapping():
+    ship = Ship(850, 650)  # Outside typical screen bounds
     ship.update(0.1)
     
-    # Should wrap around screen
-    assert 0 <= ship.position.x <= 800
-    assert 0 <= ship.position.y <= 600
+    # Should NOT wrap around screen - ship can move freely in universe
+    assert ship.position.x == 850.0  # Position should remain unchanged without velocity
+    assert ship.position.y == 650.0
 
 def test_ship_collision_detection():
     ship = Ship(100, 100)
