@@ -137,3 +137,631 @@
 2025-07-16 13:45:29,005 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
 2025-07-16 13:45:30,506 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-07-16 13:45:31,143 - src.main - INFO - Game terminated
+2025-07-16 13:55:54,968 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 13:55:54,969 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 13:55:55,655 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 13:55:55,669 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 13:55:55,674 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 13:55:55,674 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 13:55:55,687 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:55:56,686 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 13:55:56,692 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:55:56,693 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:55:56,801 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:55:58,288 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:55:59,565 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 13:55:59,939 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 13:56:00,144 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 13:56:00,330 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 13:56:00,518 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 13:56:00,772 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 13:56:10,108 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:56:13,694 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:56:14,631 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:56:15,481 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:56:16,024 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:56:17,094 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:56:17,483 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:56:17,808 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:56:17,909 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:56:18,437 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:56:20,965 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:56:27,056 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:56:27,379 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:56:28,314 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:56:29,199 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:56:29,776 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:56:29,792 - src.docking.docking_manager - INFO - Initiating docking with Dock-986
+2025-07-16 13:56:29,792 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:56:31,797 - src.docking.docking_manager - INFO - Successfully docked at Dock-986
+2025-07-16 13:56:31,797 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:56:34,959 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:56:37,129 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:56:39,798 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 13:56:40,428 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 13:56:45,675 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:56:47,402 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:56:47,623 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 13:56:52,276 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 13:56:55,149 - src.docking.docking_manager - INFO - Initiating undocking from Dock-986
+2025-07-16 13:56:57,142 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:56:58,231 - src.states.game_state - INFO - Planet collision detected in PlayingState
+2025-07-16 13:57:09,854 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:57:10,449 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:57:12,694 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:57:12,916 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:57:15,429 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:57:15,445 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:57:17,539 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:19,119 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-16 13:57:20,154 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:20,274 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-16 13:57:20,715 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:20,971 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:21,124 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:21,294 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:21,464 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:21,620 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:21,772 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:21,940 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:22,110 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:22,279 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:22,449 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:22,602 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:22,771 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:22,958 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:23,146 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:23,368 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:57:23,368 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:57:23,384 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:57:23,401 - src.docking.docking_manager - INFO - Initiating docking with Market-647
+2025-07-16 13:57:23,401 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:57:23,827 - src.docking.docking_manager - INFO - Initiating docking with Market-647
+2025-07-16 13:57:25,814 - src.docking.docking_manager - INFO - Successfully docked at Market-647
+2025-07-16 13:57:25,814 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:57:27,105 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:57:28,684 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:57:30,399 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:57:31,110 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-16 13:57:32,115 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-16 13:57:32,842 - src.states.game_state - INFO - Station Market-647 does not offer upgrades
+2025-07-16 13:57:33,929 - src.states.game_state - INFO - Station Market-647 does not offer upgrades
+2025-07-16 13:57:34,508 - src.states.game_state - INFO - Station Market-647 does not offer upgrades
+2025-07-16 13:57:36,447 - src.states.game_state - INFO - Station Market-647 does not offer upgrades
+2025-07-16 13:57:36,651 - src.states.game_state - INFO - Station Market-647 does not offer upgrades
+2025-07-16 13:57:40,380 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-16 13:57:41,656 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-16 13:57:42,740 - src.docking.docking_manager - INFO - Initiating undocking from Market-647
+2025-07-16 13:57:44,728 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:57:45,119 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:57:45,630 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:57:47,670 - src.docking.docking_manager - INFO - Initiating docking with Institute-644
+2025-07-16 13:57:47,670 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:57:49,679 - src.docking.docking_manager - INFO - Successfully docked at Institute-644
+2025-07-16 13:57:49,679 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:57:50,257 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:57:52,280 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:57:54,031 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:57:54,746 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 13:57:57,434 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 13:57:57,770 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 13:57:58,174 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 13:57:59,281 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:58:00,029 - src.docking.docking_manager - INFO - Initiating undocking from Institute-644
+2025-07-16 13:58:02,016 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:58:02,356 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:58:03,053 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:58:03,070 - src.docking.docking_manager - INFO - Initiating docking with Center-867
+2025-07-16 13:58:03,070 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:58:05,077 - src.docking.docking_manager - INFO - Successfully docked at Center-867
+2025-07-16 13:58:05,077 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:58:05,367 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:58:06,183 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:58:06,691 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:58:07,943 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:58:09,251 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 13:58:10,427 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 13:58:20,587 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:58:21,656 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:58:22,131 - src.docking.docking_manager - INFO - Initiating undocking from Center-867
+2025-07-16 13:58:24,123 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:58:26,994 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:58:27,437 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:58:31,769 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:58:32,007 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:58:32,143 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:58:43,762 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:58:45,394 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-16 13:58:46,394 - src.states.game_state - INFO - Docking failed: too_fast
+2025-07-16 13:58:46,445 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:58:46,461 - src.docking.docking_manager - INFO - Initiating docking with Institute-876
+2025-07-16 13:58:46,461 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:58:48,468 - src.docking.docking_manager - INFO - Successfully docked at Institute-876
+2025-07-16 13:58:48,468 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:58:49,420 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:58:50,232 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:58:50,791 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 13:58:51,589 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 13:58:52,184 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 13:58:53,390 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 13:58:54,122 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:58:54,683 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:58:55,600 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 13:58:56,316 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 13:58:56,805 - src.docking.docking_manager - INFO - Initiating undocking from Institute-876
+2025-07-16 13:58:58,793 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:58:58,878 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:58:59,269 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:58:59,456 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:58:59,628 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:58:59,814 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:59:02,912 - src.states.game_state - INFO - Planet collision detected in PlayingState
+2025-07-16 13:59:03,677 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:59:04,102 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:59:05,426 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:59:06,666 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:59:07,227 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:59:07,244 - src.docking.docking_manager - INFO - Initiating docking with Exchange-298
+2025-07-16 13:59:07,244 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:59:09,244 - src.docking.docking_manager - INFO - Successfully docked at Exchange-298
+2025-07-16 13:59:09,244 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:59:10,659 - src.docking.docking_manager - INFO - Initiating undocking from Exchange-298
+2025-07-16 13:59:12,644 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:59:12,661 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:59:13,271 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:59:14,180 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:59:16,393 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:59:16,410 - src.docking.docking_manager - INFO - Initiating docking with Exchange-298
+2025-07-16 13:59:16,410 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:59:18,415 - src.docking.docking_manager - INFO - Successfully docked at Exchange-298
+2025-07-16 13:59:18,415 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:59:20,184 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:59:21,441 - src.states.game_state - INFO - Station Exchange-298 does not offer upgrades
+2025-07-16 13:59:22,239 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:59:24,613 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:59:25,052 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 13:59:27,550 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 13:59:28,324 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.LOAD_GAME
+2025-07-16 13:59:29,029 - src.save_system - INFO - Game loaded successfully from saves/Test 2.json
+2025-07-16 13:59:29,029 - src.engine.game_engine - INFO - Changing game state from GameStates.LOAD_GAME to GameStates.PLAYING
+2025-07-16 13:59:31,228 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:59:33,682 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 13:59:36,267 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:59:38,107 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:59:38,736 - src.states.game_state - INFO - Station Exchange-298 does not offer upgrades
+2025-07-16 13:59:41,084 - src.docking.docking_manager - INFO - Initiating undocking from Exchange-298
+2025-07-16 13:59:43,072 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:59:43,413 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:59:45,284 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:59:45,302 - src.docking.docking_manager - INFO - Initiating docking with Port-141
+2025-07-16 13:59:45,302 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:59:47,312 - src.docking.docking_manager - INFO - Successfully docked at Port-141
+2025-07-16 13:59:47,312 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:59:48,553 - src.docking.docking_manager - INFO - Initiating undocking from Port-141
+2025-07-16 13:59:50,545 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:59:50,851 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:59:51,616 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:59:51,633 - src.docking.docking_manager - INFO - Initiating docking with Port-141
+2025-07-16 13:59:51,633 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:59:53,641 - src.docking.docking_manager - INFO - Successfully docked at Port-141
+2025-07-16 13:59:53,641 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:59:53,998 - src.docking.docking_manager - INFO - Initiating undocking from Port-141
+2025-07-16 13:59:55,172 - src.docking.docking_manager - INFO - Initiating docking with Port-141
+2025-07-16 13:59:57,161 - src.docking.docking_manager - INFO - Successfully docked at Port-141
+2025-07-16 13:59:57,162 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:59:57,297 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:59:58,246 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:59:58,806 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 14:00:02,256 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 14:00:03,397 - src.docking.docking_manager - INFO - Initiating undocking from Port-141
+2025-07-16 14:00:05,389 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 14:00:06,425 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:00:06,831 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:00:06,848 - src.docking.docking_manager - INFO - Initiating docking with Dig-971
+2025-07-16 14:00:06,848 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 14:00:08,855 - src.docking.docking_manager - INFO - Successfully docked at Dig-971
+2025-07-16 14:00:08,855 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 14:00:09,315 - src.docking.docking_manager - INFO - Initiating undocking from Dig-971
+2025-07-16 14:00:11,235 - src.states.game_state - INFO - Docking failed: too_fast
+2025-07-16 14:00:11,302 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 14:00:11,303 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:00:11,319 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:00:12,867 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:00:12,885 - src.docking.docking_manager - INFO - Initiating docking with Dig-971
+2025-07-16 14:00:12,885 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 14:00:14,893 - src.docking.docking_manager - INFO - Successfully docked at Dig-971
+2025-07-16 14:00:14,893 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 14:00:15,742 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 14:00:17,333 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 14:00:19,067 - src.docking.docking_manager - INFO - Initiating undocking from Dig-971
+2025-07-16 14:00:21,058 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 14:00:31,523 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:00:33,001 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:00:35,282 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:00:35,298 - src.docking.docking_manager - INFO - Initiating docking with Dock-635
+2025-07-16 14:00:35,299 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 14:00:37,305 - src.docking.docking_manager - INFO - Successfully docked at Dock-635
+2025-07-16 14:00:37,305 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 14:00:38,221 - src.docking.docking_manager - INFO - Initiating undocking from Dock-635
+2025-07-16 14:00:40,210 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 14:00:40,227 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:00:40,530 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 14:00:41,350 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:00:42,078 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:00:42,095 - src.docking.docking_manager - INFO - Initiating docking with Dock-635
+2025-07-16 14:00:42,095 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 14:00:44,097 - src.docking.docking_manager - INFO - Successfully docked at Dock-635
+2025-07-16 14:00:44,097 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 14:00:44,929 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 14:00:46,782 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 14:00:47,579 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 14:00:53,702 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 14:00:55,334 - src.docking.docking_manager - INFO - Initiating undocking from Dock-635
+2025-07-16 14:00:57,321 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 14:00:58,928 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:00:59,166 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:00:59,693 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:00,456 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:00,915 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:01,884 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 14:01:12,324 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:13,126 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:13,448 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:13,635 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:17,257 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:20,319 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 14:01:25,609 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:01:25,830 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:01:27,071 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 14:01:27,241 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:01:28,176 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:01:28,193 - src.docking.docking_manager - INFO - Initiating docking with Quarry-973
+2025-07-16 14:01:28,193 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 14:01:28,841 - src.save_system - INFO - Game saved successfully to saves/autosave.json
+2025-07-16 14:01:28,841 - src.engine.game_engine - INFO - Auto-save completed successfully
+2025-07-16 14:01:30,210 - src.docking.docking_manager - INFO - Successfully docked at Quarry-973
+2025-07-16 14:01:30,210 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 14:01:30,550 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 14:01:31,570 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 14:01:33,455 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 14:01:33,676 - src.states.game_state - INFO - Station Quarry-973 does not offer upgrades
+2025-07-16 14:01:34,285 - src.states.game_state - INFO - Station Quarry-973 does not offer upgrades
+2025-07-16 14:01:34,556 - src.states.game_state - INFO - Station Quarry-973 does not offer upgrades
+2025-07-16 14:01:36,204 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-16 14:01:39,095 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-16 14:01:39,670 - src.docking.docking_manager - INFO - Initiating undocking from Quarry-973
+2025-07-16 14:01:41,658 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 14:01:42,609 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:01:46,280 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-16 14:01:47,011 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-16 14:01:48,509 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 14:01:50,193 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:01:51,028 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-16 14:01:51,554 - src.states.game_state - INFO - Docking failed: too_fast
+2025-07-16 14:01:51,656 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:01:51,674 - src.docking.docking_manager - INFO - Initiating docking with Lab-686
+2025-07-16 14:01:51,674 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 14:01:53,681 - src.docking.docking_manager - INFO - Successfully docked at Lab-686
+2025-07-16 14:01:53,681 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 14:01:54,702 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 14:01:55,433 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 14:01:55,842 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 14:01:56,795 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 14:01:57,985 - src.docking.docking_manager - INFO - Initiating undocking from Lab-686
+2025-07-16 14:01:59,974 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 14:01:59,991 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:02:00,263 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 14:02:02,185 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:02:02,591 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 14:02:02,660 - src.docking.docking_manager - INFO - Initiating docking with Lab-690
+2025-07-16 14:02:02,660 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 14:02:04,664 - src.docking.docking_manager - INFO - Successfully docked at Lab-690
+2025-07-16 14:02:04,664 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 14:02:04,971 - src.docking.docking_manager - INFO - Initiating undocking from Lab-690
+2025-07-16 14:02:06,964 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 14:02:06,981 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 14:02:09,840 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-16 14:02:11,999 - src.docking.docking_manager - INFO - Initiating docking with Lab-690
+2025-07-16 14:02:11,999 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 14:02:14,006 - src.docking.docking_manager - INFO - Successfully docked at Lab-690
+2025-07-16 14:02:14,006 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 14:02:14,312 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 14:02:14,992 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 14:02:15,315 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 14:02:17,798 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.SAVE_GAME
+2025-07-16 14:02:22,666 - src.save_system - INFO - Game saved successfully to saves/Test 2.json
+2025-07-16 14:02:26,007 - src.engine.game_engine - INFO - Changing game state from GameStates.SAVE_GAME to GameStates.PAUSED
+2025-07-16 14:02:26,362 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 14:02:26,735 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 14:02:27,741 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 14:02:28,770 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 14:02:29,393 - src.main - INFO - Game terminated
+2025-07-16 15:12:44,524 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 15:12:44,960 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 15:12:44,967 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 15:12:44,973 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 15:13:03,544 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 15:13:03,991 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 15:13:03,995 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 15:13:03,999 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 15:13:04,000 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 15:13:19,064 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 15:13:19,495 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 15:13:19,500 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 15:13:19,505 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 15:13:19,505 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 15:16:56,695 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 15:16:56,695 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 15:16:57,323 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 15:16:57,330 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 15:16:57,335 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 15:16:57,335 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 15:16:57,346 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 15:16:57,935 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 15:16:57,939 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:16:59,385 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 15:17:01,218 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:17:01,764 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:17:01,781 - src.docking.docking_manager - INFO - Initiating docking with Outpost-272
+2025-07-16 15:17:01,781 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:17:03,789 - src.docking.docking_manager - INFO - Successfully docked at Outpost-272
+2025-07-16 15:17:03,789 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:17:04,182 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:17:06,015 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:17:07,290 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 15:17:08,428 - src.docking.docking_manager - INFO - Initiating undocking from Outpost-272
+2025-07-16 15:17:10,415 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:17:11,283 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:17:11,742 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:17:11,759 - src.docking.docking_manager - INFO - Initiating docking with Exchange-201
+2025-07-16 15:17:11,759 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:17:13,763 - src.docking.docking_manager - INFO - Successfully docked at Exchange-201
+2025-07-16 15:17:13,763 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:17:13,899 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:17:16,177 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:17:17,469 - src.docking.docking_manager - INFO - Initiating undocking from Exchange-201
+2025-07-16 15:17:19,459 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:17:20,207 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:17:23,253 - src.docking.docking_manager - INFO - Initiating docking with Dock-943
+2025-07-16 15:17:23,253 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:17:25,259 - src.docking.docking_manager - INFO - Successfully docked at Dock-943
+2025-07-16 15:17:25,259 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:17:25,566 - src.docking.docking_manager - INFO - Initiating undocking from Dock-943
+2025-07-16 15:17:26,570 - src.docking.docking_manager - INFO - Initiating docking with Dock-943
+2025-07-16 15:17:28,558 - src.docking.docking_manager - INFO - Successfully docked at Dock-943
+2025-07-16 15:17:28,558 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:17:29,464 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:17:31,844 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:17:34,072 - src.docking.docking_manager - INFO - Initiating undocking from Dock-943
+2025-07-16 15:17:36,061 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:17:36,316 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:17:37,064 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:17:37,081 - src.docking.docking_manager - INFO - Initiating docking with Exchange-201
+2025-07-16 15:17:37,082 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:17:39,091 - src.docking.docking_manager - INFO - Successfully docked at Exchange-201
+2025-07-16 15:17:39,091 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:17:39,874 - src.docking.docking_manager - INFO - Initiating undocking from Exchange-201
+2025-07-16 15:17:41,863 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:17:41,863 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:17:42,187 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:17:45,439 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:17:46,558 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:17:47,645 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:17:47,661 - src.docking.docking_manager - INFO - Initiating docking with Port-590
+2025-07-16 15:17:47,661 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:17:49,670 - src.docking.docking_manager - INFO - Successfully docked at Port-590
+2025-07-16 15:17:49,670 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:17:50,010 - src.docking.docking_manager - INFO - Initiating undocking from Port-590
+2025-07-16 15:17:50,927 - src.docking.docking_manager - INFO - Initiating docking with Port-590
+2025-07-16 15:17:52,915 - src.docking.docking_manager - INFO - Successfully docked at Port-590
+2025-07-16 15:17:52,915 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:17:53,255 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:17:54,447 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:17:55,399 - src.docking.docking_manager - INFO - Initiating undocking from Port-590
+2025-07-16 15:17:57,391 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:18:01,883 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:18:02,494 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:18:02,511 - src.docking.docking_manager - INFO - Initiating docking with Trade-402
+2025-07-16 15:18:02,511 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:18:04,519 - src.docking.docking_manager - INFO - Successfully docked at Trade-402
+2025-07-16 15:18:04,519 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:18:04,826 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:18:06,149 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:18:06,914 - src.docking.docking_manager - INFO - Initiating undocking from Trade-402
+2025-07-16 15:18:08,901 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:18:11,674 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:18:12,885 - src.docking.docking_manager - INFO - Initiating docking with Institute-749
+2025-07-16 15:18:12,885 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:18:14,888 - src.docking.docking_manager - INFO - Successfully docked at Institute-749
+2025-07-16 15:18:14,888 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:18:14,990 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:18:16,925 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:18:18,182 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 15:18:19,204 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 15:18:19,783 - src.docking.docking_manager - INFO - Initiating undocking from Institute-749
+2025-07-16 15:18:21,771 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:18:28,216 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:18:29,098 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:18:29,115 - src.docking.docking_manager - INFO - Initiating docking with Lab-199
+2025-07-16 15:18:29,115 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:18:31,123 - src.docking.docking_manager - INFO - Successfully docked at Lab-199
+2025-07-16 15:18:31,123 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:18:31,344 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 15:18:31,957 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 15:18:32,708 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:18:33,641 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:18:34,220 - src.docking.docking_manager - INFO - Initiating undocking from Lab-199
+2025-07-16 15:18:36,213 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:18:36,213 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:18:36,230 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:18:36,247 - src.docking.docking_manager - INFO - Initiating docking with Lab-199
+2025-07-16 15:18:36,247 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:18:38,254 - src.docking.docking_manager - INFO - Successfully docked at Lab-199
+2025-07-16 15:18:38,255 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:18:38,969 - src.docking.docking_manager - INFO - Initiating undocking from Lab-199
+2025-07-16 15:18:40,956 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:18:42,295 - src.states.game_state - INFO - Planet collision detected in PlayingState
+2025-07-16 15:18:43,536 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 15:18:45,795 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 15:18:46,824 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 15:18:50,309 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:18:54,657 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:18:55,370 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:18:55,387 - src.docking.docking_manager - INFO - Initiating docking with Quarry-996
+2025-07-16 15:18:55,387 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:18:57,396 - src.docking.docking_manager - INFO - Successfully docked at Quarry-996
+2025-07-16 15:18:57,397 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:18:57,753 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-16 15:18:58,961 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:19:00,285 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:19:01,136 - src.states.game_state - INFO - Station Quarry-996 does not offer upgrades
+2025-07-16 15:19:02,087 - src.docking.docking_manager - INFO - Initiating undocking from Quarry-996
+2025-07-16 15:19:04,079 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:19:06,545 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:19:07,106 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:19:07,123 - src.docking.docking_manager - INFO - Initiating docking with Dig-795
+2025-07-16 15:19:07,123 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:19:09,129 - src.docking.docking_manager - INFO - Successfully docked at Dig-795
+2025-07-16 15:19:09,129 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:19:09,469 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:19:10,435 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:19:11,131 - src.docking.docking_manager - INFO - Initiating undocking from Dig-795
+2025-07-16 15:19:13,121 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:19:13,121 - src.states.game_state - INFO - Planet collision detected in PlayingState
+2025-07-16 15:19:14,519 - src.states.game_state - INFO - Planet collision detected in PlayingState
+2025-07-16 15:19:15,337 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:19:16,614 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:19:17,159 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:19:18,539 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:19:19,117 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:19:19,134 - src.docking.docking_manager - INFO - Initiating docking with Outpost-233
+2025-07-16 15:19:19,134 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:19:21,144 - src.docking.docking_manager - INFO - Successfully docked at Outpost-233
+2025-07-16 15:19:21,144 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:19:22,217 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:19:23,790 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:19:24,504 - src.docking.docking_manager - INFO - Initiating undocking from Outpost-233
+2025-07-16 15:19:26,496 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:19:28,009 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:19:28,877 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:19:29,558 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:19:29,574 - src.docking.docking_manager - INFO - Initiating docking with Port-331
+2025-07-16 15:19:29,575 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:19:31,581 - src.docking.docking_manager - INFO - Successfully docked at Port-331
+2025-07-16 15:19:31,581 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:19:32,755 - src.docking.docking_manager - INFO - Initiating undocking from Port-331
+2025-07-16 15:19:33,401 - src.docking.docking_manager - INFO - Initiating docking with Port-331
+2025-07-16 15:19:35,390 - src.docking.docking_manager - INFO - Successfully docked at Port-331
+2025-07-16 15:19:35,390 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:19:36,530 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 15:19:38,573 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 15:19:39,659 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:19:40,625 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:19:42,219 - src.docking.docking_manager - INFO - Initiating undocking from Port-331
+2025-07-16 15:19:44,208 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:19:53,435 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:19:54,185 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:19:54,202 - src.docking.docking_manager - INFO - Initiating docking with Lab-422
+2025-07-16 15:19:54,202 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:19:56,209 - src.docking.docking_manager - INFO - Successfully docked at Lab-422
+2025-07-16 15:19:56,209 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:19:57,077 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:19:58,455 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:19:59,084 - src.docking.docking_manager - INFO - Initiating undocking from Lab-422
+2025-07-16 15:20:01,077 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:20:02,758 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:20:02,979 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:20:04,610 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:20:04,626 - src.docking.docking_manager - INFO - Initiating docking with Market-516
+2025-07-16 15:20:04,626 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:20:06,635 - src.docking.docking_manager - INFO - Successfully docked at Market-516
+2025-07-16 15:20:06,635 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:20:07,010 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:20:08,436 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:20:09,557 - src.states.game_state - INFO - Station Market-516 does not offer upgrades
+2025-07-16 15:20:10,629 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 15:20:12,192 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 15:20:13,256 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 15:20:13,718 - src.main - INFO - Game terminated
+2025-07-16 15:20:17,281 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 15:20:17,281 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 15:20:17,884 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 15:20:17,891 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 15:20:17,896 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 15:20:17,896 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 15:20:17,907 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 15:20:18,604 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 15:20:18,611 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:20:20,527 - src.docking.docking_manager - INFO - Initiating docking with Base-520
+2025-07-16 15:20:20,527 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:20:22,534 - src.docking.docking_manager - INFO - Successfully docked at Base-520
+2025-07-16 15:20:22,534 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:20:23,131 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:20:26,223 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:20:27,445 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:20:27,921 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:20:28,805 - src.docking.docking_manager - INFO - Initiating undocking from Base-520
+2025-07-16 15:20:30,794 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:20:30,794 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:20:30,811 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:20:31,118 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:20:31,135 - src.docking.docking_manager - INFO - Initiating docking with Base-520
+2025-07-16 15:20:31,135 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:20:33,139 - src.docking.docking_manager - INFO - Successfully docked at Base-520
+2025-07-16 15:20:33,139 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:20:33,448 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:20:34,314 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:20:54,217 - src.docking.docking_manager - INFO - Initiating undocking from Base-520
+2025-07-16 15:20:56,207 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:20:57,006 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:20:58,718 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:20:59,399 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:20:59,417 - src.docking.docking_manager - INFO - Initiating docking with Institute-521
+2025-07-16 15:20:59,417 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:21:01,425 - src.docking.docking_manager - INFO - Successfully docked at Institute-521
+2025-07-16 15:21:01,425 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:21:01,884 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:21:02,732 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:21:03,206 - src.docking.docking_manager - INFO - Initiating undocking from Institute-521
+2025-07-16 15:21:05,196 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:21:10,854 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:21:12,048 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 15:21:12,607 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:21:14,516 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:21:14,532 - src.docking.docking_manager - INFO - Initiating docking with Base-336
+2025-07-16 15:21:14,532 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:21:16,538 - src.docking.docking_manager - INFO - Successfully docked at Base-336
+2025-07-16 15:21:16,539 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:21:18,033 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:21:19,829 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:21:20,374 - src.docking.docking_manager - INFO - Initiating undocking from Base-336
+2025-07-16 15:21:22,362 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:21:26,553 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:21:27,369 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:21:27,387 - src.docking.docking_manager - INFO - Initiating docking with Base-802
+2025-07-16 15:21:27,387 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:21:29,395 - src.docking.docking_manager - INFO - Successfully docked at Base-802
+2025-07-16 15:21:29,396 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:21:29,787 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:21:31,599 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:21:32,381 - src.docking.docking_manager - INFO - Initiating undocking from Base-802
+2025-07-16 15:21:34,370 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 15:21:34,965 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 15:21:38,789 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:21:39,759 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 15:21:41,969 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 15:21:43,106 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 15:21:43,124 - src.docking.docking_manager - INFO - Initiating docking with Dig-720
+2025-07-16 15:21:43,124 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 15:21:45,129 - src.docking.docking_manager - INFO - Successfully docked at Dig-720
+2025-07-16 15:21:45,129 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 15:21:45,469 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 15:21:46,892 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 15:21:47,112 - src.states.game_state - INFO - Station Dig-720 does not offer upgrades
+2025-07-16 15:21:48,268 - src.states.game_state - INFO - Station Dig-720 does not offer upgrades
+2025-07-16 15:21:48,743 - src.states.game_state - INFO - Station Dig-720 does not offer upgrades
+2025-07-16 15:21:49,051 - src.states.game_state - INFO - Station Dig-720 does not offer upgrades
+2025-07-16 15:21:51,752 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 15:21:52,891 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 15:21:54,368 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 15:21:54,826 - src.main - INFO - Game terminated
