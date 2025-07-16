@@ -1,5 +1,6 @@
 import json
 import os
+import pygame
 from enum import Enum
 from pygame import Vector2
 
@@ -7,6 +8,40 @@ class CameraMode(Enum):
     CENTERED = "Centered"
     SMOOTH = "Smooth"
     DEADZONE = "Deadzone"
+
+
+class DisplayMode(Enum):
+    WINDOWED = "Windowed"
+    FULLSCREEN = "Fullscreen"
+    BORDERLESS = "Borderless Fullscreen"
+
+
+def get_available_resolutions():
+    """Get list of available screen resolutions."""
+    try:
+        pygame.display.init()
+        modes = pygame.display.list_modes()
+        if modes == -1:  # All modes supported
+            # Return common resolutions
+            return [(1920, 1080), (1680, 1050), (1600, 900), (1440, 900), 
+                   (1366, 768), (1280, 720), (1024, 768), (800, 600)]
+        else:
+            # Filter for reasonable resolutions (minimum 800x600)
+            return [mode for mode in modes if mode[0] >= 800 and mode[1] >= 600]
+    except:
+        # Fallback resolutions
+        return [(1920, 1080), (1680, 1050), (1600, 900), (1440, 900), 
+               (1366, 768), (1280, 720), (1024, 768), (800, 600)]
+
+
+def get_desktop_resolution():
+    """Get the desktop resolution."""
+    try:
+        pygame.display.init()
+        info = pygame.display.Info()
+        return (info.current_w, info.current_h)
+    except:
+        return (1920, 1080)  # Fallback
 
 class Settings:
     def __init__(self):
@@ -16,10 +51,25 @@ class Settings:
         self.camera_deadzone_radius = 50  # For deadzone camera mode
         
         # Display settings
-        self.window_width = 800
-        self.window_height = 600
-        self.fullscreen = False
+        desktop_res = get_desktop_resolution()
+        self.window_width = min(1280, desktop_res[0])  # Default to 1280 or desktop width
+        self.window_height = min(720, desktop_res[1])   # Default to 720 or desktop height
+        self.display_mode = DisplayMode.WINDOWED
+        self.vsync = True
+        self.show_fps = False
         self.show_debug = False
+        self.hud_scale = 1.0  # HUD scaling factor
+        
+        # Dev View settings
+        self.dev_view_enabled = False
+        self.dev_show_fps = True
+        self.dev_show_ship_pos = True
+        self.dev_show_docking = True
+        self.dev_show_stations = True
+        self.dev_show_camera = True
+        
+        # Available resolutions for settings menu
+        self.available_resolutions = get_available_resolutions()
         
         # Audio settings (for future use)
         self.master_volume = 0.8
@@ -41,13 +91,22 @@ class Settings:
             "camera_deadzone_radius": self.camera_deadzone_radius,
             "window_width": self.window_width,
             "window_height": self.window_height,
-            "fullscreen": self.fullscreen,
+            "display_mode": self.display_mode.name,
+            "vsync": self.vsync,
+            "show_fps": self.show_fps,
             "show_debug": self.show_debug,
+            "hud_scale": self.hud_scale,
             "master_volume": self.master_volume,
             "sfx_volume": self.sfx_volume,
             "music_volume": self.music_volume,
             "invert_y": self.invert_y,
-            "mouse_sensitivity": self.mouse_sensitivity
+            "mouse_sensitivity": self.mouse_sensitivity,
+            "dev_view_enabled": self.dev_view_enabled,
+            "dev_show_fps": self.dev_show_fps,
+            "dev_show_ship_pos": self.dev_show_ship_pos,
+            "dev_show_docking": self.dev_show_docking,
+            "dev_show_stations": self.dev_show_stations,
+            "dev_show_camera": self.dev_show_camera
         }
         
         try:
@@ -76,10 +135,24 @@ class Settings:
             self.camera_deadzone_radius = settings_dict.get("camera_deadzone_radius", 50)
             
             # Load display settings
-            self.window_width = settings_dict.get("window_width", 800)
-            self.window_height = settings_dict.get("window_height", 600)
-            self.fullscreen = settings_dict.get("fullscreen", False)
+            desktop_res = get_desktop_resolution()
+            self.window_width = settings_dict.get("window_width", min(1280, desktop_res[0]))
+            self.window_height = settings_dict.get("window_height", min(720, desktop_res[1]))
+            
+            # Handle legacy fullscreen setting
+            if "fullscreen" in settings_dict and settings_dict["fullscreen"]:
+                self.display_mode = DisplayMode.FULLSCREEN
+            else:
+                display_mode_name = settings_dict.get("display_mode", "WINDOWED")
+                try:
+                    self.display_mode = DisplayMode[display_mode_name]
+                except KeyError:
+                    self.display_mode = DisplayMode.WINDOWED
+            
+            self.vsync = settings_dict.get("vsync", True)
+            self.show_fps = settings_dict.get("show_fps", False)
             self.show_debug = settings_dict.get("show_debug", False)
+            self.hud_scale = settings_dict.get("hud_scale", 1.0)
             
             # Load audio settings
             self.master_volume = settings_dict.get("master_volume", 0.8)
@@ -89,6 +162,14 @@ class Settings:
             # Load control settings
             self.invert_y = settings_dict.get("invert_y", False)
             self.mouse_sensitivity = settings_dict.get("mouse_sensitivity", 1.0)
+            
+            # Load dev view settings
+            self.dev_view_enabled = settings_dict.get("dev_view_enabled", False)
+            self.dev_show_fps = settings_dict.get("dev_show_fps", True)
+            self.dev_show_ship_pos = settings_dict.get("dev_show_ship_pos", True)
+            self.dev_show_docking = settings_dict.get("dev_show_docking", True)
+            self.dev_show_stations = settings_dict.get("dev_show_stations", True)
+            self.dev_show_camera = settings_dict.get("dev_show_camera", True)
             
         except Exception as e:
             print(f"Failed to load settings: {e}")
@@ -102,6 +183,58 @@ class Settings:
             CameraMode.DEADZONE: "Camera only moves when ship leaves center area"
         }
         return descriptions.get(self.camera_mode, "Unknown camera mode")
+    
+    def get_display_mode_description(self):
+        """Get description of current display mode"""
+        descriptions = {
+            DisplayMode.WINDOWED: "Run in a window",
+            DisplayMode.FULLSCREEN: "Run in exclusive fullscreen mode",
+            DisplayMode.BORDERLESS: "Run fullscreen without window borders"
+        }
+        return descriptions.get(self.display_mode, "Unknown display mode")
+    
+    def apply_display_settings(self, screen):
+        """Apply current display settings to the screen."""
+        flags = 0
+        
+        if self.display_mode == DisplayMode.FULLSCREEN:
+            flags |= pygame.FULLSCREEN
+        elif self.display_mode == DisplayMode.BORDERLESS:
+            flags |= pygame.NOFRAME
+        
+        if self.vsync:
+            flags |= pygame.DOUBLEBUF
+        
+        try:
+            if self.display_mode == DisplayMode.BORDERLESS:
+                # For borderless, use desktop resolution
+                desktop_res = get_desktop_resolution()
+                new_screen = pygame.display.set_mode(desktop_res, flags)
+            else:
+                new_screen = pygame.display.set_mode((self.window_width, self.window_height), flags)
+            
+            return new_screen
+        except pygame.error as e:
+            print(f"Failed to set display mode: {e}")
+            # Fallback to windowed mode
+            self.display_mode = DisplayMode.WINDOWED
+            return pygame.display.set_mode((self.window_width, self.window_height))
+    
+    def get_resolution_string(self):
+        """Get current resolution as a string."""
+        return f"{self.window_width}x{self.window_height}"
+    
+    def set_resolution(self, width, height):
+        """Set window resolution."""
+        self.window_width = width
+        self.window_height = height
+    
+    def toggle_fullscreen(self):
+        """Toggle between windowed and fullscreen."""
+        if self.display_mode == DisplayMode.WINDOWED:
+            self.display_mode = DisplayMode.FULLSCREEN
+        else:
+            self.display_mode = DisplayMode.WINDOWED
 
 # Global settings instance
 game_settings = Settings()

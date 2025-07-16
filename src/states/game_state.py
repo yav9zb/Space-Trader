@@ -84,13 +84,18 @@ class SettingsState(State):
         from ..settings import game_settings, CameraMode
         self.settings = game_settings
         self.title = "Settings"
-        self.categories = ["Camera", "Display", "Back"]
+        self.categories = ["Camera", "Display", "Dev View", "Back"]
         self.selected_category = 0
         
         # Camera settings options
         self.camera_options = ["Camera Mode", "Smoothing", "Deadzone", "Back"]
         self.selected_camera_option = 0
         self.viewing_camera = False
+        
+        # Dev view settings options
+        self.dev_options = ["Enable Dev View", "Show FPS", "Show Ship Pos", "Show Docking", "Show Stations", "Show Camera", "Back"]
+        self.selected_dev_option = 0
+        self.viewing_dev = False
         
     def render(self, screen):
         screen.fill((0, 0, 20))  # Dark blue background
@@ -101,10 +106,12 @@ class SettingsState(State):
         title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
         screen.blit(title, title_rect)
         
-        if not self.viewing_camera:
+        if not self.viewing_camera and not self.viewing_dev:
             self._render_main_categories(screen)
-        else:
+        elif self.viewing_camera:
             self._render_camera_settings(screen)
+        elif self.viewing_dev:
+            self._render_dev_settings(screen)
     
     def _render_main_categories(self, screen):
         """Render main settings categories"""
@@ -175,12 +182,16 @@ class SettingsState(State):
             if event.key == pygame.K_ESCAPE:
                 if self.viewing_camera:
                     self.viewing_camera = False
+                elif self.viewing_dev:
+                    self.viewing_dev = False
                 else:
                     self.game.change_state(GameStates.MAIN_MENU)
-            elif not self.viewing_camera:
+            elif not self.viewing_camera and not self.viewing_dev:
                 self._handle_main_input(event)
-            else:
+            elif self.viewing_camera:
                 self._handle_camera_input(event)
+            elif self.viewing_dev:
+                self._handle_dev_input(event)
     
     def _handle_main_input(self, event):
         """Handle input for main settings categories"""
@@ -194,7 +205,10 @@ class SettingsState(State):
                 self.selected_camera_option = 0
             elif self.selected_category == 1:  # Display (future feature)
                 pass  # TODO: Implement display settings
-            elif self.selected_category == 2:  # Back
+            elif self.selected_category == 2:  # Dev View
+                self.viewing_dev = True
+                self.selected_dev_option = 0
+            elif self.selected_category == 3:  # Back
                 self.game.change_state(GameStates.MAIN_MENU)
     
     def _handle_camera_input(self, event):
@@ -235,10 +249,104 @@ class SettingsState(State):
                 self.settings.camera_deadzone_radius = max(10, min(200, 
                     self.settings.camera_deadzone_radius + direction * 10))
                 self.settings.save()
+    
+    def _render_dev_settings(self, screen):
+        """Render dev view settings submenu"""
+        option_font = pygame.font.Font(None, 40)
+        small_font = pygame.font.Font(None, 28)
+        
+        # Draw dev settings title
+        subtitle = option_font.render("Dev View Settings", True, (200, 200, 255))
+        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 150))
+        screen.blit(subtitle, subtitle_rect)
+        
+        y_offset = 220
+        for i, option in enumerate(self.dev_options):
+            color = (255, 255, 0) if i == self.selected_dev_option else (255, 255, 255)
+            
+            if option == "Enable Dev View":
+                dev_text = f"Enable Dev View: {'ON' if self.settings.dev_view_enabled else 'OFF'}"
+                text = option_font.render(dev_text, True, color)
+            elif option == "Show FPS":
+                fps_text = f"Show FPS: {'ON' if self.settings.dev_show_fps else 'OFF'}"
+                enabled_color = color if self.settings.dev_view_enabled else (100, 100, 100)
+                text = option_font.render(fps_text, True, enabled_color)
+            elif option == "Show Ship Pos":
+                ship_text = f"Show Ship Position: {'ON' if self.settings.dev_show_ship_pos else 'OFF'}"
+                enabled_color = color if self.settings.dev_view_enabled else (100, 100, 100)
+                text = option_font.render(ship_text, True, enabled_color)
+            elif option == "Show Docking":
+                dock_text = f"Show Docking: {'ON' if self.settings.dev_show_docking else 'OFF'}"
+                enabled_color = color if self.settings.dev_view_enabled else (100, 100, 100)
+                text = option_font.render(dock_text, True, enabled_color)
+            elif option == "Show Stations":
+                station_text = f"Show Stations: {'ON' if self.settings.dev_show_stations else 'OFF'}"
+                enabled_color = color if self.settings.dev_view_enabled else (100, 100, 100)
+                text = option_font.render(station_text, True, enabled_color)
+            elif option == "Show Camera":
+                camera_text = f"Show Camera: {'ON' if self.settings.dev_show_camera else 'OFF'}"
+                enabled_color = color if self.settings.dev_view_enabled else (100, 100, 100)
+                text = option_font.render(camera_text, True, enabled_color)
+            else:  # Back
+                text = option_font.render(option, True, color)
+            
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(text, text_rect)
+            y_offset += 50
+        
+        # Instructions
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = "Use LEFT/RIGHT to toggle, ENTER to select, ESC to go back"
+        instr_text = instruction_font.render(instructions, True, (150, 150, 150))
+        instr_rect = instr_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 40))
+        screen.blit(instr_text, instr_rect)
+        
+        # Dev view status
+        if self.settings.dev_view_enabled:
+            status_text = "Press F4 in-game to toggle Dev View"
+            status_surface = small_font.render(status_text, True, (150, 255, 150))
+            status_rect = status_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() - 70))
+            screen.blit(status_surface, status_rect)
+    
+    def _handle_dev_input(self, event):
+        """Handle input for dev view settings"""
+        if event.key == pygame.K_UP:
+            self.selected_dev_option = (self.selected_dev_option - 1) % len(self.dev_options)
+        elif event.key == pygame.K_DOWN:
+            self.selected_dev_option = (self.selected_dev_option + 1) % len(self.dev_options)
+        elif event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+            self._toggle_dev_setting()
+        elif event.key == pygame.K_RETURN:
+            if self.selected_dev_option == len(self.dev_options) - 1:  # Back
+                self.viewing_dev = False
+            else:
+                self._toggle_dev_setting()
+    
+    def _toggle_dev_setting(self):
+        """Toggle the selected dev view setting"""
+        if self.selected_dev_option == 0:  # Enable Dev View
+            self.settings.dev_view_enabled = not self.settings.dev_view_enabled
+        elif self.selected_dev_option == 1 and self.settings.dev_view_enabled:  # Show FPS
+            self.settings.dev_show_fps = not self.settings.dev_show_fps
+        elif self.selected_dev_option == 2 and self.settings.dev_view_enabled:  # Show Ship Pos
+            self.settings.dev_show_ship_pos = not self.settings.dev_show_ship_pos
+        elif self.selected_dev_option == 3 and self.settings.dev_view_enabled:  # Show Docking
+            self.settings.dev_show_docking = not self.settings.dev_show_docking
+        elif self.selected_dev_option == 4 and self.settings.dev_view_enabled:  # Show Stations
+            self.settings.dev_show_stations = not self.settings.dev_show_stations
+        elif self.selected_dev_option == 5 and self.settings.dev_view_enabled:  # Show Camera
+            self.settings.dev_show_camera = not self.settings.dev_show_camera
+        
+        self.settings.save()
 
 class PlayingState(State):
     def __init__(self, game):
         super().__init__(game)
+        # Initialize enhanced HUD
+        from ..ui.hud.enhanced_hud import EnhancedHUD
+        from ..ui.large_map import LargeMap
+        self.enhanced_hud = EnhancedHUD(game.WINDOW_SIZE[0], game.WINDOW_SIZE[1])
+        self.large_map = LargeMap(game.WINDOW_SIZE[0], game.WINDOW_SIZE[1])
 
     def update(self, delta_time):
         # Handle ship movement only if not docked
@@ -258,6 +366,9 @@ class PlayingState(State):
             self.game.universe.stations, 
             delta_time
         )
+        
+        # Update enhanced HUD
+        self.enhanced_hud.update(delta_time, self.game)
         
         # Check collisions after movement (only if not docking/docked)
         if not self.game.docking_manager.is_docking_in_progress() and not self.game.docking_manager.is_docked():
@@ -393,6 +504,12 @@ class PlayingState(State):
                              self.game.universe.stations,
                              self.game.universe.planets)
         
+        # Draw enhanced HUD (on top of everything)
+        self.enhanced_hud.render(screen, self.game)
+        
+        # Draw large map overlay if visible (should be on top of everything)
+        self.large_map.draw(screen, self.game.ship, self.game.universe.stations, self.game.universe.planets)
+        
         if self.game.debug_mode:
             self._draw_debug_info(screen, camera_offset)
 
@@ -449,15 +566,21 @@ class PlayingState(State):
             True, (255, 255, 255))
         screen.blit(camera_text, (10, y_offset))
     
-        # Debug info
-        print(f"Number of stations: {len(self.game.universe.stations)}")
-        print(f"Ship position: {self.game.ship.position}")
-        print(f"Camera offset: {camera_offset}")
+        # Debug info (commented out to reduce console spam)
+        # print(f"Number of stations: {len(self.game.universe.stations)}")
+        # print(f"Ship position: {self.game.ship.position}")
+        # print(f"Camera offset: {camera_offset}")
 
     def handle_input(self, event):
+        # Let large map handle input first (if it's visible)
+        if self.large_map.handle_input(event):
+            return
+            
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state(GameStates.PAUSED)
+            elif event.key == pygame.K_TAB:  # Large map toggle
+                self.large_map.toggle_visibility()
             elif event.key == pygame.K_d:  # Manual docking
                 result = self.game.docking_manager.attempt_manual_docking(
                     self.game.ship, 

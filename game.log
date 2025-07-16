@@ -1,54 +1,84 @@
-2025-07-16 01:34:20,957 - src.main - INFO - Starting Space Trading Simulator
-2025-07-16 01:34:20,958 - src.engine.game_engine - INFO - Initializing GameEngine
-2025-07-16 01:34:21,508 - src.engine.game_engine - INFO - Resources initialized successfully
-2025-07-16 01:34:21,526 - src.save_system - INFO - Save system initialized with directory: saves
-2025-07-16 01:34:21,527 - src.engine.game_engine - INFO - GameEngine initialization complete
-2025-07-16 01:34:21,527 - src.engine.game_engine - INFO - Starting game loop
-2025-07-16 01:34:21,541 - src.missions.mission_manager - INFO - Generating 15 new missions
-2025-07-16 01:34:22,257 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
-2025-07-16 01:34:22,263 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
-2025-07-16 01:34:25,237 - src.docking.docking_manager - INFO - Initiating docking with Excavation-143
-2025-07-16 01:34:25,237 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
-2025-07-16 01:34:27,253 - src.docking.docking_manager - INFO - Successfully docked at Excavation-143
-2025-07-16 01:34:27,254 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
-2025-07-16 01:34:29,089 - src.states.game_state - INFO - Station Excavation-143 does not offer upgrades
-2025-07-16 01:34:29,762 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
-2025-07-16 01:34:33,643 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
-2025-07-16 01:34:35,114 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
-2025-07-16 01:34:53,606 - src.missions.mission_manager - INFO - Mission accepted: Deliver Electronics
-2025-07-16 01:34:53,606 - src.engine.game_engine - ERROR - Error in game loop: 'DockingManager' object has no attribute 'current_state'
-2025-07-16 01:34:53,606 - src.engine.game_engine - INFO - Cleaning up and shutting down
-2025-07-16 01:34:53,722 - src.main - ERROR - Fatal error: 'DockingManager' object has no attribute 'current_state'
-2025-07-16 01:34:53,722 - src.main - INFO - Game terminated
-2025-07-16 01:36:26,026 - src.main - INFO - Starting Space Trading Simulator
-2025-07-16 01:36:26,026 - src.engine.game_engine - INFO - Initializing GameEngine
-2025-07-16 01:36:26,549 - src.engine.game_engine - INFO - Resources initialized successfully
-2025-07-16 01:36:26,559 - src.save_system - INFO - Save system initialized with directory: saves
-2025-07-16 01:36:26,559 - src.engine.game_engine - INFO - GameEngine initialization complete
-2025-07-16 01:36:26,559 - src.engine.game_engine - INFO - Starting game loop
-2025-07-16 01:36:26,596 - src.missions.mission_manager - INFO - Generating 15 new missions
-2025-07-16 01:36:27,287 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
-2025-07-16 01:36:27,293 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
-2025-07-16 01:36:30,465 - src.docking.docking_manager - INFO - Initiating docking with Excavation-143
-2025-07-16 01:36:30,465 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
-2025-07-16 01:36:32,473 - src.docking.docking_manager - INFO - Successfully docked at Excavation-143
-2025-07-16 01:36:32,473 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
-2025-07-16 01:36:34,874 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
-2025-07-16 01:37:02,363 - src.missions.mission_manager - INFO - Mission accepted: Deliver Metal Ore
-2025-07-16 01:37:05,315 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
-2025-07-16 01:37:07,973 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
-2025-07-16 01:37:13,350 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
-2025-07-16 01:37:14,049 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
-2025-07-16 01:37:14,776 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
-2025-07-16 01:37:15,709 - src.states.game_state - INFO - Station Excavation-143 does not offer upgrades
-2025-07-16 01:37:38,905 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
-2025-07-16 01:37:45,534 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
-2025-07-16 01:37:49,462 - src.states.game_state - INFO - Station Excavation-143 does not offer upgrades
-2025-07-16 01:37:56,309 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
-2025-07-16 01:37:58,995 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
-2025-07-16 01:37:59,536 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
-2025-07-16 01:38:00,534 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
-2025-07-16 01:38:02,955 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
-2025-07-16 01:38:05,920 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
-2025-07-16 01:38:07,585 - src.engine.game_engine - INFO - Cleaning up and shutting down
-2025-07-16 01:38:07,704 - src.main - INFO - Game terminated
+2025-07-16 02:00:35,337 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 02:00:35,338 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 02:00:35,791 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 02:00:35,807 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 02:00:35,810 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 02:00:35,810 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 02:00:35,821 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 02:00:36,465 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 02:00:36,471 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 02:00:39,013 - src.docking.docking_manager - INFO - Initiating docking with Excavation-143
+2025-07-16 02:00:39,013 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 02:00:39,760 - src.docking.docking_manager - INFO - Initiating docking with Excavation-143
+2025-07-16 02:00:41,744 - src.docking.docking_manager - INFO - Successfully docked at Excavation-143
+2025-07-16 02:00:41,744 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 02:00:42,171 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 02:00:50,746 - src.engine.game_engine - INFO - Display mode changed to Fullscreen (960x600)
+2025-07-16 02:01:08,850 - src.missions.mission_manager - INFO - Mission accepted: Deliver Food Rations
+2025-07-16 02:01:38,303 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 02:01:44,882 - src.engine.game_engine - INFO - Dev view: True
+2025-07-16 02:01:46,174 - src.engine.game_engine - INFO - Dev view: False
+2025-07-16 02:01:47,483 - src.engine.game_engine - INFO - Debug mode: False
+2025-07-16 02:01:49,694 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 02:01:50,100 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 02:01:50,510 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 02:01:52,058 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 02:01:53,385 - src.docking.docking_manager - INFO - Initiating undocking from Excavation-143
+2025-07-16 02:01:55,374 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 02:01:55,392 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 02:01:55,902 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 02:02:09,036 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 02:02:10,620 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 02:02:11,708 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 02:02:11,725 - src.docking.docking_manager - INFO - Initiating docking with Institute-462
+2025-07-16 02:02:11,726 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 02:02:13,729 - src.docking.docking_manager - INFO - Successfully docked at Institute-462
+2025-07-16 02:02:13,729 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 02:02:14,834 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 02:02:28,878 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 02:02:32,805 - src.docking.docking_manager - INFO - Initiating undocking from Institute-462
+2025-07-16 02:02:34,796 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 02:02:34,796 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 02:02:34,813 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 02:02:35,493 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 02:02:36,138 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 02:02:40,253 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 02:02:42,160 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 02:02:44,883 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 02:02:46,397 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 02:02:47,452 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 02:02:47,469 - src.docking.docking_manager - INFO - Initiating docking with Base-967
+2025-07-16 02:02:47,469 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 02:02:49,476 - src.docking.docking_manager - INFO - Successfully docked at Base-967
+2025-07-16 02:02:49,476 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 02:02:50,613 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 02:02:56,033 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 02:02:57,459 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 02:02:58,004 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 02:02:58,446 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-16 02:03:02,117 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-16 02:03:05,305 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 02:03:06,870 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 02:03:07,822 - src.docking.docking_manager - INFO - Initiating undocking from Base-967
+2025-07-16 02:03:09,813 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 02:03:11,632 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 02:03:11,853 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 02:03:13,211 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 02:03:13,432 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 02:03:14,418 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.SETTINGS
+2025-07-16 02:03:35,848 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.MAIN_MENU
+2025-07-16 02:03:38,571 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 02:03:40,458 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 02:03:41,054 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 02:03:41,071 - src.docking.docking_manager - INFO - Initiating docking with Fort-927
+2025-07-16 02:03:41,071 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 02:03:43,081 - src.docking.docking_manager - INFO - Successfully docked at Fort-927
+2025-07-16 02:03:43,081 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 02:03:44,460 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 02:03:50,549 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 02:03:50,924 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 02:03:53,425 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 02:03:53,764 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 02:03:54,682 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 02:03:56,163 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 02:03:56,334 - src.main - INFO - Game terminated

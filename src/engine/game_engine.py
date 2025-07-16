@@ -34,9 +34,13 @@ class GameEngine:
         # Initialize Pygame
         pygame.init()
         
+        # Load settings and apply display configuration
+        from src.settings import game_settings
+        self.settings = game_settings
+        
         # Display settings
-        self.WINDOW_SIZE = (800, 600)
-        self.screen = pygame.display.set_mode(self.WINDOW_SIZE)
+        self.screen = self.settings.apply_display_settings(None)
+        self.WINDOW_SIZE = self.screen.get_size()
         pygame.display.set_caption('Space Trading Simulator')
         
         # Game timing
@@ -163,6 +167,14 @@ class GameEngine:
                 if event.key == K_F3:  # F3 to toggle debug mode
                     self.debug_mode = not self.debug_mode
                     logger.info(f"Debug mode: {self.debug_mode}")
+                elif event.key == K_F11:  # F11 to toggle fullscreen
+                    self.toggle_fullscreen()
+                elif event.key == K_F12:  # F12 to toggle FPS display
+                    self.settings.show_fps = not self.settings.show_fps
+                elif event.key == K_F4:  # F4 to toggle dev view
+                    self.settings.dev_view_enabled = not self.settings.dev_view_enabled
+                    self.settings.save()
+                    logger.info(f"Dev view: {self.settings.dev_view_enabled}")
 
     def _handle_keydown(self, key: int) -> None:
         """Handle keyboard input based on game state"""
@@ -322,6 +334,31 @@ class GameEngine:
         self.camera = None
         
         pygame.quit()
+
+    def toggle_fullscreen(self):
+        """Toggle fullscreen mode."""
+        self.settings.toggle_fullscreen()
+        self.screen = self.settings.apply_display_settings(self.screen)
+        self.WINDOW_SIZE = self.screen.get_size()
+        
+        # Recreate starfield with new dimensions
+        self.starfield = StarField(100, self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        
+        # Update camera with new window size
+        self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        
+        # Update minimap with new window size
+        self.minimap = Minimap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        
+        # Update HUD and large map if playing state exists
+        if (self.current_state == GameStates.PLAYING and 
+            hasattr(self.states[GameStates.PLAYING], 'enhanced_hud')):
+            self.states[GameStates.PLAYING].enhanced_hud.resize(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+            if hasattr(self.states[GameStates.PLAYING], 'large_map'):
+                from ..ui.large_map import LargeMap
+                self.states[GameStates.PLAYING].large_map = LargeMap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        
+        logger.info(f"Display mode changed to {self.settings.display_mode.value} ({self.WINDOW_SIZE[0]}x{self.WINDOW_SIZE[1]})")
 
     def _check_auto_save(self):
         """Check if auto-save should be triggered."""

@@ -4,11 +4,20 @@
     "camera_deadzone_radius": 50,
     "window_width": 800,
     "window_height": 600,
-    "fullscreen": false,
+    "display_mode": "FULLSCREEN",
+    "vsync": true,
+    "show_fps": false,
     "show_debug": false,
+    "hud_scale": 1.0,
     "master_volume": 0.8,
     "sfx_volume": 0.8,
     "music_volume": 0.6,
     "invert_y": false,
-    "mouse_sensitivity": 1.0
+    "mouse_sensitivity": 1.0,
+    "dev_view_enabled": false,
+    "dev_show_fps": true,
+    "dev_show_ship_pos": true,
+    "dev_show_docking": true,
+    "dev_show_stations": true,
+    "dev_show_camera": true
 }

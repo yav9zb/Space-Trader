@@ -1,0 +1,1 @@
+# Enhanced HUD system for Space Trader
