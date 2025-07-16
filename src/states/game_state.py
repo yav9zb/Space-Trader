@@ -514,7 +514,6 @@ class SettingsState(State):
         y_offset = 400
         keybinds = [
             "GENERAL KEYBINDS:",
-            "  F3 - Toggle debug mode",
             "  F4 - Toggle developer view",
             "  F11 - Toggle fullscreen",
             "  F12 - Toggle FPS display",
@@ -619,9 +618,10 @@ class PlayingState(State):
         # Draw all stations
         for station in self.game.universe.stations:
             screen_pos = self.game.camera.world_to_screen(station.position)
-            # Only draw if on screen
-            if (0 <= screen_pos.x <= self.game.WINDOW_SIZE[0] and 
-                0 <= screen_pos.y <= self.game.WINDOW_SIZE[1]):
+            # Only draw if on screen (with buffer for station size)
+            buffer = station.size + 50  # Add buffer for station size and potential visual elements
+            if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and 
+                -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
                 station.draw(screen, camera_offset)
                 
                 # Draw docking zones and feedback
@@ -694,11 +694,21 @@ class PlayingState(State):
 
         # Draw all planets
         for planet in self.game.universe.planets:
-            planet.draw(screen, camera_offset)
+            screen_pos = self.game.camera.world_to_screen(planet.position)
+            # Only draw if on screen (with buffer for planet size)
+            buffer = planet.size + 50  # Add buffer for planet size
+            if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and 
+                -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
+                planet.draw(screen, camera_offset)
 
         # Draw debris
         for debris in self.game.universe.debris:
-            debris.draw(screen, camera_offset)
+            screen_pos = self.game.camera.world_to_screen(debris.position)
+            # Only draw if on screen (with buffer for debris size)
+            buffer = debris.size + 50  # Add buffer for debris size
+            if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and 
+                -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
+                debris.draw(screen, camera_offset)
         
         # Draw ship
         self.game.ship.draw(screen, camera_offset)
@@ -714,8 +724,6 @@ class PlayingState(State):
         # Draw large map overlay if visible (should be on top of everything)
         self.large_map.draw(screen, self.game.ship, self.game.universe.stations, self.game.universe.planets)
         
-        if self.game.debug_mode:
-            self._draw_debug_info(screen, camera_offset)
 
     def _draw_debug_info(self, screen, camera_offset):
         """Draw debug information for object positions"""
@@ -785,6 +793,9 @@ class PlayingState(State):
                 self.game.change_state(GameStates.PAUSED)
             elif event.key == pygame.K_TAB:  # Large map toggle
                 self.large_map.toggle_visibility()
+                # Center the map on the player when opened
+                if self.large_map.visible:
+                    self.large_map.center_on_ship(self.game.ship.position)
             elif event.key == pygame.K_d:  # Manual docking
                 result = self.game.docking_manager.attempt_manual_docking(
                     self.game.ship, 

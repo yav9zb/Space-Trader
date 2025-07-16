@@ -121,7 +121,6 @@ class GameEngine:
         
         logger.info("GameEngine initialization complete")
 
-        self.debug_mode = True
 
 
     def _init_resources(self):
@@ -167,10 +166,7 @@ class GameEngine:
 
             # Debug controls
             if event.type == KEYDOWN:
-                if event.key == K_F3:  # F3 to toggle debug mode
-                    self.debug_mode = not self.debug_mode
-                    logger.info(f"Debug mode: {self.debug_mode}")
-                elif event.key == K_F11:  # F11 to toggle fullscreen
+                if event.key == K_F11:  # F11 to toggle fullscreen
                     self.toggle_fullscreen()
                 elif event.key == K_F12:  # F12 to toggle FPS display
                     self.settings.show_fps = not self.settings.show_fps
@@ -267,18 +263,7 @@ class GameEngine:
         
         pygame.display.flip()
 
-        # Debug rendering
-        if self.debug_mode and self.current_state == GameStates.PLAYING:
-            self._render_debug()
 
-    def _render_debug(self):
-        """Render debug information"""
-        # Draw collision circles for stations
-        for station in self.stations:
-            pygame.draw.circle(self.screen, (0, 255, 0),
-                             (int(station.position.x), int(station.position.y)),
-                             station.size + self.ship.size,
-                             1)  # Draw combined collision radius
 
     def _render_playing_state(self) -> None:
         """Render the game during gameplay"""

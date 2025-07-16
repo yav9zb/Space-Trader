@@ -168,10 +168,10 @@ class LargeMap:
     
     def center_on_ship(self, ship_pos):
         """Center the map view on the ship."""
-        # Calculate the offset needed to center the ship
+        # Calculate the offset needed to center the ship at the map center
         ship_map_pos = self.world_to_map_coords(ship_pos)
-        self.pan_offset.x = self.map_center.x - ship_map_pos.x + self.pan_offset.x
-        self.pan_offset.y = self.map_center.y - ship_map_pos.y + self.pan_offset.y
+        self.pan_offset.x = self.map_center.x - ship_map_pos.x
+        self.pan_offset.y = self.map_center.y - ship_map_pos.y
     
     def draw(self, surface, ship, stations, planets):
         """Draw the large map overlay."""

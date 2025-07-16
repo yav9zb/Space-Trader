@@ -1,0 +1,139 @@
+2025-07-16 13:41:15,855 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 13:41:15,855 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 13:41:16,477 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 13:41:16,488 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 13:41:16,490 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 13:41:16,490 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 13:41:16,502 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,521 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,522 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,539 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,557 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,575 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,590 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,608 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,638 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,640 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,658 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,674 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,691 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,708 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,725 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,741 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,759 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,775 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,791 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,809 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,825 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,843 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,859 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,876 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,893 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,910 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,927 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,943 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,960 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,977 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:16,994 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,010 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,027 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,057 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,061 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,078 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,095 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,112 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,129 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,145 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,163 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,179 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,197 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,213 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,230 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,248 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,264 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,281 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,299 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,315 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,333 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,350 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,366 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,383 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,399 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,416 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,434 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,450 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,485 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 13:41:17,485 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:17,491 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:41:17,498 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 13:41:19,580 - src.docking.docking_manager - INFO - Initiating docking with Trade-981
+2025-07-16 13:41:19,580 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:41:19,801 - src.docking.docking_manager - INFO - Initiating docking with Trade-981
+2025-07-16 13:41:21,787 - src.docking.docking_manager - INFO - Successfully docked at Trade-981
+2025-07-16 13:41:21,787 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:41:22,960 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:41:43,155 - src.missions.mission_manager - INFO - Mission accepted: Deliver Fuel Cells
+2025-07-16 13:41:46,236 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:41:48,303 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:41:49,763 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:41:54,524 - src.engine.game_engine - INFO - Debug mode: False
+2025-07-16 13:41:57,496 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:41:58,572 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:43:19,443 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:43:29,834 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:43:31,414 - src.docking.docking_manager - INFO - Initiating undocking from Trade-981
+2025-07-16 13:43:33,403 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:43:33,403 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:43:33,420 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:43:33,437 - src.docking.docking_manager - INFO - Initiating docking with Trade-981
+2025-07-16 13:43:33,437 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:43:35,441 - src.docking.docking_manager - INFO - Successfully docked at Trade-981
+2025-07-16 13:43:35,441 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:43:37,178 - src.docking.docking_manager - INFO - Initiating undocking from Trade-981
+2025-07-16 13:43:39,165 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 13:43:39,880 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:43:43,431 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:43:43,635 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:43:44,487 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:43:47,991 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:43:52,868 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:00,663 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:01,411 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:01,632 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:01,801 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:01,989 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:02,228 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:44:03,265 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:44:04,708 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:44:04,929 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 13:44:05,847 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 13:44:11,389 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:12,948 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:16,748 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:18,974 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:19,562 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:19,749 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:19,968 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:23,327 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:30,680 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:33,587 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:39,432 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:42,699 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:44,689 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 13:44:59,556 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 13:45:02,358 - src.docking.docking_manager - INFO - Initiating docking with Exchange-138
+2025-07-16 13:45:02,358 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 13:45:04,364 - src.docking.docking_manager - INFO - Successfully docked at Exchange-138
+2025-07-16 13:45:04,364 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 13:45:04,381 - src.missions.mission_manager - INFO - Mission completed: Deliver Fuel Cells (Reward: 500 credits)
+2025-07-16 13:45:08,429 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-16 13:45:10,262 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-16 13:45:11,044 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 13:45:18,416 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 13:45:18,875 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 13:45:20,321 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.SAVE_GAME
+2025-07-16 13:45:26,106 - src.save_system - INFO - Game saved successfully to saves/Test 2.json
+2025-07-16 13:45:27,442 - src.engine.game_engine - INFO - Changing game state from GameStates.SAVE_GAME to GameStates.PAUSED
+2025-07-16 13:45:29,005 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 13:45:30,506 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 13:45:31,143 - src.main - INFO - Game terminated
