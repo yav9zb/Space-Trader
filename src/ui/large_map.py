@@ -46,6 +46,9 @@ class LargeMap:
         # Selection
         self.selected_object = None
         
+        # Mouse interaction
+        self._pan_start = None
+        
     def toggle_visibility(self):
         """Toggle the large map display."""
         self.visible = not self.visible
@@ -86,17 +89,31 @@ class LargeMap:
             if event.button == 1:  # Left click
                 self._handle_click(Vector2(event.pos))
                 return True
+            elif event.button == 2:  # Middle click - center on clicked location
+                self._center_on_location(Vector2(event.pos))
+                return True
+            elif event.button == 3:  # Right click - start pan
+                self._pan_start = Vector2(event.pos)
+                return True
             elif event.button == 4:  # Mouse wheel up
-                self.zoom_in()
+                self._zoom_at_mouse(Vector2(event.pos), 1.2)
                 return True
             elif event.button == 5:  # Mouse wheel down
-                self.zoom_out()
+                self._zoom_at_mouse(Vector2(event.pos), 1.0/1.2)
+                return True
+                
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 3:  # Right click release
+                self._pan_start = None
                 return True
                 
         elif event.type == pygame.MOUSEMOTION:
-            if pygame.mouse.get_pressed()[2]:  # Right mouse drag
-                self.pan_offset.x += event.rel[0]
-                self.pan_offset.y += event.rel[1]
+            if pygame.mouse.get_pressed()[2] and hasattr(self, '_pan_start') and self._pan_start:  # Right mouse drag
+                current_pos = Vector2(event.pos)
+                delta = current_pos - self._pan_start
+                self.pan_offset.x += delta.x
+                self.pan_offset.y += delta.y
+                self._pan_start = current_pos
                 return True
         
         return False
@@ -107,6 +124,34 @@ class LargeMap:
         world_pos = self.map_to_world_coords(click_pos)
         # Here you could select objects, set waypoints, etc.
         print(f"Clicked at world position: {world_pos}")
+    
+    def _center_on_location(self, click_pos):
+        """Center the map on the clicked location."""
+        # Convert click to world coordinates
+        world_pos = self.map_to_world_coords(click_pos)
+        # Calculate the current center in world coordinates
+        center_world_pos = self.map_to_world_coords(self.map_center)
+        # Calculate the difference and adjust pan offset
+        diff = world_pos - center_world_pos
+        self.pan_offset.x -= diff.x * self.scale * self.zoom_level
+        self.pan_offset.y -= diff.y * self.scale * self.zoom_level
+    
+    def _zoom_at_mouse(self, mouse_pos, zoom_factor):
+        """Zoom in/out centered on mouse position."""
+        # Store world position at mouse before zoom
+        world_pos_before = self.map_to_world_coords(mouse_pos)
+        
+        # Apply zoom
+        old_zoom = self.zoom_level
+        self.zoom_level = max(self.min_zoom, min(self.max_zoom, self.zoom_level * zoom_factor))
+        
+        # Calculate world position at mouse after zoom
+        world_pos_after = self.map_to_world_coords(mouse_pos)
+        
+        # Adjust pan offset to keep the same world position under the mouse
+        diff = world_pos_after - world_pos_before
+        self.pan_offset.x -= diff.x * self.scale * self.zoom_level
+        self.pan_offset.y -= diff.y * self.scale * self.zoom_level
     
     def zoom_in(self):
         """Zoom in on the map."""
@@ -291,10 +336,11 @@ class LargeMap:
         """Draw control instructions."""
         instructions = [
             "M/ESC: Close map",
-            "+/-: Zoom in/out",
-            "Right drag: Pan",
-            "HOME: Reset view",
-            "Left click: Select"
+            "Mouse wheel: Zoom in/out",
+            "Right drag: Pan map",
+            "Middle click: Center on location",
+            "Left click: Select location",
+            "HOME: Reset view"
         ]
         
         for i, instruction in enumerate(instructions):

@@ -42,6 +42,7 @@ class MenuState(State):
         self.title = "Space Trading Simulator"
         self.menu_options = ["New Game", "Load Game", "Settings", "Exit"]
         self.selected_option = 0
+        self.option_rects = []  # Store rectangles for mouse interaction
 
     def render(self, screen):
         # Clear screan first
@@ -53,14 +54,19 @@ class MenuState(State):
         title_rect = title.get_rect(center=(screen.get_width() // 2, 100))
         screen.blit(title, title_rect)
 
-        # Draw menu options
+        # Draw menu options and store their rectangles
         option_font = pygame.font.Font(None, 48)  # Slightly larger font for options
+        self.option_rects = []  # Reset rectangles
         for i, option in enumerate(self.menu_options):
             color = (255, 255, 0) if i == self.selected_option else (255, 255, 255)
             text = option_font.render(option, True, color)
             # Position each option, centered horizontally and spaced vertically
             text_rect = text.get_rect(center=(screen.get_width() // 2, 300 + i * 60))
             screen.blit(text, text_rect)
+            
+            # Store expanded rectangle for mouse interaction
+            expanded_rect = text_rect.inflate(40, 20)
+            self.option_rects.append(expanded_rect)
 
     def handle_input(self, event):
         if event.type == pygame.KEYDOWN:
@@ -69,14 +75,33 @@ class MenuState(State):
             elif event.key == pygame.K_DOWN:
                 self.selected_option = (self.selected_option + 1) % len(self.menu_options)
             elif event.key == pygame.K_RETURN:
-                if self.selected_option == 0:  # New Game
-                    self.game.change_state(GameStates.PLAYING)
-                elif self.selected_option == 1:  # Load Game
-                    self.game.change_state(GameStates.LOAD_GAME)
-                elif self.selected_option == 2:  # Settings
-                    self.game.change_state(GameStates.SETTINGS)
-                elif self.selected_option == 3:  # Exit
-                    self.game.running = False
+                self._select_option()
+        elif event.type == pygame.MOUSEMOTION:
+            # Check if mouse is over any option
+            mouse_pos = pygame.mouse.get_pos()
+            for i, rect in enumerate(self.option_rects):
+                if rect.collidepoint(mouse_pos):
+                    self.selected_option = i
+                    break
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left click
+                mouse_pos = pygame.mouse.get_pos()
+                for i, rect in enumerate(self.option_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_option = i
+                        self._select_option()
+                        break
+    
+    def _select_option(self):
+        """Handle option selection"""
+        if self.selected_option == 0:  # New Game
+            self.game.change_state(GameStates.PLAYING)
+        elif self.selected_option == 1:  # Load Game
+            self.game.change_state(GameStates.LOAD_GAME)
+        elif self.selected_option == 2:  # Settings
+            self.game.change_state(GameStates.SETTINGS)
+        elif self.selected_option == 3:  # Exit
+            self.game.running = False
 
 class SettingsState(State):
     def __init__(self, game):
@@ -84,7 +109,7 @@ class SettingsState(State):
         from ..settings import game_settings, CameraMode
         self.settings = game_settings
         self.title = "Settings"
-        self.categories = ["Camera", "Display", "Dev View", "Back"]
+        self.categories = ["Camera", "Display", "Dev View", "Help", "Back"]
         self.selected_category = 0
         
         # Camera settings options
@@ -97,6 +122,17 @@ class SettingsState(State):
         self.selected_dev_option = 0
         self.viewing_dev = False
         
+        # Help options
+        self.help_options = ["Controls", "Keybinds", "Back"]
+        self.selected_help_option = 0
+        self.viewing_help = False
+        
+        # Mouse interaction rectangles
+        self.category_rects = []
+        self.camera_rects = []
+        self.dev_rects = []
+        self.help_rects = []
+        
     def render(self, screen):
         screen.fill((0, 0, 20))  # Dark blue background
         
@@ -106,21 +142,28 @@ class SettingsState(State):
         title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
         screen.blit(title, title_rect)
         
-        if not self.viewing_camera and not self.viewing_dev:
+        if not self.viewing_camera and not self.viewing_dev and not self.viewing_help:
             self._render_main_categories(screen)
         elif self.viewing_camera:
             self._render_camera_settings(screen)
         elif self.viewing_dev:
             self._render_dev_settings(screen)
+        elif self.viewing_help:
+            self._render_help_settings(screen)
     
     def _render_main_categories(self, screen):
         """Render main settings categories"""
         option_font = pygame.font.Font(None, 48)
+        self.category_rects = []  # Reset rectangles
         for i, category in enumerate(self.categories):
             color = (255, 255, 0) if i == self.selected_category else (255, 255, 255)
             text = option_font.render(category, True, color)
             text_rect = text.get_rect(center=(screen.get_width() // 2, 200 + i * 60))
             screen.blit(text, text_rect)
+            
+            # Store expanded rectangle for mouse interaction
+            expanded_rect = text_rect.inflate(40, 20)
+            self.category_rects.append(expanded_rect)
     
     def _render_camera_settings(self, screen):
         """Render camera settings submenu"""
@@ -184,14 +227,46 @@ class SettingsState(State):
                     self.viewing_camera = False
                 elif self.viewing_dev:
                     self.viewing_dev = False
+                elif self.viewing_help:
+                    self.viewing_help = False
                 else:
                     self.game.change_state(GameStates.MAIN_MENU)
-            elif not self.viewing_camera and not self.viewing_dev:
+            elif not self.viewing_camera and not self.viewing_dev and not self.viewing_help:
                 self._handle_main_input(event)
             elif self.viewing_camera:
                 self._handle_camera_input(event)
             elif self.viewing_dev:
                 self._handle_dev_input(event)
+            elif self.viewing_help:
+                self._handle_help_input(event)
+        elif event.type == pygame.MOUSEMOTION:
+            # Check for mouse hover on options
+            mouse_pos = pygame.mouse.get_pos()
+            if not self.viewing_camera and not self.viewing_dev and not self.viewing_help:
+                for i, rect in enumerate(self.category_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_category = i
+                        break
+            elif self.viewing_help:
+                for i, rect in enumerate(self.help_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_help_option = i
+                        break
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left click
+                mouse_pos = pygame.mouse.get_pos()
+                if not self.viewing_camera and not self.viewing_dev and not self.viewing_help:
+                    for i, rect in enumerate(self.category_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.selected_category = i
+                            self._select_main_option()
+                            break
+                elif self.viewing_help:
+                    for i, rect in enumerate(self.help_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.selected_help_option = i
+                            self._select_help_option()
+                            break
     
     def _handle_main_input(self, event):
         """Handle input for main settings categories"""
@@ -200,16 +275,23 @@ class SettingsState(State):
         elif event.key == pygame.K_DOWN:
             self.selected_category = (self.selected_category + 1) % len(self.categories)
         elif event.key == pygame.K_RETURN:
-            if self.selected_category == 0:  # Camera
-                self.viewing_camera = True
-                self.selected_camera_option = 0
-            elif self.selected_category == 1:  # Display (future feature)
-                pass  # TODO: Implement display settings
-            elif self.selected_category == 2:  # Dev View
-                self.viewing_dev = True
-                self.selected_dev_option = 0
-            elif self.selected_category == 3:  # Back
-                self.game.change_state(GameStates.MAIN_MENU)
+            self._select_main_option()
+    
+    def _select_main_option(self):
+        """Handle main option selection"""
+        if self.selected_category == 0:  # Camera
+            self.viewing_camera = True
+            self.selected_camera_option = 0
+        elif self.selected_category == 1:  # Display (future feature)
+            pass  # TODO: Implement display settings
+        elif self.selected_category == 2:  # Dev View
+            self.viewing_dev = True
+            self.selected_dev_option = 0
+        elif self.selected_category == 3:  # Help
+            self.viewing_help = True
+            self.selected_help_option = 0
+        elif self.selected_category == 4:  # Back
+            self.game.change_state(GameStates.MAIN_MENU)
     
     def _handle_camera_input(self, event):
         """Handle input for camera settings"""
@@ -338,6 +420,120 @@ class SettingsState(State):
             self.settings.dev_show_camera = not self.settings.dev_show_camera
         
         self.settings.save()
+    
+    def _handle_help_input(self, event):
+        """Handle input for help settings"""
+        if event.key == pygame.K_UP:
+            self.selected_help_option = (self.selected_help_option - 1) % len(self.help_options)
+        elif event.key == pygame.K_DOWN:
+            self.selected_help_option = (self.selected_help_option + 1) % len(self.help_options)
+        elif event.key == pygame.K_RETURN:
+            self._select_help_option()
+    
+    def _select_help_option(self):
+        """Handle help option selection"""
+        if self.selected_help_option == 2:  # Back
+            self.viewing_help = False
+    
+    def _render_help_settings(self, screen):
+        """Render help settings submenu"""
+        option_font = pygame.font.Font(None, 40)
+        text_font = pygame.font.Font(None, 24)
+        small_font = pygame.font.Font(None, 20)
+        
+        # Draw help settings title
+        subtitle = option_font.render("Help & Controls", True, (200, 200, 255))
+        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 150))
+        screen.blit(subtitle, subtitle_rect)
+        
+        y_offset = 220
+        self.help_rects = []  # Reset rectangles
+        for i, option in enumerate(self.help_options):
+            color = (255, 255, 0) if i == self.selected_help_option else (255, 255, 255)
+            text = option_font.render(option, True, color)
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(text, text_rect)
+            
+            # Store expanded rectangle for mouse interaction
+            expanded_rect = text_rect.inflate(40, 20)
+            self.help_rects.append(expanded_rect)
+            y_offset += 60
+        
+        # Show help content based on selected option
+        if self.selected_help_option == 0:  # Controls
+            self._render_controls_help(screen, text_font, small_font)
+        elif self.selected_help_option == 1:  # Keybinds
+            self._render_keybinds_help(screen, text_font, small_font)
+        
+        # Instructions
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = "Use UP/DOWN to navigate, ENTER to select, ESC to go back"
+        instr_text = instruction_font.render(instructions, True, (150, 150, 150))
+        instr_rect = instr_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 40))
+        screen.blit(instr_text, instr_rect)
+    
+    def _render_controls_help(self, screen, text_font, small_font):
+        """Render general controls help"""
+        y_offset = 400
+        help_text = [
+            "MOVEMENT:",
+            "  Arrow Keys / WASD - Move ship",
+            "  Shift - Boost/Thrust",
+            "",
+            "NAVIGATION:",
+            "  TAB - Open/Close large map",
+            "  M - Open/Close large map (alt)",
+            "  ESC - Pause game",
+            "",
+            "DOCKING:",
+            "  D - Manual dock when near station",
+            "  X - Undock from station"
+        ]
+        
+        for text in help_text:
+            if text == "":
+                y_offset += 15
+                continue
+            
+            color = (255, 255, 0) if text.endswith(":") else (255, 255, 255)
+            font = text_font if text.endswith(":") else small_font
+            surface = font.render(text, True, color)
+            screen.blit(surface, (50, y_offset))
+            y_offset += 20
+    
+    def _render_keybinds_help(self, screen, text_font, small_font):
+        """Render keybinds help"""
+        y_offset = 400
+        keybinds = [
+            "GENERAL KEYBINDS:",
+            "  F3 - Toggle debug mode",
+            "  F4 - Toggle developer view",
+            "  F11 - Toggle fullscreen",
+            "  F12 - Toggle FPS display",
+            "",
+            "DOCKED ACTIONS:",
+            "  T - Open trading interface",
+            "  U - Open ship upgrades",
+            "  M - Open mission board",
+            "",
+            "MAP CONTROLS:",
+            "  Mouse Wheel - Zoom in/out",
+            "  Right Click + Drag - Pan map",
+            "  Left Click - Select location",
+            "  HOME - Reset map view",
+            "  +/- - Zoom in/out (keyboard)"
+        ]
+        
+        for text in keybinds:
+            if text == "":
+                y_offset += 15
+                continue
+            
+            color = (255, 255, 0) if text.endswith(":") else (255, 255, 255)
+            font = text_font if text.endswith(":") else small_font
+            surface = font.render(text, True, color)
+            screen.blit(surface, (50, y_offset))
+            y_offset += 20
 
 class PlayingState(State):
     def __init__(self, game):
@@ -616,6 +812,7 @@ class PausedState(State):
         super().__init__(game)
         self.pause_options = ["Resume", "Save Game", "Settings", "Main Menu"]
         self.selected_option = 0
+        self.option_rects = []
 
     def render(self, screen):
         # First render the game state in the background
@@ -635,11 +832,16 @@ class PausedState(State):
         # Menu options
         option_font = pygame.font.Font(None, 48)
         y_offset = 300
+        self.option_rects = []  # Reset rectangles
         for i, option in enumerate(self.pause_options):
             color = (255, 255, 0) if i == self.selected_option else (255, 255, 255)
             option_text = option_font.render(option, True, color)
             option_rect = option_text.get_rect(center=(400, y_offset))
             screen.blit(option_text, option_rect)
+            
+            # Store expanded rectangle for mouse interaction
+            expanded_rect = option_rect.inflate(40, 20)
+            self.option_rects.append(expanded_rect)
             y_offset += 50
         
         # Instructions
@@ -657,14 +859,33 @@ class PausedState(State):
             elif event.key == pygame.K_DOWN:
                 self.selected_option = (self.selected_option + 1) % len(self.pause_options)
             elif event.key == pygame.K_RETURN:
-                if self.selected_option == 0:  # Resume
-                    self.game.change_state(GameStates.PLAYING)
-                elif self.selected_option == 1:  # Save Game
-                    self.game.change_state(GameStates.SAVE_GAME)
-                elif self.selected_option == 2:  # Settings
-                    self.game.change_state(GameStates.SETTINGS)
-                elif self.selected_option == 3:  # Main Menu
-                    self.game.change_state(GameStates.MAIN_MENU)
+                self._select_option()
+        elif event.type == pygame.MOUSEMOTION:
+            # Check if mouse is over any option
+            mouse_pos = pygame.mouse.get_pos()
+            for i, rect in enumerate(self.option_rects):
+                if rect.collidepoint(mouse_pos):
+                    self.selected_option = i
+                    break
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left click
+                mouse_pos = pygame.mouse.get_pos()
+                for i, rect in enumerate(self.option_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_option = i
+                        self._select_option()
+                        break
+    
+    def _select_option(self):
+        """Handle option selection"""
+        if self.selected_option == 0:  # Resume
+            self.game.change_state(GameStates.PLAYING)
+        elif self.selected_option == 1:  # Save Game
+            self.game.change_state(GameStates.SAVE_GAME)
+        elif self.selected_option == 2:  # Settings
+            self.game.change_state(GameStates.SETTINGS)
+        elif self.selected_option == 3:  # Main Menu
+            self.game.change_state(GameStates.MAIN_MENU)
 
 class TradingState(State):
     def __init__(self, game, station=None):
