@@ -29,10 +29,14 @@ class MissionManager:
         self.failed_missions: List[Mission] = []
         
         # Mission generation settings
-        self.max_available_missions = 15
         self.max_active_missions = 5
-        self.mission_generation_interval = 1800  # Generate new missions every 30 minutes
+        self.mission_generation_interval = 900  # Generate new missions every 15 minutes
         self.last_generation_time = 0
+        
+        # On-demand mission generation
+        self.missions_per_station_range = (1, 10)  # Random range for missions per station
+        self.visited_stations = set()  # Track which stations have been visited
+        self.station_mission_seeds = {}  # Store seeds for deterministic mission generation per station
         
         # Station mission preferences based on type
         self.station_mission_preferences = {
@@ -68,10 +72,9 @@ class MissionManager:
         """Update mission system - generate new missions, check completions, etc."""
         current_time = time.time()
         
-        # Generate new missions if needed
-        if (current_time - self.last_generation_time > self.mission_generation_interval or
-            len(self.available_missions) < self.max_available_missions // 2):
-            self.generate_missions(game_engine)
+        # Refresh missions for visited stations periodically
+        if (current_time - self.last_generation_time > self.mission_generation_interval):
+            self.refresh_missions_for_visited_stations(game_engine)
             self.last_generation_time = current_time
         
         # Update active missions
@@ -86,36 +89,86 @@ class MissionManager:
         # Clean up expired available missions
         self.cleanup_expired_missions()
     
-    def generate_missions(self, game_engine):
-        """Generate new missions based on current game state."""
-        if not game_engine.universe.stations:
+    def initialize_missions(self, game_engine):
+        """Initialize missions for a new game."""
+        # No longer generate missions at startup - they will be generated on first visit
+        logger.info("Mission system initialized - missions will be generated on first station visit")
+    
+    def generate_missions_for_station(self, station, game_engine):
+        """Generate missions for a specific station on first visit."""
+        if station.name in self.visited_stations:
+            return  # Already visited and has missions
+        
+        # Mark station as visited
+        self.visited_stations.add(station.name)
+        
+        # Use station name as seed for deterministic mission generation
+        station_seed = hash(f"{game_engine.universe.world_seed}_{station.name}") & 0x7FFFFFFF
+        self.station_mission_seeds[station.name] = station_seed
+        
+        # Generate missions using the station's seed
+        random.seed(station_seed)
+        
+        # Randomly choose missions for this station
+        min_missions, max_missions = self.missions_per_station_range
+        station_missions = random.randint(min_missions, max_missions)
+        
+        logger.info(f"Generating {station_missions} missions for first visit to {station.name}")
+        
+        # Generate missions for this station
+        missions_generated = 0
+        for _ in range(station_missions):
+            mission = self.generate_station_specific_mission(station, game_engine.universe.stations)
+            if mission:
+                self.available_missions.append(mission)
+                missions_generated += 1
+                logger.debug(f"Generated mission for {station.name}: {mission.title}")
+        
+        # Reset random seed to current time to avoid affecting other random operations
+        random.seed()
+        
+        logger.info(f"Generated {missions_generated} missions for {station.name}")
+    
+    def refresh_missions_for_visited_stations(self, game_engine):
+        """Refresh missions for stations that have been visited."""
+        if not self.visited_stations:
             return
         
-        missions_to_generate = self.max_available_missions - len(self.available_missions)
-        if missions_to_generate <= 0:
-            return
+        logger.info(f"Refreshing missions for {len(self.visited_stations)} visited stations")
         
-        logger.info(f"Generating {missions_to_generate} new missions")
+        # Remove old missions from visited stations
+        self.available_missions = [
+            mission for mission in self.available_missions
+            if not (hasattr(mission, 'origin_station_id') and 
+                   mission.origin_station_id in self.visited_stations)
+        ]
         
-        # Distribute missions across stations for better variety
-        stations = game_engine.universe.stations
-        missions_per_station = max(1, missions_to_generate // len(stations))
-        remaining_missions = missions_to_generate % len(stations)
+        # Generate new missions for visited stations
+        for station_name in self.visited_stations:
+            station = self.get_station_by_name(station_name, game_engine.universe.stations)
+            if station:
+                # Use stored seed for consistent regeneration
+                station_seed = self.station_mission_seeds.get(station_name, 
+                    hash(f"{game_engine.universe.world_seed}_{station_name}") & 0x7FFFFFFF)
+                
+                # Add some time variance to the seed for different missions over time
+                time_seed = int(time.time() / self.mission_generation_interval)
+                combined_seed = (station_seed + time_seed) & 0x7FFFFFFF
+                
+                random.seed(combined_seed)
+                
+                # Generate new missions
+                min_missions, max_missions = self.missions_per_station_range
+                station_missions = random.randint(min_missions, max_missions)
+                
+                for _ in range(station_missions):
+                    mission = self.generate_station_specific_mission(station, game_engine.universe.stations)
+                    if mission:
+                        self.available_missions.append(mission)
+                        logger.debug(f"Refreshed mission for {station.name}: {mission.title}")
         
-        for i, station in enumerate(stations):
-            # Each station gets at least missions_per_station missions
-            station_missions = missions_per_station
-            
-            # Distribute remaining missions to first few stations
-            if i < remaining_missions:
-                station_missions += 1
-            
-            # Generate missions for this station
-            for _ in range(station_missions):
-                mission = self.generate_station_specific_mission(station, stations)
-                if mission:
-                    self.available_missions.append(mission)
-                    logger.debug(f"Generated mission for {station.name}: {mission.title}")
+        # Reset random seed
+        random.seed()
     
     def generate_station_specific_mission(self, origin_station, stations) -> Optional[Mission]:
         """Generate a mission specific to a particular station."""
@@ -426,7 +479,9 @@ class MissionManager:
             "active_missions": [mission.to_dict() for mission in self.active_missions],
             "completed_missions": [mission.to_dict() for mission in self.completed_missions],
             "failed_missions": [mission.to_dict() for mission in self.failed_missions],
-            "last_generation_time": self.last_generation_time
+            "last_generation_time": self.last_generation_time,
+            "visited_stations": list(self.visited_stations),
+            "station_mission_seeds": self.station_mission_seeds
         }
     
     def from_dict(self, data: Dict[str, Any]):
@@ -436,6 +491,8 @@ class MissionManager:
         self.active_missions.clear()
         self.completed_missions.clear()
         self.failed_missions.clear()
+        self.visited_stations.clear()
+        self.station_mission_seeds.clear()
         
         # Restore missions
         for mission_data in data.get("available_missions", []):
@@ -455,6 +512,13 @@ class MissionManager:
             self.failed_missions.append(mission)
         
         self.last_generation_time = data.get("last_generation_time", 0)
+        
+        # Restore visited stations
+        visited_stations_data = data.get("visited_stations", [])
+        self.visited_stations = set(visited_stations_data)
+        
+        # Restore station mission seeds
+        self.station_mission_seeds = data.get("station_mission_seeds", {})
 
 
 # Global mission manager instance

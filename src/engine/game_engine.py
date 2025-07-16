@@ -104,6 +104,9 @@ class GameEngine:
         # Initialize mission system
         from src.missions.mission_manager import mission_manager
         self.mission_manager = mission_manager
+        
+        # Initialize missions for new game
+        self.mission_manager.initialize_missions(self)
 
         # Initialize states
         from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState, SaveGameState, LoadGameState, MissionBoardState
@@ -426,6 +429,16 @@ class GameEngine:
         # Reset ship velocity
         self.ship.velocity.x = 0
         self.ship.velocity.y = 0
+        
+        # Reset mission system for new universe
+        self.mission_manager.available_missions.clear()
+        self.mission_manager.active_missions.clear()
+        self.mission_manager.completed_missions.clear()
+        self.mission_manager.failed_missions.clear()
+        self.mission_manager.last_generation_time = 0
+        
+        # Initialize missions for new universe
+        self.mission_manager.initialize_missions(self)
         
         logger.info(f"New universe created with seed: {self.world_seed}")
 

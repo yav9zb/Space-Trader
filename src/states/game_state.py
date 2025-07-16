@@ -103,6 +103,7 @@ class MenuState(State):
     def _select_option(self):
         """Handle option selection"""
         if self.selected_option == 0:  # New Game
+            self.game.create_new_universe()  # Create a new universe with random seed
             self.game.change_state(GameStates.PLAYING)
         elif self.selected_option == 1:  # Load Game
             self.game.change_state(GameStates.LOAD_GAME)
@@ -1835,6 +1836,10 @@ class MissionBoardState(State):
         self.current_tab = "available"  # "available", "active"
         self.message = ""
         self.message_timer = 0.0
+        
+        # Generate missions for this station if it's the first visit
+        if self.station:
+            self.mission_manager.generate_missions_for_station(self.station, self.game)
         
         # Get missions for this station
         self.refresh_missions()
