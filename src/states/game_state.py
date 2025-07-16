@@ -68,6 +68,14 @@ class MenuState(State):
             expanded_rect = text_rect.inflate(40, 20)
             self.option_rects.append(expanded_rect)
 
+        # Draw current world seed in bottom right
+        if hasattr(self.game, 'world_seed') and self.game.world_seed is not None:
+            seed_font = pygame.font.Font(None, 24)
+            seed_text = f"World Seed: {self.game.world_seed}"
+            seed_surface = seed_font.render(seed_text, True, (150, 150, 150))
+            seed_rect = seed_surface.get_rect(bottomright=(screen.get_width() - 10, screen.get_height() - 10))
+            screen.blit(seed_surface, seed_rect)
+
     def handle_input(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:

@@ -52,9 +52,12 @@ class GameEngine:
         self.starfield = StarField(100, self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
         
         # Create universe before creating ship
-        self.universe = Universe()
+        self.universe = Universe(seed=None)  # None will generate a random seed
         self.universe.generate_universe()
         self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        
+        # Store the generated seed for display/saving
+        self.world_seed = self.universe.world_seed
         
         # Initialize docking system
         self.docking_manager = DockingManager()
@@ -416,6 +419,30 @@ class GameEngine:
             pass
     
         self.current_state = new_state
+    
+    def create_new_universe(self, seed=None):
+        """Create a new universe with the specified seed"""
+        logger.info(f"Creating new universe with seed: {seed}")
+        
+        # Create new universe
+        self.universe = Universe(seed=seed)
+        self.universe.generate_universe()
+        self.world_seed = self.universe.world_seed
+        
+        # Reset ship position to first station
+        if self.universe.stations:
+            first_station = self.universe.stations[0]
+            self.ship.position.x = first_station.position.x + 100
+            self.ship.position.y = first_station.position.y
+        else:
+            self.ship.position.x = 400
+            self.ship.position.y = 300
+        
+        # Reset ship velocity
+        self.ship.velocity.x = 0
+        self.ship.velocity.y = 0
+        
+        logger.info(f"New universe created with seed: {self.world_seed}")
 
 class GameError(Exception):
     """Base class for game-related exceptions"""

@@ -18,6 +18,7 @@ class SaveMetadata:
     credits: int
     ship_upgrades_value: int
     location: str
+    world_seed: Optional[int] = None
 
 
 class SaveSystem:
@@ -47,7 +48,8 @@ class SaveSystem:
                 "play_time": getattr(game_engine, 'play_time', 0.0),
                 "credits": game_engine.ship.credits,
                 "ship_upgrades_value": game_engine.ship.upgrades.get_total_upgrade_value(),
-                "location": self._get_current_location(game_engine)
+                "location": self._get_current_location(game_engine),
+                "world_seed": getattr(game_engine, 'world_seed', None)
             }
             
             save_file = self.save_directory / f"{save_name}.json"
@@ -101,7 +103,8 @@ class SaveSystem:
                             play_time=metadata.get("play_time", 0.0),
                             credits=metadata.get("credits", 0),
                             ship_upgrades_value=metadata.get("ship_upgrades_value", 0),
-                            location=metadata.get("location", "Unknown")
+                            location=metadata.get("location", "Unknown"),
+                            world_seed=metadata.get("world_seed", None)
                         ))
                     else:
                         # Legacy save file without metadata
@@ -112,7 +115,8 @@ class SaveSystem:
                             play_time=0.0,
                             credits=0,
                             ship_upgrades_value=0,
-                            location="Unknown"
+                            location="Unknown",
+                            world_seed=None
                         ))
                         
                 except (json.JSONDecodeError, KeyError) as e:
@@ -179,6 +183,7 @@ class SaveSystem:
         universe = game_engine.universe
         
         universe_data = {
+            "world_seed": getattr(universe, 'world_seed', None),
             "stations": [],
             "generated_chunks": [list(chunk) for chunk in getattr(universe, 'generated_chunks', set())],
             "current_chunk": getattr(universe, 'current_chunk', {"x": 0, "y": 0})
@@ -284,6 +289,17 @@ class SaveSystem:
         from src.entities.station import Station
         from src.trading.market import StationType, StationMarket
         from pygame import Vector2
+        
+        # Get saved world seed
+        saved_seed = universe_data.get("world_seed")
+        if saved_seed is not None:
+            # Recreate universe with saved seed
+            game_engine.universe = game_engine.universe.__class__(
+                width=game_engine.universe.width,
+                height=game_engine.universe.height,
+                seed=saved_seed
+            )
+            game_engine.world_seed = saved_seed
         
         # Clear existing stations
         game_engine.universe.stations.clear()

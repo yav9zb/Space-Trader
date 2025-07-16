@@ -1,16 +1,22 @@
 import random
+import hashlib
 from pygame import Vector2
 from .entities.station import Station
 from .entities.planet import Planet
 from .entities.debris import Debris
 
 class Universe:
-    def __init__(self, width=10000, height=10000):
+    def __init__(self, width=10000, height=10000, seed=None):
         self.width = width
         self.height = height
         self.sectors = {}  # Grid-based sector system
         self.sector_size = 1000  # Size of each sector
         self.generated_chunks = set()  # Track which chunks have been generated
+        
+        # World seed for deterministic generation
+        if seed is None:
+            seed = random.randint(0, 2**31 - 1)
+        self.world_seed = seed
         
         # Initialize containers
         self.stations = []
@@ -22,6 +28,12 @@ class Universe:
         # Generate initial area around spawn point
         self.generate_chunk_around_position(Vector2(500, 500))
         
+    def _get_chunk_seed(self, chunk_x, chunk_y, layer=0):
+        """Generate a deterministic seed for a specific chunk and generation layer"""
+        # Combine world seed with chunk coordinates and layer for unique seeds
+        seed_string = f"{self.world_seed}_{chunk_x}_{chunk_y}_{layer}"
+        return hash(seed_string) & 0x7FFFFFFF  # Keep positive 32-bit integer
+    
     def generate_chunk_around_position(self, position):
         """Generate content for the chunk containing the given position"""
         chunk_x = int(position.x // self.sector_size)
@@ -37,13 +49,12 @@ class Universe:
         chunk_start_x = chunk_x * self.sector_size
         chunk_start_y = chunk_y * self.sector_size
         
-        # Use chunk coordinates as seed for consistent generation
-        random.seed(hash(chunk_key))
-        
         # Keep track of placed objects to avoid overlapping
         placed_objects = []
         
-        # Generate 1-2 stations per chunk
+        # Generate stations using layer 0 seed
+        station_seed = self._get_chunk_seed(chunk_x, chunk_y, 0)
+        random.seed(station_seed)
         num_stations = random.randint(1, 2)
         for _ in range(num_stations):
             pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=100)
@@ -52,7 +63,9 @@ class Universe:
                 self.stations.append(station)
                 placed_objects.append((pos, station.size))
             
-        # Generate 0-1 planets per chunk
+        # Generate planets using layer 1 seed
+        planet_seed = self._get_chunk_seed(chunk_x, chunk_y, 1)
+        random.seed(planet_seed)
         num_planets = random.randint(0, 1)
         for _ in range(num_planets):
             pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=150)
@@ -61,7 +74,9 @@ class Universe:
                 self.planets.append(planet)
                 placed_objects.append((pos, planet.size))
 
-        # Generate debris
+        # Generate debris using layer 2 seed
+        debris_seed = self._get_chunk_seed(chunk_x, chunk_y, 2)
+        random.seed(debris_seed)
         num_debris = random.randint(10, 20)
         for _ in range(num_debris):
             pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=20)
@@ -70,15 +85,13 @@ class Universe:
                 self.debris.append(debris)
                 placed_objects.append((pos, debris.size))
         
-        # Reset random seed
-        random.seed()
-        
     def _find_safe_position(self, chunk_start_x, chunk_start_y, chunk_size, placed_objects, min_distance=50, max_attempts=100):
         """Find a position that doesn't overlap with existing objects"""
         for _ in range(max_attempts):
-            # Generate random position within chunk bounds
-            x = random.randint(chunk_start_x, chunk_start_x + chunk_size)
-            y = random.randint(chunk_start_y, chunk_start_y + chunk_size)
+            # Generate random position within chunk bounds with some padding
+            padding = 50  # Keep objects away from chunk edges
+            x = random.randint(chunk_start_x + padding, chunk_start_x + chunk_size - padding)
+            y = random.randint(chunk_start_y + padding, chunk_start_y + chunk_size - padding)
             candidate_pos = Vector2(x, y)
             
             # Check if position is safe (doesn't overlap with existing objects)
