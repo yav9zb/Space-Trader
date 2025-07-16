@@ -97,19 +97,32 @@ class MissionManager:
         
         logger.info(f"Generating {missions_to_generate} new missions")
         
-        for _ in range(missions_to_generate):
-            mission = self.generate_random_mission(game_engine.universe.stations)
-            if mission:
-                self.available_missions.append(mission)
-                logger.debug(f"Generated mission: {mission.title}")
+        # Distribute missions across stations for better variety
+        stations = game_engine.universe.stations
+        missions_per_station = max(1, missions_to_generate // len(stations))
+        remaining_missions = missions_to_generate % len(stations)
+        
+        for i, station in enumerate(stations):
+            # Each station gets at least missions_per_station missions
+            station_missions = missions_per_station
+            
+            # Distribute remaining missions to first few stations
+            if i < remaining_missions:
+                station_missions += 1
+            
+            # Generate missions for this station
+            for _ in range(station_missions):
+                mission = self.generate_station_specific_mission(station, stations)
+                if mission:
+                    self.available_missions.append(mission)
+                    logger.debug(f"Generated mission for {station.name}: {mission.title}")
     
-    def generate_random_mission(self, stations) -> Optional[Mission]:
-        """Generate a random mission based on available stations."""
+    def generate_station_specific_mission(self, origin_station, stations) -> Optional[Mission]:
+        """Generate a mission specific to a particular station."""
         if len(stations) < 2:
             return None
         
-        # Choose mission type based on random station preferences
-        origin_station = random.choice(stations)
+        # Choose mission type based on this station's preferences
         station_prefs = self.station_mission_preferences.get(
             origin_station.station_type, 
             {MissionType.DELIVERY: 1.0}
@@ -130,12 +143,21 @@ class MissionManager:
             elif mission_type == MissionType.EMERGENCY_DELIVERY:
                 return self._generate_emergency_delivery_mission(origin_station, stations)
             elif mission_type == MissionType.EXPLORATION:
-                return self._generate_exploration_mission()
+                return self._generate_exploration_mission(origin_station)
         except Exception as e:
             logger.warning(f"Failed to generate {mission_type} mission: {e}")
             return None
         
         return None
+    
+    def generate_random_mission(self, stations) -> Optional[Mission]:
+        """Generate a random mission based on available stations."""
+        if len(stations) < 2:
+            return None
+        
+        # Choose mission type based on random station preferences
+        origin_station = random.choice(stations)
+        return self.generate_station_specific_mission(origin_station, stations)
     
     def _generate_delivery_mission(self, origin_station, stations) -> Optional[DeliveryMission]:
         """Generate a delivery mission."""
@@ -235,7 +257,7 @@ class MissionManager:
             quantity=quantity
         )
     
-    def _generate_exploration_mission(self) -> Optional[ExplorationMission]:
+    def _generate_exploration_mission(self, origin_station=None) -> Optional[ExplorationMission]:
         """Generate an exploration mission."""
         # Generate 2-4 random sectors to explore
         num_sectors = random.randint(2, 4)
@@ -247,7 +269,12 @@ class MissionManager:
             y = random.randint(-5, 15)
             target_sectors.append((x, y))
         
-        return ExplorationMission(target_sectors=target_sectors)
+        # Create exploration mission with origin station if provided
+        exploration_mission = ExplorationMission(target_sectors=target_sectors)
+        if origin_station:
+            exploration_mission.origin_station_id = origin_station.name
+        
+        return exploration_mission
     
     def get_available_missions_for_station(self, station_name: str) -> List[Mission]:
         """Get missions available at a specific station."""
