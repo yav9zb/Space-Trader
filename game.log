@@ -1,44 +1,54 @@
-2025-07-16 01:20:54,173 - src.main - INFO - Starting Space Trading Simulator
-2025-07-16 01:20:54,173 - src.engine.game_engine - INFO - Initializing GameEngine
-2025-07-16 01:20:54,707 - src.engine.game_engine - INFO - Resources initialized successfully
-2025-07-16 01:20:54,719 - src.save_system - INFO - Save system initialized with directory: saves
-2025-07-16 01:20:54,719 - src.engine.game_engine - INFO - GameEngine initialization complete
-2025-07-16 01:20:54,719 - src.engine.game_engine - INFO - Starting game loop
-2025-07-16 01:20:55,493 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
-2025-07-16 01:20:55,499 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
-2025-07-16 01:20:57,348 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
-2025-07-16 01:20:58,249 - src.engine.game_engine - INFO - Collision detected with station
-2025-07-16 01:21:01,661 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
-2025-07-16 01:21:03,445 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.SAVE_GAME
-2025-07-16 01:21:04,791 - src.save_system - INFO - Game saved successfully to saves/test.json
-2025-07-16 01:21:11,168 - src.engine.game_engine - INFO - Changing game state from GameStates.SAVE_GAME to GameStates.PAUSED
-2025-07-16 01:21:13,644 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
-2025-07-16 01:21:15,463 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.LOAD_GAME
-2025-07-16 01:21:17,262 - src.engine.game_engine - INFO - Changing game state from GameStates.LOAD_GAME to GameStates.MAIN_MENU
-2025-07-16 01:21:19,061 - src.engine.game_engine - INFO - Cleaning up and shutting down
-2025-07-16 01:21:19,182 - src.main - INFO - Game terminated
-2025-07-16 01:21:22,718 - src.main - INFO - Starting Space Trading Simulator
-2025-07-16 01:21:22,718 - src.engine.game_engine - INFO - Initializing GameEngine
-2025-07-16 01:21:23,243 - src.engine.game_engine - INFO - Resources initialized successfully
-2025-07-16 01:21:23,254 - src.save_system - INFO - Save system initialized with directory: saves
-2025-07-16 01:21:23,255 - src.engine.game_engine - INFO - GameEngine initialization complete
-2025-07-16 01:21:23,255 - src.engine.game_engine - INFO - Starting game loop
-2025-07-16 01:21:24,802 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.LOAD_GAME
-2025-07-16 01:21:25,593 - src.save_system - ERROR - Failed to load game: unhashable type: 'list'
-2025-07-16 01:22:39,473 - src.save_system - ERROR - Failed to load game: unhashable type: 'list'
-2025-07-16 01:22:40,041 - src.engine.game_engine - INFO - Changing game state from GameStates.LOAD_GAME to GameStates.MAIN_MENU
-2025-07-16 01:22:41,590 - src.engine.game_engine - INFO - Cleaning up and shutting down
-2025-07-16 01:22:41,706 - src.main - INFO - Game terminated
-2025-07-16 01:22:46,447 - src.main - INFO - Starting Space Trading Simulator
-2025-07-16 01:22:46,447 - src.engine.game_engine - INFO - Initializing GameEngine
-2025-07-16 01:22:46,980 - src.engine.game_engine - INFO - Resources initialized successfully
-2025-07-16 01:22:46,995 - src.save_system - INFO - Save system initialized with directory: saves
-2025-07-16 01:22:46,997 - src.engine.game_engine - INFO - GameEngine initialization complete
-2025-07-16 01:22:46,997 - src.engine.game_engine - INFO - Starting game loop
-2025-07-16 01:22:48,402 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.LOAD_GAME
-2025-07-16 01:22:49,092 - src.save_system - INFO - Game loaded successfully from saves/test.json
-2025-07-16 01:22:49,092 - src.engine.game_engine - INFO - Changing game state from GameStates.LOAD_GAME to GameStates.PLAYING
-2025-07-16 01:22:53,756 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
-2025-07-16 01:22:55,387 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
-2025-07-16 01:22:56,574 - src.engine.game_engine - INFO - Cleaning up and shutting down
-2025-07-16 01:22:56,686 - src.main - INFO - Game terminated
+2025-07-16 01:34:20,957 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 01:34:20,958 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 01:34:21,508 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 01:34:21,526 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 01:34:21,527 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 01:34:21,527 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 01:34:21,541 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 01:34:22,257 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 01:34:22,263 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 01:34:25,237 - src.docking.docking_manager - INFO - Initiating docking with Excavation-143
+2025-07-16 01:34:25,237 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 01:34:27,253 - src.docking.docking_manager - INFO - Successfully docked at Excavation-143
+2025-07-16 01:34:27,254 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 01:34:29,089 - src.states.game_state - INFO - Station Excavation-143 does not offer upgrades
+2025-07-16 01:34:29,762 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-16 01:34:33,643 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-16 01:34:35,114 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 01:34:53,606 - src.missions.mission_manager - INFO - Mission accepted: Deliver Electronics
+2025-07-16 01:34:53,606 - src.engine.game_engine - ERROR - Error in game loop: 'DockingManager' object has no attribute 'current_state'
+2025-07-16 01:34:53,606 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 01:34:53,722 - src.main - ERROR - Fatal error: 'DockingManager' object has no attribute 'current_state'
+2025-07-16 01:34:53,722 - src.main - INFO - Game terminated
+2025-07-16 01:36:26,026 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 01:36:26,026 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 01:36:26,549 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 01:36:26,559 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 01:36:26,559 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 01:36:26,559 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 01:36:26,596 - src.missions.mission_manager - INFO - Generating 15 new missions
+2025-07-16 01:36:27,287 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 01:36:27,293 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 01:36:30,465 - src.docking.docking_manager - INFO - Initiating docking with Excavation-143
+2025-07-16 01:36:30,465 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 01:36:32,473 - src.docking.docking_manager - INFO - Successfully docked at Excavation-143
+2025-07-16 01:36:32,473 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 01:36:34,874 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 01:37:02,363 - src.missions.mission_manager - INFO - Mission accepted: Deliver Metal Ore
+2025-07-16 01:37:05,315 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 01:37:07,973 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 01:37:13,350 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 01:37:14,049 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 01:37:14,776 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 01:37:15,709 - src.states.game_state - INFO - Station Excavation-143 does not offer upgrades
+2025-07-16 01:37:38,905 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 01:37:45,534 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 01:37:49,462 - src.states.game_state - INFO - Station Excavation-143 does not offer upgrades
+2025-07-16 01:37:56,309 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 01:37:58,995 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 01:37:59,536 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 01:38:00,534 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 01:38:02,955 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 01:38:05,920 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 01:38:07,585 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 01:38:07,704 - src.main - INFO - Game terminated

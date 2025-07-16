@@ -94,8 +94,12 @@ class GameEngine:
         # Initialize resources
         self._init_resources()
 
+        # Initialize mission system
+        from src.missions.mission_manager import mission_manager
+        self.mission_manager = mission_manager
+
         # Initialize states
-        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState, SaveGameState, LoadGameState
+        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState, SaveGameState, LoadGameState, MissionBoardState
         self.states = {
             GameStates.MAIN_MENU: MenuState(self),
             GameStates.PLAYING: PlayingState(self),
@@ -103,6 +107,7 @@ class GameEngine:
             GameStates.SETTINGS: SettingsState(self),
             GameStates.TRADING: None,  # Will be created dynamically with station parameter
             GameStates.UPGRADES: None,  # Will be created dynamically with station parameter
+            GameStates.MISSIONS: None,  # Will be created dynamically with station parameter
             GameStates.SAVE_GAME: None,  # Will be created dynamically
             GameStates.LOAD_GAME: LoadGameState(self)
         }
@@ -188,6 +193,9 @@ class GameEngine:
         if self.current_state == GameStates.PLAYING:
             self.play_time += self.delta_time
             self._check_auto_save()
+        
+        # Update mission system
+        self.mission_manager.update(self)
         
         # Update current state
         current_state = self.states[self.current_state]
@@ -354,6 +362,10 @@ class GameEngine:
             # Create upgrade state with station parameter
             from src.states.game_state import UpgradeState
             self.states[GameStates.UPGRADES] = UpgradeState(self, station)
+        elif new_state == GameStates.MISSIONS:
+            # Create mission board state with station parameter
+            from src.states.game_state import MissionBoardState
+            self.states[GameStates.MISSIONS] = MissionBoardState(self, station)
         elif new_state == GameStates.SAVE_GAME:
             # Create save state
             from src.states.game_state import SaveGameState

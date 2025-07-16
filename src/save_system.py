@@ -149,6 +149,7 @@ class SaveSystem:
             "version": "1.0",
             "player": self._save_player_data(game_engine),
             "universe": self._save_universe_data(game_engine),
+            "missions": self._save_mission_data(game_engine),
             "game_state": self._save_game_state_data(game_engine)
         }
         
@@ -215,6 +216,12 @@ class SaveSystem:
         
         return market_data
     
+    def _save_mission_data(self, game_engine) -> Dict[str, Any]:
+        """Save mission system state."""
+        if hasattr(game_engine, 'mission_manager'):
+            return game_engine.mission_manager.to_dict()
+        return {}
+    
     def _save_game_state_data(self, game_engine) -> Dict[str, Any]:
         """Save general game state."""
         return {
@@ -230,6 +237,9 @@ class SaveSystem:
         
         # Load universe data  
         self._load_universe_data(save_data.get("universe", {}), game_engine)
+        
+        # Load mission data
+        self._load_mission_data(save_data.get("missions", {}), game_engine)
         
         # Load game state
         self._load_game_state_data(save_data.get("game_state", {}), game_engine)
@@ -318,6 +328,11 @@ class SaveSystem:
                 market_price.stock = price_data.get("stock", market_price.stock)
                 market_price.demand = price_data.get("demand", market_price.demand)
                 market_price.available = price_data.get("available", market_price.available)
+    
+    def _load_mission_data(self, mission_data: Dict[str, Any], game_engine):
+        """Load mission system state."""
+        if hasattr(game_engine, 'mission_manager') and mission_data:
+            game_engine.mission_manager.from_dict(mission_data)
     
     def _load_game_state_data(self, game_state_data: Dict[str, Any], game_engine):
         """Load general game state."""

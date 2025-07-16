@@ -17,6 +17,7 @@ class GameStates(Enum):
     PAUSED = auto()
     TRADING = auto()  # Added for market interface
     UPGRADES = auto()  # Added for ship upgrade interface
+    MISSIONS = auto()  # Added for mission board
     SETTINGS = auto()  # Added for settings menu
     SAVE_GAME = auto()  # Added for save menu
     LOAD_GAME = auto()  # Added for load menu
@@ -477,6 +478,10 @@ class PlayingState(State):
                         self.game.change_state(GameStates.UPGRADES, station)
                     else:
                         logger.info(f"Station {station.name} does not offer upgrades")
+            elif event.key == pygame.K_m:  # Missions
+                if self.game.docking_manager.is_docked():
+                    station = self.game.docking_manager.get_target_station()
+                    self.game.change_state(GameStates.MISSIONS, station)
             elif event.key == pygame.K_x:  # Undocking (changed from U to X to avoid conflict)
                 if self.game.docking_manager.is_docked():
                     result = self.game.docking_manager.attempt_undocking(self.game.ship)
@@ -1453,3 +1458,347 @@ class LoadGameState(State):
         else:
             self.message = "Delete failed!"
             self.message_timer = 2.0
+
+
+class MissionBoardState(State):
+    def __init__(self, game, station=None):
+        super().__init__(game)
+        from ..missions.mission_manager import mission_manager
+        self.mission_manager = mission_manager
+        self.station = station
+        self.title = "Mission Board"
+        self.selected_mission_index = 0
+        self.viewing_details = False
+        self.current_tab = "available"  # "available", "active"
+        self.message = ""
+        self.message_timer = 0.0
+        
+        # Get missions for this station
+        self.refresh_missions()
+    
+    def refresh_missions(self):
+        """Refresh the mission lists."""
+        if self.station:
+            self.available_missions = self.mission_manager.get_available_missions_for_station(self.station.name)
+        else:
+            self.available_missions = self.mission_manager.available_missions
+        
+        self.active_missions = self.mission_manager.active_missions
+        
+        # Reset selection if needed
+        if self.current_tab == "available" and self.selected_mission_index >= len(self.available_missions):
+            self.selected_mission_index = max(0, len(self.available_missions) - 1)
+        elif self.current_tab == "active" and self.selected_mission_index >= len(self.active_missions):
+            self.selected_mission_index = max(0, len(self.active_missions) - 1)
+    
+    def update(self, delta_time):
+        if self.message_timer > 0:
+            self.message_timer -= delta_time
+            if self.message_timer <= 0:
+                self.message = ""
+    
+    def render(self, screen):
+        screen.fill((20, 20, 40))  # Dark blue background
+        
+        # Fonts
+        title_font = pygame.font.Font(None, 64)
+        tab_font = pygame.font.Font(None, 48)
+        header_font = pygame.font.Font(None, 36)
+        text_font = pygame.font.Font(None, 28)
+        small_font = pygame.font.Font(None, 20)
+        
+        width, height = screen.get_size()
+        
+        # Title
+        station_name = self.station.name if self.station else "Mission Central"
+        title_text = f"MISSION BOARD - {station_name}"
+        title_surface = title_font.render(title_text, True, (255, 255, 255))
+        title_rect = title_surface.get_rect(centerx=width//2, y=20)
+        screen.blit(title_surface, title_rect)
+        
+        # Tab navigation
+        tab_y = 80
+        tab_width = 150
+        available_color = (255, 255, 0) if self.current_tab == "available" else (200, 200, 200)
+        active_color = (255, 255, 0) if self.current_tab == "active" else (200, 200, 200)
+        
+        available_tab = tab_font.render("Available", True, available_color)
+        active_tab = tab_font.render("Active", True, active_color)
+        
+        screen.blit(available_tab, (50, tab_y))
+        screen.blit(active_tab, (50 + tab_width, tab_y))
+        
+        # Mission count
+        if self.current_tab == "available":
+            count_text = f"({len(self.available_missions)} missions)"
+            missions_to_show = self.available_missions
+        else:
+            count_text = f"({len(self.active_missions)} missions)"
+            missions_to_show = self.active_missions
+        
+        count_surface = small_font.render(count_text, True, (150, 150, 150))
+        screen.blit(count_surface, (50, tab_y + 40))
+        
+        # Divider line
+        pygame.draw.line(screen, (100, 100, 100), (0, 140), (width, 140), 2)
+        
+        if not self.viewing_details:
+            self._render_mission_list(screen, missions_to_show, text_font, small_font)
+        else:
+            self._render_mission_details(screen, missions_to_show, header_font, text_font, small_font)
+        
+        # Instructions
+        instruction_y = height - 80
+        if not self.viewing_details:
+            instructions = [
+                "TAB: Switch tabs | UP/DOWN: Navigate | ENTER: View details",
+                "A: Accept mission | ESC: Back"
+            ]
+        else:
+            instructions = [
+                "A: Accept mission | X: Abandon (if active) | ESC: Back to list"
+            ]
+        
+        instruction_font = pygame.font.Font(None, 20)
+        for i, instruction in enumerate(instructions):
+            instr_text = instruction_font.render(instruction, True, (150, 150, 150))
+            screen.blit(instr_text, (20, instruction_y + i * 20))
+        
+        # Draw message if any
+        if self.message:
+            message_font = pygame.font.Font(None, 36)
+            msg_color = (0, 255, 0) if "success" in self.message.lower() else (255, 100, 100)
+            msg_text = message_font.render(self.message, True, msg_color)
+            msg_rect = msg_text.get_rect(center=(width // 2, height // 2))
+            pygame.draw.rect(screen, (0, 0, 0), msg_rect.inflate(20, 10))
+            screen.blit(msg_text, msg_rect)
+    
+    def _render_mission_list(self, screen, missions, text_font, small_font):
+        """Render the list of missions."""
+        if not missions:
+            no_missions_text = text_font.render("No missions available", True, (150, 150, 150))
+            screen.blit(no_missions_text, (50, 200))
+            return
+        
+        start_y = 160
+        mission_height = 100
+        
+        # Show up to 5 missions at a time
+        start_index = max(0, self.selected_mission_index - 2)
+        end_index = min(len(missions), start_index + 5)
+        
+        for i in range(start_index, end_index):
+            mission = missions[i]
+            y = start_y + (i - start_index) * mission_height
+            
+            # Highlight selected mission
+            is_selected = i == self.selected_mission_index
+            if is_selected:
+                pygame.draw.rect(screen, (50, 50, 100), 
+                               pygame.Rect(40, y - 5, screen.get_width() - 80, mission_height - 10))
+            
+            # Mission title and type
+            title_color = (255, 255, 0) if is_selected else (255, 255, 255)
+            title_text = text_font.render(mission.title, True, title_color)
+            screen.blit(title_text, (50, y))
+            
+            # Mission type and priority
+            type_text = f"{mission.mission_type.value} | {mission.priority.value}"
+            type_color = self._get_priority_color(mission.priority)
+            type_surface = small_font.render(type_text, True, type_color)
+            screen.blit(type_surface, (50, y + 25))
+            
+            # Reward
+            reward_text = f"Reward: {mission.reward.credits:,} credits"
+            reward_surface = small_font.render(reward_text, True, (0, 255, 0))
+            screen.blit(reward_surface, (50, y + 45))
+            
+            # Time remaining (if applicable)
+            time_remaining = mission.get_formatted_time_remaining()
+            if time_remaining != "No time limit":
+                time_color = (255, 0, 0) if "EXPIRED" in time_remaining else (255, 255, 0)
+                time_surface = small_font.render(f"Time: {time_remaining}", True, time_color)
+                screen.blit(time_surface, (350, y + 45))
+            
+            # Status (for active missions)
+            if self.current_tab == "active":
+                status_text = f"Status: {mission.status.value} ({mission.completion_percentage:.0%})"
+                status_surface = small_font.render(status_text, True, (150, 200, 255))
+                screen.blit(status_surface, (50, y + 65))
+    
+    def _render_mission_details(self, screen, missions, header_font, text_font, small_font):
+        """Render detailed view of selected mission."""
+        if not missions or self.selected_mission_index >= len(missions):
+            return
+        
+        mission = missions[self.selected_mission_index]
+        
+        start_y = 160
+        line_height = 25
+        current_y = start_y
+        
+        # Mission title
+        title_text = header_font.render(mission.title, True, (255, 255, 255))
+        screen.blit(title_text, (50, current_y))
+        current_y += 40
+        
+        # Mission details
+        details = [
+            f"Type: {mission.mission_type.value}",
+            f"Priority: {mission.priority.value}",
+            f"Status: {mission.status.value}",
+            f"Reward: {mission.reward.credits:,} credits",
+            f"Time Limit: {mission.get_formatted_time_remaining()}",
+            "",
+            "Description:",
+            mission.description,
+            "",
+            "Objectives:"
+        ]
+        
+        for detail in details:
+            if detail == "":
+                current_y += line_height // 2
+                continue
+            
+            color = (255, 255, 255)
+            if "Priority:" in detail:
+                color = self._get_priority_color(mission.priority)
+            elif "Reward:" in detail:
+                color = (0, 255, 0)
+            elif "Time Limit:" in detail and "EXPIRED" in detail:
+                color = (255, 0, 0)
+            
+            text_surface = text_font.render(detail, True, color)
+            screen.blit(text_surface, (50, current_y))
+            current_y += line_height
+        
+        # Objectives
+        for i, objective in enumerate(mission.objectives):
+            obj_color = (0, 255, 0) if objective.completed else (255, 255, 255)
+            status = "✓" if objective.completed else "○"
+            obj_text = f"  {status} {objective.description}"
+            obj_surface = small_font.render(obj_text, True, obj_color)
+            screen.blit(obj_surface, (70, current_y))
+            current_y += line_height
+        
+        # Requirements
+        if mission.requirements.min_reputation > 0 or mission.requirements.min_cargo_capacity > 0:
+            current_y += line_height
+            req_header = text_font.render("Requirements:", True, (255, 255, 255))
+            screen.blit(req_header, (50, current_y))
+            current_y += line_height
+            
+            if mission.requirements.min_reputation > 0:
+                req_text = f"  Minimum Reputation: {mission.requirements.min_reputation}"
+                req_surface = small_font.render(req_text, True, (255, 255, 255))
+                screen.blit(req_surface, (70, current_y))
+                current_y += line_height
+            
+            if mission.requirements.min_cargo_capacity > 0:
+                req_text = f"  Minimum Cargo Space: {mission.requirements.min_cargo_capacity}"
+                req_surface = small_font.render(req_text, True, (255, 255, 255))
+                screen.blit(req_surface, (70, current_y))
+                current_y += line_height
+    
+    def _get_priority_color(self, priority):
+        """Get color for mission priority."""
+        from ..missions.mission_types import MissionPriority
+        
+        priority_colors = {
+            MissionPriority.LOW: (150, 150, 150),
+            MissionPriority.MEDIUM: (255, 255, 255),
+            MissionPriority.HIGH: (255, 200, 0),
+            MissionPriority.URGENT: (255, 0, 0)
+        }
+        return priority_colors.get(priority, (255, 255, 255))
+    
+    def handle_input(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                if self.viewing_details:
+                    self.viewing_details = False
+                else:
+                    self.game.change_state(GameStates.PLAYING)
+            
+            elif not self.viewing_details:
+                self._handle_list_input(event)
+            else:
+                self._handle_details_input(event)
+    
+    def _handle_list_input(self, event):
+        """Handle input when viewing mission list."""
+        missions = self.available_missions if self.current_tab == "available" else self.active_missions
+        
+        if event.key == pygame.K_TAB:
+            # Switch tabs
+            self.current_tab = "active" if self.current_tab == "available" else "available"
+            self.selected_mission_index = 0
+            self.refresh_missions()
+        
+        elif event.key == pygame.K_UP and missions:
+            self.selected_mission_index = (self.selected_mission_index - 1) % len(missions)
+        
+        elif event.key == pygame.K_DOWN and missions:
+            self.selected_mission_index = (self.selected_mission_index + 1) % len(missions)
+        
+        elif event.key == pygame.K_RETURN and missions:
+            self.viewing_details = True
+        
+        elif event.key == pygame.K_a and missions:
+            # Accept mission
+            self._accept_mission()
+    
+    def _handle_details_input(self, event):
+        """Handle input when viewing mission details."""
+        missions = self.available_missions if self.current_tab == "available" else self.active_missions
+        
+        if event.key == pygame.K_a and missions:
+            # Accept mission
+            self._accept_mission()
+        
+        elif event.key == pygame.K_x and self.current_tab == "active" and missions:
+            # Abandon mission
+            self._abandon_mission()
+    
+    def _accept_mission(self):
+        """Accept the currently selected mission."""
+        missions = self.available_missions if self.current_tab == "available" else self.active_missions
+        
+        if not missions or self.selected_mission_index >= len(missions):
+            return
+        
+        mission = missions[self.selected_mission_index]
+        
+        if self.current_tab != "available":
+            self.message = "Can only accept available missions"
+            self.message_timer = 2.0
+            return
+        
+        success, message = self.mission_manager.accept_mission(mission.id, self.game.ship)
+        
+        self.message = message
+        self.message_timer = 2.0
+        
+        if success:
+            self.refresh_missions()
+            # Switch to active tab to show the accepted mission
+            self.current_tab = "active"
+            self.selected_mission_index = 0
+    
+    def _abandon_mission(self):
+        """Abandon the currently selected active mission."""
+        if self.current_tab != "active" or not self.active_missions:
+            return
+        
+        if self.selected_mission_index >= len(self.active_missions):
+            return
+        
+        mission = self.active_missions[self.selected_mission_index]
+        success, message = self.mission_manager.abandon_mission(mission.id, self.game.ship)
+        
+        self.message = message
+        self.message_timer = 2.0
+        
+        if success:
+            self.refresh_missions()
