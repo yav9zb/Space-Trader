@@ -4,8 +4,12 @@ from typing import Optional
 
 try:
     from ...settings import game_settings
+    from ..ui_layout import UILayout, Anchor
+    from ..ui_theme import ui_theme, UIElementType, UIState
 except ImportError:
     from settings import game_settings
+    from ui_layout import UILayout, Anchor
+    from ui_theme import ui_theme, UIElementType, UIState
 
 
 class DevView:
@@ -15,15 +19,19 @@ class DevView:
         self.screen_width = screen_width
         self.screen_height = screen_height
         
-        # Fonts
-        self.font_medium = pygame.font.Font(None, 24)
-        self.font_small = pygame.font.Font(None, 18)
+        # Initialize UI layout system
+        self.ui_layout = UILayout(screen_width, screen_height)
         
-        # Panel settings
-        self.panel_width = 300
-        self.panel_height = 400
-        self.panel_x = screen_width - self.panel_width - 10
-        self.panel_y = screen_height - self.panel_height - 10
+        # Update theme scale
+        ui_theme.update_scale(self.ui_layout.font_scale)
+        
+        # Fonts with responsive sizing
+        self.font_medium = pygame.font.Font(None, self.ui_layout.get_font_size(24))
+        self.font_small = pygame.font.Font(None, self.ui_layout.get_font_size(18))
+        
+        # Panel settings with responsive sizing
+        self.panel_width, self.panel_height = self.ui_layout.get_panel_size(300, 400, 0.25, 0.5)
+        self.panel_x, self.panel_y = self.ui_layout.get_position(Anchor.BOTTOM_RIGHT, self.panel_width, self.panel_height)
         
         # Colors
         self.bg_color = (0, 0, 0)
@@ -55,18 +63,14 @@ class DevView:
         if not game_settings.dev_view_enabled:
             return
         
-        # Create semi-transparent panel background
-        panel_surface = pygame.Surface((self.panel_width, self.panel_height))
-        panel_surface.set_alpha(200)
-        panel_surface.fill(self.bg_color)
-        surface.blit(panel_surface, (self.panel_x, self.panel_y))
+        # Panel background and border using theme
+        panel_rect = pygame.Rect(self.panel_x, self.panel_y, self.panel_width, self.panel_height)
+        ui_theme.draw_panel_background(surface, panel_rect, 200)
+        ui_theme.draw_border(surface, panel_rect, UIElementType.DEV_VIEW)
         
-        # Draw border
-        pygame.draw.rect(surface, self.border_color, 
-                        (self.panel_x, self.panel_y, self.panel_width, self.panel_height), 2)
-        
-        # Draw title
-        title = self.font_medium.render("DEV VIEW", True, self.header_color)
+        # Draw title with theme color
+        title_color = ui_theme.get_text_color(UIElementType.DEV_VIEW)
+        title = self.font_medium.render("DEV VIEW", True, title_color)
         surface.blit(title, (self.panel_x + 10, self.panel_y + 10))
         
         y_offset = self.panel_y + 40
@@ -267,5 +271,17 @@ class DevView:
         """Handle screen resize."""
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.panel_x = screen_width - self.panel_width - 10
-        self.panel_y = screen_height - self.panel_height - 10
+        
+        # Update UI layout system
+        self.ui_layout.resize(screen_width, screen_height)
+        
+        # Update theme scale
+        ui_theme.update_scale(self.ui_layout.font_scale)
+        
+        # Recreate fonts with responsive sizing
+        self.font_medium = pygame.font.Font(None, self.ui_layout.get_font_size(24))
+        self.font_small = pygame.font.Font(None, self.ui_layout.get_font_size(18))
+        
+        # Recalculate panel dimensions and position
+        self.panel_width, self.panel_height = self.ui_layout.get_panel_size(300, 400, 0.25, 0.5)
+        self.panel_x, self.panel_y = self.ui_layout.get_position(Anchor.BOTTOM_RIGHT, self.panel_width, self.panel_height)

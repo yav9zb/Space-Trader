@@ -154,18 +154,12 @@ class Station:
                            self.size + 10,
                            1)
         
-        # Draw collision boundary
-        pygame.draw.circle(screen, (255, 0, 0), 
-                     (int(screen_pos.x), int(screen_pos.y)), 
-                     self.size, 
-                     1)  # Draw collision radius
+        # Collision boundary visualization removed for cleaner visuals
         
     def _draw_military_features(self, screen, pos):
         """Draw military-specific features"""
-        # Draw "radar" rotating line
-        radar_angle = (pygame.time.get_ticks() / 10) % 360
-        radar_end = Vector2(0, self.size * 0.8).rotate(radar_angle) + pos
-        pygame.draw.line(screen, (255, 0, 0), pos, radar_end, 2)
+        # Radar visualization removed for cleaner visuals
+        pass
 
     def _draw_mining_features(self, screen, pos):
         """Draw mining-specific features"""

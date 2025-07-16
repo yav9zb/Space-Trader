@@ -1,6 +1,10 @@
 import pygame
 from pygame import Vector2
 import math
+try:
+    from .ui_theme import ui_theme, UIElementType, UIState
+except ImportError:
+    from ui_theme import ui_theme, UIElementType, UIState
 
 class LargeMap:
     """Full-screen map overlay showing the entire universe."""
@@ -187,9 +191,9 @@ class LargeMap:
         # Draw grid
         self._draw_grid(surface)
         
-        # Draw map border
+        # Draw map border using theme
         map_rect = pygame.Rect(self.margin, self.margin, self.map_width, self.map_height)
-        pygame.draw.rect(surface, self.border_color, map_rect, 3)
+        ui_theme.draw_border(surface, map_rect, UIElementType.LARGE_MAP)
         
         # Draw universe objects
         self._draw_planets(surface, planets)

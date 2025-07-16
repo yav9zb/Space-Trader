@@ -602,19 +602,7 @@ class PlayingState(State):
         # Draw starfield first (so it's in background)
         self.game.starfield.draw(screen, camera_offset)
 
-        # Add debug visualization
-        pygame.draw.circle(screen, (255, 0, 0), 
-                          (int(screen.get_width()/2), int(screen.get_height()/2)), 
-                          5)  # Center point reference
-    
-        # Draw coordinate grid
-        grid_size = 100
-        for x in range(0, screen.get_width(), grid_size):
-            pygame.draw.line(screen, (50, 50, 50), 
-                            (x, 0), (x, screen.get_height()))
-        for y in range(0, screen.get_height(), grid_size):
-            pygame.draw.line(screen, (50, 50, 50),
-                            (0, y), (screen.get_width(), y))
+        # Debug visualization removed for cleaner visuals
 
         # Draw all stations
         for station in self.game.universe.stations:

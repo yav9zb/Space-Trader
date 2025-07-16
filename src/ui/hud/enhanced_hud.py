@@ -9,10 +9,14 @@ try:
     from ...settings import game_settings
     from ...missions.mission_manager import mission_manager
     from .dev_view import DevView
+    from ..ui_layout import UILayout, Anchor
+    from ..ui_theme import ui_theme, UIElementType, UIState
 except ImportError:
     from settings import game_settings
     from missions.mission_manager import mission_manager
     from dev_view import DevView
+    from ui_layout import UILayout, Anchor
+    from ui_theme import ui_theme, UIElementType, UIState
 
 
 class HUDPosition(Enum):
@@ -59,7 +63,10 @@ class StatusBar:
         """Draw the status bar."""
         # Background
         pygame.draw.rect(surface, self.bg_color, (x, y, self.width, self.height))
-        pygame.draw.rect(surface, (100, 100, 100), (x, y, self.width, self.height), 1)
+        
+        # Border using theme
+        bar_rect = pygame.Rect(x, y, self.width, self.height)
+        ui_theme.draw_border(surface, bar_rect, UIElementType.STATUS_BAR)
         
         # Fill
         fill_width = int(self.width * self.value)
@@ -83,14 +90,22 @@ class EnhancedHUD:
         self.screen_height = screen_height
         self.scale = game_settings.hud_scale
         
-        # Fonts
-        self.font_large = pygame.font.Font(None, int(36 * self.scale))
-        self.font_medium = pygame.font.Font(None, int(24 * self.scale))
-        self.font_small = pygame.font.Font(None, int(18 * self.scale))
+        # Initialize UI layout system
+        self.ui_layout = UILayout(screen_width, screen_height, self.scale)
         
-        # Status bars
-        self.hull_bar = StatusBar(int(120 * self.scale), int(12 * self.scale), (0, 255, 0))
-        self.cargo_bar = StatusBar(int(120 * self.scale), int(12 * self.scale), (255, 255, 0))
+        # Update theme scale
+        ui_theme.update_scale(self.ui_layout.font_scale)
+        
+        # Fonts with responsive sizing
+        self.font_large = pygame.font.Font(None, self.ui_layout.get_font_size(36))
+        self.font_medium = pygame.font.Font(None, self.ui_layout.get_font_size(24))
+        self.font_small = pygame.font.Font(None, self.ui_layout.get_font_size(18))
+        
+        # Status bars with responsive sizing
+        bar_width = int(120 * self.ui_layout.font_scale)
+        bar_height = int(12 * self.ui_layout.font_scale)
+        self.hull_bar = StatusBar(bar_width, bar_height, (0, 255, 0))
+        self.cargo_bar = StatusBar(bar_width, bar_height, (255, 255, 0))
         
         # HUD panels
         self.show_ship_status = True
@@ -168,6 +183,9 @@ class EnhancedHUD:
     
     def render(self, surface: pygame.Surface, game_engine):
         """Render the complete HUD."""
+        # Clear reserved areas at start of each frame
+        self.ui_layout.clear_reserved_areas()
+        
         if self.show_ship_status:
             self._render_ship_status(surface, game_engine)
         
@@ -194,42 +212,38 @@ class EnhancedHUD:
         """Render ship status panel."""
         ship = game_engine.ship
         
-        # Panel background
-        panel_x = int(10 * self.scale)
-        panel_y = int(10 * self.scale)
-        panel_width = int(250 * self.scale)
-        panel_height = int(180 * self.scale)
+        # Panel dimensions using responsive sizing
+        panel_width, panel_height = self.ui_layout.get_panel_size(250, 180, 0.3, 0.4)
+        panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_LEFT, panel_width, panel_height)
         
-        # Semi-transparent background
-        panel_surface = pygame.Surface((panel_width, panel_height))
-        panel_surface.set_alpha(180)
-        panel_surface.fill((0, 0, 0))
-        surface.blit(panel_surface, (panel_x, panel_y))
+        # Panel background and border using theme
+        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
+        ui_theme.draw_panel_background(surface, panel_rect, 180)
+        ui_theme.draw_border(surface, panel_rect, UIElementType.SHIP_STATUS)
         
-        # Border
-        pygame.draw.rect(surface, (100, 150, 200), (panel_x, panel_y, panel_width, panel_height), 2)
+        # Title with theme color
+        title_color = ui_theme.get_text_color(UIElementType.SHIP_STATUS)
+        title = self.font_medium.render("SHIP STATUS", True, title_color)
+        surface.blit(title, (panel_x + self.ui_layout.padding, panel_y + self.ui_layout.padding))
         
-        # Title
-        title = self.font_medium.render("SHIP STATUS", True, (200, 200, 255))
-        surface.blit(title, (panel_x + 10, panel_y + 10))
-        
-        y_offset = panel_y + 35
+        y_offset = panel_y + self.ui_layout.get_responsive_spacing(35)
         
         # Credits
         credits_text = f"Credits: {int(self.credits_display):,}"
         credits_color = (255, 255, 0) if ship.credits > 10000 else (255, 255, 255)
         credits_surface = self.font_small.render(credits_text, True, credits_color)
-        surface.blit(credits_surface, (panel_x + 10, y_offset))
-        y_offset += 20
+        surface.blit(credits_surface, (panel_x + self.ui_layout.padding, y_offset))
+        y_offset += self.ui_layout.get_responsive_spacing(20)
         
         # Hull status
         hull_text = f"Hull: {ship.current_hull:.0f}/{ship.get_effective_stats().get_effective_hull_points()}"
         hull_surface = self.font_small.render(hull_text, True, (255, 255, 255))
-        surface.blit(hull_surface, (panel_x + 10, y_offset))
+        surface.blit(hull_surface, (panel_x + self.ui_layout.padding, y_offset))
         
         # Hull bar
-        self.hull_bar.draw(surface, panel_x + 120, y_offset + 2)
-        y_offset += 25
+        bar_x = panel_x + int(120 * self.ui_layout.font_scale)
+        self.hull_bar.draw(surface, bar_x, y_offset + 2)
+        y_offset += self.ui_layout.get_responsive_spacing(25)
         
         # Cargo status
         cargo_used = ship.cargo_hold.get_used_capacity()
@@ -254,38 +268,41 @@ class EnhancedHUD:
         upgrade_summary = ship.upgrades.get_upgrade_summary()
         upgrade_text = f"Upgrades: {sum(1 for v in upgrade_summary.values() if v != 'None')}/4"
         upgrade_surface = self.font_small.render(upgrade_text, True, (200, 200, 255))
-        surface.blit(upgrade_surface, (panel_x + 10, y_offset))
+        surface.blit(upgrade_surface, (panel_x + self.ui_layout.padding, y_offset))
+        
+        # Reserve this area to prevent overlap
+        self.ui_layout.reserve_area(panel_x, panel_y, panel_width, panel_height, "ship_status")
     
     def _render_navigation(self, surface: pygame.Surface, game_engine):
         """Render navigation panel."""
         ship = game_engine.ship
         
-        # Panel background
-        panel_x = int(10 * self.scale)
-        panel_y = int(200 * self.scale)
-        panel_width = int(250 * self.scale)
-        panel_height = int(120 * self.scale)
+        # Panel dimensions using responsive sizing
+        panel_width, panel_height = self.ui_layout.get_panel_size(250, 120, 0.3, 0.3)
+        # Position below ship status panel with spacing
+        ship_status_height = self.ui_layout.get_panel_size(250, 180, 0.3, 0.4)[1]
+        offset_y = ship_status_height + self.ui_layout.get_responsive_spacing(20)
+        panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_LEFT, panel_width, panel_height, 0, offset_y)
         
-        panel_surface = pygame.Surface((panel_width, panel_height))
-        panel_surface.set_alpha(180)
-        panel_surface.fill((0, 0, 0))
-        surface.blit(panel_surface, (panel_x, panel_y))
+        # Panel background and border using theme
+        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
+        ui_theme.draw_panel_background(surface, panel_rect, 180)
+        ui_theme.draw_border(surface, panel_rect, UIElementType.NAVIGATION)
         
-        pygame.draw.rect(surface, (100, 200, 100), (panel_x, panel_y, panel_width, panel_height), 2)
+        # Title with theme color
+        title_color = ui_theme.get_text_color(UIElementType.NAVIGATION)
+        title = self.font_medium.render("NAVIGATION", True, title_color)
+        surface.blit(title, (panel_x + self.ui_layout.padding, panel_y + self.ui_layout.padding))
         
-        # Title
-        title = self.font_medium.render("NAVIGATION", True, (200, 255, 200))
-        surface.blit(title, (panel_x + 10, panel_y + 10))
-        
-        y_offset = panel_y + 35
+        y_offset = panel_y + self.ui_layout.get_responsive_spacing(35)
         
         # Current position (invert Y for display)
         sector_x = int(ship.position.x // 1000)
         sector_y = int(-ship.position.y // 1000)
         pos_text = f"Sector: ({sector_x}, {sector_y})"
         pos_surface = self.font_small.render(pos_text, True, (255, 255, 255))
-        surface.blit(pos_surface, (panel_x + 10, y_offset))
-        y_offset += 20
+        surface.blit(pos_surface, (panel_x + self.ui_layout.padding, y_offset))
+        y_offset += self.ui_layout.get_responsive_spacing(20)
         
         # Nearest station
         if self.nearest_station:
@@ -296,9 +313,9 @@ class EnhancedHUD:
             station_surface = self.font_small.render(station_text, True, (255, 255, 255))
             distance_surface = self.font_small.render(distance_text, True, (200, 200, 200))
             
-            surface.blit(station_surface, (panel_x + 10, y_offset))
-            surface.blit(distance_surface, (panel_x + 10, y_offset + 15))
-            y_offset += 35
+            surface.blit(station_surface, (panel_x + self.ui_layout.padding, y_offset))
+            surface.blit(distance_surface, (panel_x + self.ui_layout.padding, y_offset + 15))
+            y_offset += self.ui_layout.get_responsive_spacing(35)
         
         # Docking status
         if hasattr(game_engine, 'docking_manager'):
@@ -306,7 +323,10 @@ class EnhancedHUD:
             state_color = (0, 255, 0) if "docked" in docking_state.lower() else (255, 255, 255)
             state_text = f"Status: {docking_state.title()}"
             state_surface = self.font_small.render(state_text, True, state_color)
-            surface.blit(state_surface, (panel_x + 10, y_offset))
+            surface.blit(state_surface, (panel_x + self.ui_layout.padding, y_offset))
+            
+        # Reserve this area to prevent overlap
+        self.ui_layout.reserve_area(panel_x, panel_y, panel_width, panel_height, "navigation")
     
     def _render_mission_tracker(self, surface: pygame.Surface, game_engine):
         """Render active missions tracker."""
@@ -314,47 +334,47 @@ class EnhancedHUD:
         if not active_missions:
             return
         
-        # Panel position (top right)
-        panel_width = int(280 * self.scale)
-        # Calculate height based on missions and destination info
-        mission_height = 45
+        # Calculate dynamic panel height based on missions
+        mission_height = self.ui_layout.get_responsive_spacing(45)
         extra_height = sum(15 for mission in active_missions[:3] if hasattr(mission, 'destination_station_id') and mission.destination_station_id)
-        panel_height = min(int(200 * self.scale), len(active_missions[:3]) * mission_height + extra_height + 40)
-        panel_x = self.screen_width - panel_width - int(10 * self.scale)
-        panel_y = int(10 * self.scale)
+        base_height = len(active_missions[:3]) * mission_height + extra_height + 40
         
-        panel_surface = pygame.Surface((panel_width, panel_height))
-        panel_surface.set_alpha(180)
-        panel_surface.fill((0, 0, 0))
-        surface.blit(panel_surface, (panel_x, panel_y))
+        # Panel dimensions using responsive sizing
+        panel_width, panel_height = self.ui_layout.get_panel_size(280, base_height, 0.35, 0.6)
+        panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_RIGHT, panel_width, panel_height)
         
-        pygame.draw.rect(surface, (200, 150, 100), (panel_x, panel_y, panel_width, panel_height), 2)
+        # Panel background and border using theme
+        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
+        ui_theme.draw_panel_background(surface, panel_rect, 180)
+        ui_theme.draw_border(surface, panel_rect, UIElementType.MISSION_TRACKER)
         
-        # Title
-        title = self.font_medium.render("ACTIVE MISSIONS", True, (255, 200, 100))
-        surface.blit(title, (panel_x + 10, panel_y + 10))
+        # Title with theme color
+        title_color = ui_theme.get_text_color(UIElementType.MISSION_TRACKER)
+        title = self.font_medium.render("ACTIVE MISSIONS", True, title_color)
+        surface.blit(title, (panel_x + self.ui_layout.padding, panel_y + self.ui_layout.padding))
         
-        y_offset = panel_y + 35
+        y_offset = panel_y + self.ui_layout.get_responsive_spacing(35)
         
         for i, mission in enumerate(active_missions[:3]):  # Show up to 3 missions
-            # Mission title
-            title_text = mission.title[:30] + ("..." if len(mission.title) > 30 else "")
+            # Mission title with responsive text truncation
+            max_chars = max(20, int(30 * self.ui_layout.font_scale))
+            title_text = mission.title[:max_chars] + ("..." if len(mission.title) > max_chars else "")
             title_surface = self.font_small.render(title_text, True, (255, 255, 255))
-            surface.blit(title_surface, (panel_x + 10, y_offset))
+            surface.blit(title_surface, (panel_x + self.ui_layout.padding, y_offset))
             
             # Destination info if available
             if hasattr(mission, 'destination_station_id') and mission.destination_station_id:
                 dest_text = f"→ {mission.destination_station_id}"
                 dest_surface = self.font_small.render(dest_text, True, (150, 200, 255))
-                surface.blit(dest_surface, (panel_x + 10, y_offset + 15))
-                progress_y_offset = 30
+                surface.blit(dest_surface, (panel_x + self.ui_layout.padding, y_offset + 15))
+                progress_y_offset = self.ui_layout.get_responsive_spacing(30)
             else:
-                progress_y_offset = 15
+                progress_y_offset = self.ui_layout.get_responsive_spacing(15)
             
-            # Progress bar
-            progress_width = int(200 * self.scale)
-            progress_height = int(8 * self.scale)
-            progress_x = panel_x + 10
+            # Progress bar with responsive sizing
+            progress_width = int(200 * self.ui_layout.font_scale)
+            progress_height = int(8 * self.ui_layout.font_scale)
+            progress_x = panel_x + self.ui_layout.padding
             progress_y = y_offset + progress_y_offset
             
             pygame.draw.rect(surface, (40, 40, 40), (progress_x, progress_y, progress_width, progress_height))
@@ -370,9 +390,13 @@ class EnhancedHUD:
             if time_remaining != "No time limit":
                 time_color = (255, 100, 100) if "EXPIRED" in time_remaining else (200, 200, 200)
                 time_surface = self.font_small.render(time_remaining, True, time_color)
-                surface.blit(time_surface, (panel_x + panel_width - 80, y_offset))
+                time_x = panel_x + panel_width - time_surface.get_width() - self.ui_layout.padding
+                surface.blit(time_surface, (time_x, y_offset))
             
-            y_offset += 45 + (15 if hasattr(mission, 'destination_station_id') and mission.destination_station_id else 0)
+            y_offset += mission_height + (15 if hasattr(mission, 'destination_station_id') and mission.destination_station_id else 0)
+        
+        # Reserve this area to prevent overlap
+        self.ui_layout.reserve_area(panel_x, panel_y, panel_width, panel_height, "mission_tracker")
     
     def _render_market_info(self, surface: pygame.Surface, game_engine):
         """Render market information panel."""
@@ -391,9 +415,9 @@ class EnhancedHUD:
         fps_color = (0, 255, 0) if avg_fps >= 50 else (255, 255, 0) if avg_fps >= 30 else (255, 0, 0)
         fps_surface = self.font_small.render(fps_text, True, fps_color)
         
-        # Position in top right corner
-        fps_x = self.screen_width - fps_surface.get_width() - 10
-        fps_y = 10
+        # Position using responsive layout
+        fps_width, fps_height = fps_surface.get_size()
+        fps_x, fps_y = self.ui_layout.find_non_overlapping_position(fps_width, fps_height, Anchor.TOP_RIGHT)
         
         surface.blit(fps_surface, (fps_x, fps_y))
     
@@ -433,14 +457,22 @@ class EnhancedHUD:
         self.screen_height = screen_height
         self.scale = game_settings.hud_scale
         
-        # Recreate fonts with new scale
-        self.font_large = pygame.font.Font(None, int(36 * self.scale))
-        self.font_medium = pygame.font.Font(None, int(24 * self.scale))
-        self.font_small = pygame.font.Font(None, int(18 * self.scale))
+        # Update UI layout system
+        self.ui_layout.resize(screen_width, screen_height)
         
-        # Recreate status bars with new scale
-        self.hull_bar = StatusBar(int(120 * self.scale), int(12 * self.scale), (0, 255, 0))
-        self.cargo_bar = StatusBar(int(120 * self.scale), int(12 * self.scale), (255, 255, 0))
+        # Update theme scale
+        ui_theme.update_scale(self.ui_layout.font_scale)
+        
+        # Recreate fonts with responsive sizing
+        self.font_large = pygame.font.Font(None, self.ui_layout.get_font_size(36))
+        self.font_medium = pygame.font.Font(None, self.ui_layout.get_font_size(24))
+        self.font_small = pygame.font.Font(None, self.ui_layout.get_font_size(18))
+        
+        # Recreate status bars with responsive sizing
+        bar_width = int(120 * self.ui_layout.font_scale)
+        bar_height = int(12 * self.ui_layout.font_scale)
+        self.hull_bar = StatusBar(bar_width, bar_height, (0, 255, 0))
+        self.cargo_bar = StatusBar(bar_width, bar_height, (255, 255, 0))
         
         # Resize dev view
         self.dev_view.resize(screen_width, screen_height)

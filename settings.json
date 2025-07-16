@@ -14,7 +14,7 @@
     "music_volume": 0.6,
     "invert_y": false,
     "mouse_sensitivity": 1.0,
-    "dev_view_enabled": true,
+    "dev_view_enabled": false,
     "dev_show_fps": true,
     "dev_show_ship_pos": true,
     "dev_show_docking": true,

@@ -2,13 +2,31 @@ import pygame
 from pygame import Vector2
 
 from src.entities.planet import Planet
+try:
+    from .ui_layout import UILayout, Anchor
+    from .ui_theme import ui_theme, UIElementType, UIState
+except ImportError:
+    from ui_layout import UILayout, Anchor
+    from ui_theme import ui_theme, UIElementType, UIState
 
 class Minimap:
     def __init__(self, screen_width, screen_height, map_size=150):
-        self.map_size = map_size
-        self.padding = 10
-        self.position = Vector2(screen_width - map_size - self.padding, 
-                              self.padding)
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        
+        # Initialize UI layout system
+        self.ui_layout = UILayout(screen_width, screen_height)
+        
+        # Update theme scale
+        ui_theme.update_scale(self.ui_layout.font_scale)
+        
+        # Responsive map size
+        self.map_size = int(map_size * self.ui_layout.font_scale)
+        self.map_size = max(100, min(300, self.map_size))  # Clamp between 100-300px
+        
+        # Position using responsive layout (offset to avoid FPS counter)
+        map_x, map_y = self.ui_layout.get_position(Anchor.TOP_RIGHT, self.map_size, self.map_size, 0, 60)
+        self.position = Vector2(map_x, map_y)
         
         # Local view radius in world units
         self.view_radius = 2000
@@ -95,9 +113,9 @@ class Minimap:
                         ship_map_pos + ship_direction,
                         2)
         
-        # Draw border
-        pygame.draw.rect(self.surface, self.border_color,
-                        (0, 0, self.map_size, self.map_size), 2)
+        # Draw border using theme
+        border_rect = pygame.Rect(0, 0, self.map_size, self.map_size)
+        ui_theme.draw_border(self.surface, border_rect, UIElementType.MINIMAP)
         
         # Draw minimap title
         font = pygame.font.Font(None, 20)
@@ -121,3 +139,26 @@ class Minimap:
         """Check if a position is within the minimap boundaries"""
         return (0 <= pos.x < self.map_size and 
                 0 <= pos.y < self.map_size)
+    
+    def resize(self, screen_width, screen_height):
+        """Handle screen resize."""
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        
+        # Update UI layout system
+        self.ui_layout.resize(screen_width, screen_height)
+        
+        # Update theme scale
+        ui_theme.update_scale(self.ui_layout.font_scale)
+        
+        # Recalculate responsive map size
+        self.map_size = int(150 * self.ui_layout.font_scale)
+        self.map_size = max(100, min(300, self.map_size))
+        
+        # Reposition using responsive layout
+        map_x, map_y = self.ui_layout.get_position(Anchor.TOP_RIGHT, self.map_size, self.map_size, 0, 60)
+        self.position = Vector2(map_x, map_y)
+        
+        # Recreate surface with new size
+        self.surface = pygame.Surface((self.map_size, self.map_size))
+        self.scale = self.map_size / (self.view_radius * 2)
