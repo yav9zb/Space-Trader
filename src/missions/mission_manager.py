@@ -119,8 +119,20 @@ class MissionManager:
     
     def generate_station_specific_mission(self, origin_station, stations) -> Optional[Mission]:
         """Generate a mission specific to a particular station."""
+        # For single station universes, we can only generate certain mission types
         if len(stations) < 2:
-            return None
+            # Only allow exploration missions and trading contracts for single station
+            mission_types = [MissionType.EXPLORATION, MissionType.TRADING_CONTRACT]
+            mission_type = random.choice(mission_types)
+            
+            try:
+                if mission_type == MissionType.EXPLORATION:
+                    return self._generate_exploration_mission(origin_station)
+                elif mission_type == MissionType.TRADING_CONTRACT:
+                    return self._generate_trading_contract_mission(origin_station)
+            except Exception as e:
+                logger.warning(f"Failed to generate {mission_type} mission: {e}")
+                return None
         
         # Choose mission type based on this station's preferences
         station_prefs = self.station_mission_preferences.get(
