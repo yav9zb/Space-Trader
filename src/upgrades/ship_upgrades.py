@@ -216,3 +216,21 @@ class ShipUpgrades:
         self.engine_tier = 0
         self.hull_tier = 0
         self.scanner_tier = 0
+    
+    def to_dict(self) -> Dict[str, any]:
+        """Serialize upgrades to dictionary for saving."""
+        return {
+            "installed_upgrades": self.installed_upgrades,
+            "cargo_tier": self.cargo_tier,
+            "engine_tier": self.engine_tier,
+            "hull_tier": self.hull_tier,
+            "scanner_tier": self.scanner_tier
+        }
+    
+    def from_dict(self, data: Dict[str, any]):
+        """Load upgrades from dictionary."""
+        self.installed_upgrades = data.get("installed_upgrades", {})
+        self.cargo_tier = data.get("cargo_tier", 0)
+        self.engine_tier = data.get("engine_tier", 0)
+        self.hull_tier = data.get("hull_tier", 0)
+        self.scanner_tier = data.get("scanner_tier", 0)

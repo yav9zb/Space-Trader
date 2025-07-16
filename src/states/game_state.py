@@ -18,6 +18,8 @@ class GameStates(Enum):
     TRADING = auto()  # Added for market interface
     UPGRADES = auto()  # Added for ship upgrade interface
     SETTINGS = auto()  # Added for settings menu
+    SAVE_GAME = auto()  # Added for save menu
+    LOAD_GAME = auto()  # Added for load menu
     GAME_OVER = auto()
 
 class State:
@@ -37,7 +39,7 @@ class MenuState(State):
     def __init__(self, game):
         super().__init__(game)
         self.title = "Space Trading Simulator"
-        self.menu_options = ["Play", "Settings", "Exit"]
+        self.menu_options = ["New Game", "Load Game", "Settings", "Exit"]
         self.selected_option = 0
 
     def render(self, screen):
@@ -66,11 +68,13 @@ class MenuState(State):
             elif event.key == pygame.K_DOWN:
                 self.selected_option = (self.selected_option + 1) % len(self.menu_options)
             elif event.key == pygame.K_RETURN:
-                if self.selected_option == 0:  # Play
+                if self.selected_option == 0:  # New Game
                     self.game.change_state(GameStates.PLAYING)
-                elif self.selected_option == 1:  # Settings
+                elif self.selected_option == 1:  # Load Game
+                    self.game.change_state(GameStates.LOAD_GAME)
+                elif self.selected_option == 2:  # Settings
                     self.game.change_state(GameStates.SETTINGS)
-                elif self.selected_option == 2:  # Exit
+                elif self.selected_option == 3:  # Exit
                     self.game.running = False
 
 class SettingsState(State):
@@ -482,6 +486,8 @@ class PlayingState(State):
 class PausedState(State):
     def __init__(self, game):
         super().__init__(game)
+        self.pause_options = ["Resume", "Save Game", "Settings", "Main Menu"]
+        self.selected_option = 0
 
     def render(self, screen):
         # First render the game state in the background
@@ -493,20 +499,44 @@ class PausedState(State):
         s.fill((0, 0, 0))
         screen.blit(s, (0, 0))
         
-        font = pygame.font.Font(None, 74)
-        text = font.render("PAUSED", True, (255, 255, 255))
-        screen.blit(text, (400 - text.get_width() // 2, 250))
+        # Title
+        title_font = pygame.font.Font(None, 74)
+        title_text = title_font.render("PAUSED", True, (255, 255, 255))
+        screen.blit(title_text, (400 - title_text.get_width() // 2, 200))
         
-        font = pygame.font.Font(None, 36)
-        text = font.render("Press ESC to resume or Q to quit", True, (255, 255, 255))
-        screen.blit(text, (400 - text.get_width() // 2, 350))
+        # Menu options
+        option_font = pygame.font.Font(None, 48)
+        y_offset = 300
+        for i, option in enumerate(self.pause_options):
+            color = (255, 255, 0) if i == self.selected_option else (255, 255, 255)
+            option_text = option_font.render(option, True, color)
+            option_rect = option_text.get_rect(center=(400, y_offset))
+            screen.blit(option_text, option_rect)
+            y_offset += 50
+        
+        # Instructions
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = instruction_font.render("Use UP/DOWN to navigate, ENTER to select, ESC to resume", True, (150, 150, 150))
+        instruction_rect = instructions.get_rect(center=(400, 550))
+        screen.blit(instructions, instruction_rect)
 
     def handle_input(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state(GameStates.PLAYING)
-            elif event.key == pygame.K_q:
-                self.game.change_state(GameStates.MAIN_MENU)
+            elif event.key == pygame.K_UP:
+                self.selected_option = (self.selected_option - 1) % len(self.pause_options)
+            elif event.key == pygame.K_DOWN:
+                self.selected_option = (self.selected_option + 1) % len(self.pause_options)
+            elif event.key == pygame.K_RETURN:
+                if self.selected_option == 0:  # Resume
+                    self.game.change_state(GameStates.PLAYING)
+                elif self.selected_option == 1:  # Save Game
+                    self.game.change_state(GameStates.SAVE_GAME)
+                elif self.selected_option == 2:  # Settings
+                    self.game.change_state(GameStates.SETTINGS)
+                elif self.selected_option == 3:  # Main Menu
+                    self.game.change_state(GameStates.MAIN_MENU)
 
 class TradingState(State):
     def __init__(self, game, station=None):
@@ -1149,3 +1179,277 @@ class GameOverState(State):
         
     def handle_input(self, event):
         pass
+
+
+class SaveGameState(State):
+    def __init__(self, game):
+        super().__init__(game)
+        from ..save_system import save_system
+        self.save_system = save_system
+        self.title = "Save Game"
+        self.save_name = ""
+        self.editing_name = True
+        self.message = ""
+        self.message_timer = 0.0
+        self.existing_saves = self.save_system.get_save_list()
+        self.selected_save_index = 0
+        
+    def update(self, delta_time):
+        if self.message_timer > 0:
+            self.message_timer -= delta_time
+            if self.message_timer <= 0:
+                self.message = ""
+    
+    def render(self, screen):
+        screen.fill((0, 0, 20))  # Dark blue background
+        
+        # Draw title
+        title_font = pygame.font.Font(None, 64)
+        title = title_font.render(self.title, True, (255, 255, 255))
+        title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
+        screen.blit(title, title_rect)
+        
+        # Draw input field
+        input_font = pygame.font.Font(None, 36)
+        name_label = input_font.render("Save Name:", True, (200, 200, 200))
+        screen.blit(name_label, (50, 150))
+        
+        # Input box
+        input_box = pygame.Rect(50, 180, 400, 40)
+        input_color = (255, 255, 255) if self.editing_name else (150, 150, 150)
+        pygame.draw.rect(screen, input_color, input_box, 2)
+        
+        # Current save name text
+        name_text = input_font.render(self.save_name, True, (255, 255, 255))
+        screen.blit(name_text, (input_box.x + 5, input_box.y + 8))
+        
+        # Draw existing saves
+        saves_label = input_font.render("Existing Saves:", True, (200, 200, 200))
+        screen.blit(saves_label, (50, 250))
+        
+        save_font = pygame.font.Font(None, 28)
+        y_offset = 280
+        for i, save_meta in enumerate(self.existing_saves[:8]):  # Show up to 8 saves
+            color = (255, 255, 0) if i == self.selected_save_index and not self.editing_name else (255, 255, 255)
+            save_text = f"{save_meta.save_name} - {save_meta.credits} credits - {save_meta.location}"
+            text = save_font.render(save_text, True, color)
+            screen.blit(text, (70, y_offset))
+            y_offset += 30
+        
+        # Draw instructions
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = [
+            "Type save name and press ENTER to save",
+            "Use UP/DOWN to select existing save to overwrite",
+            "Press TAB to switch between input and save list",
+            "Press ESC to go back"
+        ]
+        
+        y_offset = screen.get_height() - 120
+        for instruction in instructions:
+            instr_text = instruction_font.render(instruction, True, (150, 150, 150))
+            screen.blit(instr_text, (50, y_offset))
+            y_offset += 25
+        
+        # Draw message if any
+        if self.message:
+            message_font = pygame.font.Font(None, 36)
+            msg_color = (0, 255, 0) if "success" in self.message.lower() else (255, 100, 100)
+            msg_text = message_font.render(self.message, True, msg_color)
+            msg_rect = msg_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+            pygame.draw.rect(screen, (0, 0, 0), msg_rect.inflate(20, 10))
+            screen.blit(msg_text, msg_rect)
+    
+    def handle_input(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.game.change_state(GameStates.PAUSED)
+            elif event.key == pygame.K_TAB:
+                self.editing_name = not self.editing_name
+            elif self.editing_name:
+                self._handle_name_input(event)
+            else:
+                self._handle_save_list_input(event)
+    
+    def _handle_name_input(self, event):
+        """Handle text input for save name."""
+        if event.key == pygame.K_RETURN:
+            self._save_game()
+        elif event.key == pygame.K_BACKSPACE:
+            self.save_name = self.save_name[:-1]
+        else:
+            if len(self.save_name) < 30:  # Limit save name length
+                char = event.unicode
+                if char.isprintable() and char not in ['<', '>', ':', '"', '|', '?', '*', '/', '\\']:
+                    self.save_name += char
+    
+    def _handle_save_list_input(self, event):
+        """Handle navigation of existing saves list."""
+        if event.key == pygame.K_UP and self.existing_saves:
+            self.selected_save_index = (self.selected_save_index - 1) % len(self.existing_saves)
+        elif event.key == pygame.K_DOWN and self.existing_saves:
+            self.selected_save_index = (self.selected_save_index + 1) % len(self.existing_saves)
+        elif event.key == pygame.K_RETURN and self.existing_saves:
+            # Overwrite selected save
+            selected_save = self.existing_saves[self.selected_save_index]
+            self.save_name = selected_save.save_name
+            self._save_game()
+    
+    def _save_game(self):
+        """Save the current game."""
+        if not self.save_name.strip():
+            self.message = "Please enter a save name"
+            self.message_timer = 2.0
+            return
+        
+        success = self.save_system.save_game(self.game, self.save_name.strip())
+        if success:
+            self.message = "Game saved successfully!"
+            self.message_timer = 2.0
+            # Refresh save list
+            self.existing_saves = self.save_system.get_save_list()
+        else:
+            self.message = "Save failed!"
+            self.message_timer = 2.0
+
+
+class LoadGameState(State):
+    def __init__(self, game):
+        super().__init__(game)
+        from ..save_system import save_system
+        self.save_system = save_system
+        self.title = "Load Game"
+        self.existing_saves = self.save_system.get_save_list()
+        self.selected_save_index = 0
+        self.message = ""
+        self.message_timer = 0.0
+        
+    def update(self, delta_time):
+        if self.message_timer > 0:
+            self.message_timer -= delta_time
+            if self.message_timer <= 0:
+                self.message = ""
+    
+    def render(self, screen):
+        screen.fill((0, 0, 20))  # Dark blue background
+        
+        # Draw title
+        title_font = pygame.font.Font(None, 64)
+        title = title_font.render(self.title, True, (255, 255, 255))
+        title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
+        screen.blit(title, title_rect)
+        
+        if not self.existing_saves:
+            # No saves found
+            no_saves_font = pygame.font.Font(None, 48)
+            no_saves_text = no_saves_font.render("No saved games found", True, (200, 200, 200))
+            no_saves_rect = no_saves_text.get_rect(center=(screen.get_width() // 2, 300))
+            screen.blit(no_saves_text, no_saves_rect)
+        else:
+            # Draw save list with details
+            save_font = pygame.font.Font(None, 32)
+            detail_font = pygame.font.Font(None, 24)
+            
+            y_offset = 150
+            for i, save_meta in enumerate(self.existing_saves):
+                is_selected = i == self.selected_save_index
+                color = (255, 255, 0) if is_selected else (255, 255, 255)
+                detail_color = (200, 200, 0) if is_selected else (150, 150, 150)
+                
+                # Save name
+                name_text = save_font.render(save_meta.save_name, True, color)
+                screen.blit(name_text, (50, y_offset))
+                
+                # Save details
+                from datetime import datetime
+                try:
+                    save_date = datetime.fromisoformat(save_meta.save_date)
+                    date_str = save_date.strftime("%Y-%m-%d %H:%M")
+                except:
+                    date_str = save_meta.save_date
+                
+                details = f"Credits: {save_meta.credits} | Location: {save_meta.location} | Date: {date_str}"
+                detail_text = detail_font.render(details, True, detail_color)
+                screen.blit(detail_text, (70, y_offset + 25))
+                
+                # Selection highlight
+                if is_selected:
+                    pygame.draw.rect(screen, (50, 50, 100), 
+                                   pygame.Rect(40, y_offset - 5, screen.get_width() - 80, 50), 2)
+                
+                y_offset += 70
+        
+        # Draw instructions
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = [
+            "Use UP/DOWN to select save",
+            "Press ENTER to load selected save",
+            "Press DELETE to delete selected save",
+            "Press ESC to go back"
+        ]
+        
+        y_offset = screen.get_height() - 120
+        for instruction in instructions:
+            instr_text = instruction_font.render(instruction, True, (150, 150, 150))
+            screen.blit(instr_text, (50, y_offset))
+            y_offset += 25
+        
+        # Draw message if any
+        if self.message:
+            message_font = pygame.font.Font(None, 36)
+            msg_color = (0, 255, 0) if "success" in self.message.lower() else (255, 100, 100)
+            msg_text = message_font.render(self.message, True, msg_color)
+            msg_rect = msg_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+            pygame.draw.rect(screen, (0, 0, 0), msg_rect.inflate(20, 10))
+            screen.blit(msg_text, msg_rect)
+    
+    def handle_input(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.game.change_state(GameStates.MAIN_MENU)
+            elif not self.existing_saves:
+                return  # No saves to interact with
+            elif event.key == pygame.K_UP:
+                self.selected_save_index = (self.selected_save_index - 1) % len(self.existing_saves)
+            elif event.key == pygame.K_DOWN:
+                self.selected_save_index = (self.selected_save_index + 1) % len(self.existing_saves)
+            elif event.key == pygame.K_RETURN:
+                self._load_game()
+            elif event.key == pygame.K_DELETE:
+                self._delete_save()
+    
+    def _load_game(self):
+        """Load the selected game."""
+        if not self.existing_saves:
+            return
+        
+        selected_save = self.existing_saves[self.selected_save_index]
+        success = self.save_system.load_game(selected_save.save_name, self.game)
+        
+        if success:
+            self.message = "Game loaded successfully!"
+            self.message_timer = 1.0
+            # Transition to playing state immediately
+            self.game.change_state(GameStates.PLAYING)
+        else:
+            self.message = "Load failed!"
+            self.message_timer = 2.0
+    
+    def _delete_save(self):
+        """Delete the selected save."""
+        if not self.existing_saves:
+            return
+        
+        selected_save = self.existing_saves[self.selected_save_index]
+        success = self.save_system.delete_save(selected_save.save_name)
+        
+        if success:
+            self.message = "Save deleted"
+            self.message_timer = 1.5
+            # Refresh save list
+            self.existing_saves = self.save_system.get_save_list()
+            if self.selected_save_index >= len(self.existing_saves):
+                self.selected_save_index = max(0, len(self.existing_saves) - 1)
+        else:
+            self.message = "Delete failed!"
+            self.message_timer = 2.0

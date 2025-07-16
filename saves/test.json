@@ -1,0 +1,5528 @@
+{
+  "version": "1.0",
+  "player": {
+    "ship": {
+      "position": {
+        "x": 1442.9135508379657,
+        "y": 183.33720998381943
+      },
+      "velocity": {
+        "x": 341.8902418918219,
+        "y": -48.040227236260634
+      },
+      "rotation": 82.62000000000003,
+      "current_hull": 100,
+      "credits": 1000
+    },
+    "cargo": {},
+    "cargo_capacity": 20,
+    "upgrades": {
+      "installed_upgrades": {},
+      "cargo_tier": 0,
+      "engine_tier": 0,
+      "hull_tier": 0,
+      "scanner_tier": 0
+    }
+  },
+  "universe": {
+    "stations": [
+      {
+        "position": {
+          "x": 356.0,
+          "y": 550.0
+        },
+        "station_type": "Mining Station",
+        "name": "Excavation-143",
+        "size": 36,
+        "market": {
+          "station_type": "Mining Station",
+          "station_name": "Excavation-143",
+          "prices": {
+            "food_rations": {
+              "buy_price": 68,
+              "sell_price": 59,
+              "stock": 30,
+              "demand": 100,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 64,
+              "sell_price": 54,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 372,
+              "sell_price": 248,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 97,
+              "sell_price": 64,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 181,
+              "sell_price": 120,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 334,
+              "sell_price": 287,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 263,
+              "sell_price": 175,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 518,
+              "sell_price": 345,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 172.0,
+          "y": 19.0
+        },
+        "station_type": "Trading Post",
+        "name": "Market-979",
+        "size": 40,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Market-979",
+          "prices": {
+            "food_rations": {
+              "buy_price": 57,
+              "sell_price": 46,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 110,
+              "sell_price": 90,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 325,
+              "sell_price": 266,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 80,
+              "sell_price": 65,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 154,
+              "sell_price": 126,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 517,
+              "sell_price": 423,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 205,
+              "sell_price": 167,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 483,
+              "sell_price": 395,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -2340.0,
+          "y": -2363.0
+        },
+        "station_type": "Shipyard",
+        "name": "Yard-657",
+        "size": 45,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Yard-657",
+          "prices": {
+            "food_rations": {
+              "buy_price": 48,
+              "sell_price": 38,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 124,
+              "sell_price": 103,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 384,
+              "sell_price": 324,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 86,
+              "sell_price": 68,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 140,
+              "sell_price": 112,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 590,
+              "sell_price": 491,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 185,
+              "sell_price": 148,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 552,
+              "sell_price": 467,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -2724.0,
+          "y": -1108.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-304",
+        "size": 45,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-304",
+          "prices": {
+            "food_rations": {
+              "buy_price": 55,
+              "sell_price": 45,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 107,
+              "sell_price": 87,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 379,
+              "sell_price": 320,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 96,
+              "sell_price": 78,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 145,
+              "sell_price": 112,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 580,
+              "sell_price": 475,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 196,
+              "sell_price": 152,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 491,
+              "sell_price": 415,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -2724.0,
+          "y": -108.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-304",
+        "size": 45,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-304",
+          "prices": {
+            "food_rations": {
+              "buy_price": 55,
+              "sell_price": 45,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 107,
+              "sell_price": 87,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 379,
+              "sell_price": 320,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 96,
+              "sell_price": 78,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 145,
+              "sell_price": 112,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 580,
+              "sell_price": 475,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 196,
+              "sell_price": 152,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 491,
+              "sell_price": 415,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -2084.0,
+          "y": 363.0
+        },
+        "station_type": "Shipyard",
+        "name": "Yard-728",
+        "size": 45,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Yard-728",
+          "prices": {
+            "food_rations": {
+              "buy_price": 51,
+              "sell_price": 41,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 110,
+              "sell_price": 91,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 410,
+              "sell_price": 347,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 86,
+              "sell_price": 69,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 156,
+              "sell_price": 125,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 563,
+              "sell_price": 469,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 213,
+              "sell_price": 170,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 479,
+              "sell_price": 405,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -2925.0,
+          "y": 1804.0
+        },
+        "station_type": "Shipyard",
+        "name": "Dock-488",
+        "size": 45,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Dock-488",
+          "prices": {
+            "food_rations": {
+              "buy_price": 52,
+              "sell_price": 42,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 111,
+              "sell_price": 92,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 371,
+              "sell_price": 314,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 77,
+              "sell_price": 62,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 151,
+              "sell_price": 121,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 652,
+              "sell_price": 543,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 216,
+              "sell_price": 173,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 485,
+              "sell_price": 410,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -2206.0,
+          "y": 2860.0
+        },
+        "station_type": "Military Base",
+        "name": "Fort-591",
+        "size": 40,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Fort-591",
+          "prices": {
+            "food_rations": {
+              "buy_price": 56,
+              "sell_price": 46,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 108,
+              "sell_price": 88,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 397,
+              "sell_price": 336,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 80,
+              "sell_price": 65,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 126,
+              "sell_price": 98,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 559,
+              "sell_price": 457,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 170,
+              "sell_price": 132,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 469,
+              "sell_price": 396,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -2165.0,
+          "y": 3509.0
+        },
+        "station_type": "Mining Station",
+        "name": "Dig-147",
+        "size": 41,
+        "market": {
+          "station_type": "Mining Station",
+          "station_name": "Dig-147",
+          "prices": {
+            "food_rations": {
+              "buy_price": 75,
+              "sell_price": 64,
+              "stock": 30,
+              "demand": 100,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 65,
+              "sell_price": 56,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 335,
+              "sell_price": 223,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 86,
+              "sell_price": 57,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 173,
+              "sell_price": 115,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 334,
+              "sell_price": 286,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 259,
+              "sell_price": 172,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 495,
+              "sell_price": 330,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1651.0,
+          "y": -2692.0
+        },
+        "station_type": "Mining Station",
+        "name": "Quarry-172",
+        "size": 35,
+        "market": {
+          "station_type": "Mining Station",
+          "station_name": "Quarry-172",
+          "prices": {
+            "food_rations": {
+              "buy_price": 76,
+              "sell_price": 65,
+              "stock": 30,
+              "demand": 100,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 67,
+              "sell_price": 57,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 390,
+              "sell_price": 260,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 61,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 174,
+              "sell_price": 116,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 362,
+              "sell_price": 311,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 237,
+              "sell_price": 158,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 464,
+              "sell_price": 309,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1832.0,
+          "y": -1092.0
+        },
+        "station_type": "Trading Post",
+        "name": "Trade-144",
+        "size": 33,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Trade-144",
+          "prices": {
+            "food_rations": {
+              "buy_price": 49,
+              "sell_price": 40,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 119,
+              "sell_price": 97,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 355,
+              "sell_price": 291,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 76,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 154,
+              "sell_price": 126,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 604,
+              "sell_price": 494,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 219,
+              "sell_price": 179,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 431,
+              "sell_price": 353,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1832.0,
+          "y": -92.0
+        },
+        "station_type": "Trading Post",
+        "name": "Trade-144",
+        "size": 33,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Trade-144",
+          "prices": {
+            "food_rations": {
+              "buy_price": 49,
+              "sell_price": 40,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 119,
+              "sell_price": 97,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 355,
+              "sell_price": 291,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 76,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 154,
+              "sell_price": 126,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 604,
+              "sell_price": 494,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 219,
+              "sell_price": 179,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 431,
+              "sell_price": 353,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1370.0,
+          "y": 858.0
+        },
+        "station_type": "Military Base",
+        "name": "Base-967",
+        "size": 43,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Base-967",
+          "prices": {
+            "food_rations": {
+              "buy_price": 59,
+              "sell_price": 48,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 104,
+              "sell_price": 85,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 401,
+              "sell_price": 339,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 88,
+              "sell_price": 72,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 140,
+              "sell_price": 109,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 583,
+              "sell_price": 477,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 172,
+              "sell_price": 133,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 488,
+              "sell_price": 413,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1455.0,
+          "y": 1448.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-423",
+        "size": 48,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-423",
+          "prices": {
+            "food_rations": {
+              "buy_price": 57,
+              "sell_price": 47,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 114,
+              "sell_price": 93,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 378,
+              "sell_price": 320,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 95,
+              "sell_price": 78,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 134,
+              "sell_price": 104,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 509,
+              "sell_price": 416,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 177,
+              "sell_price": 137,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 514,
+              "sell_price": 435,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1853.0,
+          "y": 2844.0
+        },
+        "station_type": "Shipyard",
+        "name": "Yard-985",
+        "size": 49,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Yard-985",
+          "prices": {
+            "food_rations": {
+              "buy_price": 48,
+              "sell_price": 38,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 130,
+              "sell_price": 109,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 401,
+              "sell_price": 339,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 78,
+              "sell_price": 63,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 138,
+              "sell_price": 110,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 648,
+              "sell_price": 540,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 219,
+              "sell_price": 175,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 507,
+              "sell_price": 429,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1230.0,
+          "y": 2707.0
+        },
+        "station_type": "Shipyard",
+        "name": "Dock-812",
+        "size": 48,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Dock-812",
+          "prices": {
+            "food_rations": {
+              "buy_price": 46,
+              "sell_price": 37,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 108,
+              "sell_price": 90,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 358,
+              "sell_price": 303,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 81,
+              "sell_price": 64,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 152,
+              "sell_price": 122,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 601,
+              "sell_price": 501,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 194,
+              "sell_price": 155,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 501,
+              "sell_price": 423,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1107.0,
+          "y": 3421.0
+        },
+        "station_type": "Shipyard",
+        "name": "Dock-187",
+        "size": 48,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Dock-187",
+          "prices": {
+            "food_rations": {
+              "buy_price": 50,
+              "sell_price": 40,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 120,
+              "sell_price": 100,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 421,
+              "sell_price": 356,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 78,
+              "sell_price": 63,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 149,
+              "sell_price": 119,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 651,
+              "sell_price": 543,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 182,
+              "sell_price": 146,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 486,
+              "sell_price": 411,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -1313.0,
+          "y": 3341.0
+        },
+        "station_type": "Research Station",
+        "name": "Lab-214",
+        "size": 27,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Lab-214",
+          "prices": {
+            "food_rations": {
+              "buy_price": 52,
+              "sell_price": 42,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 117,
+              "sell_price": 95,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 246,
+              "sell_price": 215,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 96,
+              "sell_price": 78,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 90,
+              "sell_price": 75,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 528,
+              "sell_price": 432,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 126,
+              "sell_price": 105,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 341,
+              "sell_price": 298,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -651.0,
+          "y": -2692.0
+        },
+        "station_type": "Mining Station",
+        "name": "Quarry-172",
+        "size": 35,
+        "market": {
+          "station_type": "Mining Station",
+          "station_name": "Quarry-172",
+          "prices": {
+            "food_rations": {
+              "buy_price": 76,
+              "sell_price": 65,
+              "stock": 30,
+              "demand": 100,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 67,
+              "sell_price": 57,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 390,
+              "sell_price": 260,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 61,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 174,
+              "sell_price": 116,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 362,
+              "sell_price": 311,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 237,
+              "sell_price": 158,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 464,
+              "sell_price": 309,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -832.0,
+          "y": -1092.0
+        },
+        "station_type": "Trading Post",
+        "name": "Trade-144",
+        "size": 33,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Trade-144",
+          "prices": {
+            "food_rations": {
+              "buy_price": 49,
+              "sell_price": 40,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 119,
+              "sell_price": 97,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 355,
+              "sell_price": 291,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 76,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 154,
+              "sell_price": 126,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 604,
+              "sell_price": 494,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 219,
+              "sell_price": 179,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 431,
+              "sell_price": 353,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -832.0,
+          "y": -92.0
+        },
+        "station_type": "Trading Post",
+        "name": "Trade-144",
+        "size": 33,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Trade-144",
+          "prices": {
+            "food_rations": {
+              "buy_price": 49,
+              "sell_price": 40,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 119,
+              "sell_price": 97,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 355,
+              "sell_price": 291,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 76,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 154,
+              "sell_price": 126,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 604,
+              "sell_price": 494,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 219,
+              "sell_price": 179,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 431,
+              "sell_price": 353,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -370.0,
+          "y": 858.0
+        },
+        "station_type": "Military Base",
+        "name": "Base-967",
+        "size": 43,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Base-967",
+          "prices": {
+            "food_rations": {
+              "buy_price": 59,
+              "sell_price": 48,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 104,
+              "sell_price": 85,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 401,
+              "sell_price": 339,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 88,
+              "sell_price": 72,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 140,
+              "sell_price": 109,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 583,
+              "sell_price": 477,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 172,
+              "sell_price": 133,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 488,
+              "sell_price": 413,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -455.0,
+          "y": 1448.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-423",
+        "size": 48,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-423",
+          "prices": {
+            "food_rations": {
+              "buy_price": 57,
+              "sell_price": 47,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 114,
+              "sell_price": 93,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 378,
+              "sell_price": 320,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 95,
+              "sell_price": 78,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 134,
+              "sell_price": 104,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 509,
+              "sell_price": 416,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 177,
+              "sell_price": 137,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 514,
+              "sell_price": 435,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -853.0,
+          "y": 2844.0
+        },
+        "station_type": "Shipyard",
+        "name": "Yard-985",
+        "size": 49,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Yard-985",
+          "prices": {
+            "food_rations": {
+              "buy_price": 48,
+              "sell_price": 38,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 130,
+              "sell_price": 109,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 401,
+              "sell_price": 339,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 78,
+              "sell_price": 63,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 138,
+              "sell_price": 110,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 648,
+              "sell_price": 540,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 219,
+              "sell_price": 175,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 507,
+              "sell_price": 429,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -230.0,
+          "y": 2707.0
+        },
+        "station_type": "Shipyard",
+        "name": "Dock-812",
+        "size": 48,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Dock-812",
+          "prices": {
+            "food_rations": {
+              "buy_price": 46,
+              "sell_price": 37,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 108,
+              "sell_price": 90,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 358,
+              "sell_price": 303,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 81,
+              "sell_price": 64,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 152,
+              "sell_price": 122,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 601,
+              "sell_price": 501,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 194,
+              "sell_price": 155,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 501,
+              "sell_price": 423,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -107.0,
+          "y": 3421.0
+        },
+        "station_type": "Shipyard",
+        "name": "Dock-187",
+        "size": 48,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Dock-187",
+          "prices": {
+            "food_rations": {
+              "buy_price": 50,
+              "sell_price": 40,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 120,
+              "sell_price": 100,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 421,
+              "sell_price": 356,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 78,
+              "sell_price": 63,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 149,
+              "sell_price": 119,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 651,
+              "sell_price": 543,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 182,
+              "sell_price": 146,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 486,
+              "sell_price": 411,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": -313.0,
+          "y": 3341.0
+        },
+        "station_type": "Research Station",
+        "name": "Lab-214",
+        "size": 27,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Lab-214",
+          "prices": {
+            "food_rations": {
+              "buy_price": 52,
+              "sell_price": 42,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 117,
+              "sell_price": 95,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 246,
+              "sell_price": 215,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 96,
+              "sell_price": 78,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 90,
+              "sell_price": 75,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 528,
+              "sell_price": 432,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 126,
+              "sell_price": 105,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 341,
+              "sell_price": 298,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 5.0,
+          "y": -2787.0
+        },
+        "station_type": "Shipyard",
+        "name": "Dock-578",
+        "size": 53,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Dock-578",
+          "prices": {
+            "food_rations": {
+              "buy_price": 45,
+              "sell_price": 36,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 130,
+              "sell_price": 108,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 416,
+              "sell_price": 352,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 80,
+              "sell_price": 64,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 135,
+              "sell_price": 108,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 549,
+              "sell_price": 458,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 183,
+              "sell_price": 146,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 512,
+              "sell_price": 433,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 319.0,
+          "y": -1721.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-870",
+        "size": 50,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-870",
+          "prices": {
+            "food_rations": {
+              "buy_price": 54,
+              "sell_price": 44,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 112,
+              "sell_price": 92,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 353,
+              "sell_price": 298,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 94,
+              "sell_price": 77,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 125,
+              "sell_price": 97,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 594,
+              "sell_price": 486,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 177,
+              "sell_price": 138,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 487,
+              "sell_price": 412,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 319.0,
+          "y": -721.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-870",
+        "size": 50,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-870",
+          "prices": {
+            "food_rations": {
+              "buy_price": 54,
+              "sell_price": 44,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 112,
+              "sell_price": 92,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 353,
+              "sell_price": 298,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 94,
+              "sell_price": 77,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 125,
+              "sell_price": 97,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 594,
+              "sell_price": 486,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 177,
+              "sell_price": 138,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 487,
+              "sell_price": 412,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2.0,
+          "y": 1916.0
+        },
+        "station_type": "Military Base",
+        "name": "Fort-927",
+        "size": 41,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Fort-927",
+          "prices": {
+            "food_rations": {
+              "buy_price": 60,
+              "sell_price": 49,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 117,
+              "sell_price": 96,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 387,
+              "sell_price": 327,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 75,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 143,
+              "sell_price": 111,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 600,
+              "sell_price": 491,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 184,
+              "sell_price": 143,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 524,
+              "sell_price": 443,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 336.0,
+          "y": 1045.0
+        },
+        "station_type": "Research Station",
+        "name": "Center-364",
+        "size": 27,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Center-364",
+          "prices": {
+            "food_rations": {
+              "buy_price": 54,
+              "sell_price": 44,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 118,
+              "sell_price": 97,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 263,
+              "sell_price": 230,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 93,
+              "sell_price": 76,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 93,
+              "sell_price": 78,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 496,
+              "sell_price": 406,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 130,
+              "sell_price": 108,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 292,
+              "sell_price": 256,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 748.0,
+          "y": 2448.0
+        },
+        "station_type": "Shipyard",
+        "name": "Port-700",
+        "size": 46,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Port-700",
+          "prices": {
+            "food_rations": {
+              "buy_price": 53,
+              "sell_price": 42,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 119,
+              "sell_price": 99,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 420,
+              "sell_price": 356,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 76,
+              "sell_price": 61,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 164,
+              "sell_price": 131,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 618,
+              "sell_price": 515,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 202,
+              "sell_price": 161,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 471,
+              "sell_price": 399,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 564.0,
+          "y": 3912.0
+        },
+        "station_type": "Research Station",
+        "name": "Center-995",
+        "size": 30,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Center-995",
+          "prices": {
+            "food_rations": {
+              "buy_price": 52,
+              "sell_price": 43,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 101,
+              "sell_price": 83,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 224,
+              "sell_price": 196,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 82,
+              "sell_price": 67,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 85,
+              "sell_price": 71,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 561,
+              "sell_price": 459,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 126,
+              "sell_price": 105,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 289,
+              "sell_price": 253,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1115.0,
+          "y": -2882.0
+        },
+        "station_type": "Research Station",
+        "name": "Institute-623",
+        "size": 32,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Institute-623",
+          "prices": {
+            "food_rations": {
+              "buy_price": 51,
+              "sell_price": 42,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 106,
+              "sell_price": 87,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 262,
+              "sell_price": 230,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 82,
+              "sell_price": 67,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 85,
+              "sell_price": 71,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 505,
+              "sell_price": 413,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 118,
+              "sell_price": 99,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 310,
+              "sell_price": 271,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1086.0,
+          "y": -2485.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-741",
+        "size": 40,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-741",
+          "prices": {
+            "food_rations": {
+              "buy_price": 59,
+              "sell_price": 48,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 101,
+              "sell_price": 83,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 401,
+              "sell_price": 339,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 88,
+              "sell_price": 72,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 140,
+              "sell_price": 109,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 514,
+              "sell_price": 420,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 165,
+              "sell_price": 128,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 548,
+              "sell_price": 464,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1335.0,
+          "y": -1596.0
+        },
+        "station_type": "Research Station",
+        "name": "Institute-269",
+        "size": 28,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Institute-269",
+          "prices": {
+            "food_rations": {
+              "buy_price": 59,
+              "sell_price": 48,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 104,
+              "sell_price": 85,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 243,
+              "sell_price": 213,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 75,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 90,
+              "sell_price": 75,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 601,
+              "sell_price": 492,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 116,
+              "sell_price": 97,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 292,
+              "sell_price": 256,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1335.0,
+          "y": -596.0
+        },
+        "station_type": "Research Station",
+        "name": "Institute-269",
+        "size": 28,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Institute-269",
+          "prices": {
+            "food_rations": {
+              "buy_price": 59,
+              "sell_price": 48,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 104,
+              "sell_price": 85,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 243,
+              "sell_price": 213,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 75,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 90,
+              "sell_price": 75,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 601,
+              "sell_price": 492,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 116,
+              "sell_price": 97,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 292,
+              "sell_price": 256,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1432.0,
+          "y": 578.0
+        },
+        "station_type": "Research Station",
+        "name": "Institute-462",
+        "size": 25,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Institute-462",
+          "prices": {
+            "food_rations": {
+              "buy_price": 49,
+              "sell_price": 40,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 119,
+              "sell_price": 97,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 223,
+              "sell_price": 195,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 83,
+              "sell_price": 68,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 98,
+              "sell_price": 81,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 522,
+              "sell_price": 427,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 115,
+              "sell_price": 96,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 334,
+              "sell_price": 292,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1903.0,
+          "y": 334.0
+        },
+        "station_type": "Trading Post",
+        "name": "Trade-409",
+        "size": 34,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Trade-409",
+          "prices": {
+            "food_rations": {
+              "buy_price": 57,
+              "sell_price": 46,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 113,
+              "sell_price": 92,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 319,
+              "sell_price": 261,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 87,
+              "sell_price": 71,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 154,
+              "sell_price": 126,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 591,
+              "sell_price": 483,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 235,
+              "sell_price": 192,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 453,
+              "sell_price": 371,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1079.0,
+          "y": 1695.0
+        },
+        "station_type": "Mining Station",
+        "name": "Dig-666",
+        "size": 36,
+        "market": {
+          "station_type": "Mining Station",
+          "station_name": "Dig-666",
+          "prices": {
+            "food_rations": {
+              "buy_price": 69,
+              "sell_price": 59,
+              "stock": 30,
+              "demand": 100,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 72,
+              "sell_price": 62,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 338,
+              "sell_price": 225,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 87,
+              "sell_price": 58,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 185,
+              "sell_price": 123,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 376,
+              "sell_price": 322,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 232,
+              "sell_price": 154,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 480,
+              "sell_price": 320,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1928.0,
+          "y": 1059.0
+        },
+        "station_type": "Shipyard",
+        "name": "Dock-153",
+        "size": 54,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Dock-153",
+          "prices": {
+            "food_rations": {
+              "buy_price": 54,
+              "sell_price": 43,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 112,
+              "sell_price": 93,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 396,
+              "sell_price": 335,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 80,
+              "sell_price": 64,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 154,
+              "sell_price": 123,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 627,
+              "sell_price": 522,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 203,
+              "sell_price": 162,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 556,
+              "sell_price": 471,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1391.0,
+          "y": 2461.0
+        },
+        "station_type": "Research Station",
+        "name": "Center-937",
+        "size": 33,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Center-937",
+          "prices": {
+            "food_rations": {
+              "buy_price": 58,
+              "sell_price": 47,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 114,
+              "sell_price": 93,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 218,
+              "sell_price": 190,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 90,
+              "sell_price": 74,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 84,
+              "sell_price": 70,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 519,
+              "sell_price": 425,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 108,
+              "sell_price": 90,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 292,
+              "sell_price": 255,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1793.0,
+          "y": 3722.0
+        },
+        "station_type": "Military Base",
+        "name": "Fort-236",
+        "size": 50,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Fort-236",
+          "prices": {
+            "food_rations": {
+              "buy_price": 56,
+              "sell_price": 46,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 99,
+              "sell_price": 81,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 366,
+              "sell_price": 310,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 75,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 132,
+              "sell_price": 103,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 566,
+              "sell_price": 463,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 173,
+              "sell_price": 135,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 502,
+              "sell_price": 424,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 1059.0,
+          "y": 3160.0
+        },
+        "station_type": "Shipyard",
+        "name": "Port-612",
+        "size": 49,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Port-612",
+          "prices": {
+            "food_rations": {
+              "buy_price": 45,
+              "sell_price": 36,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 115,
+              "sell_price": 96,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 369,
+              "sell_price": 312,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 85,
+              "sell_price": 68,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 154,
+              "sell_price": 123,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 560,
+              "sell_price": 467,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 191,
+              "sell_price": 152,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 478,
+              "sell_price": 404,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2017.0,
+          "y": -2345.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-531",
+        "size": 48,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-531",
+          "prices": {
+            "food_rations": {
+              "buy_price": 53,
+              "sell_price": 43,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 118,
+              "sell_price": 96,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 355,
+              "sell_price": 300,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 93,
+              "sell_price": 76,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 123,
+              "sell_price": 96,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 504,
+              "sell_price": 412,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 166,
+              "sell_price": 129,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 554,
+              "sell_price": 469,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2858.0,
+          "y": -1544.0
+        },
+        "station_type": "Research Station",
+        "name": "Institute-984",
+        "size": 31,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Institute-984",
+          "prices": {
+            "food_rations": {
+              "buy_price": 51,
+              "sell_price": 41,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 111,
+              "sell_price": 91,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 244,
+              "sell_price": 213,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 82,
+              "sell_price": 67,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 85,
+              "sell_price": 71,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 602,
+              "sell_price": 492,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 111,
+              "sell_price": 92,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 312,
+              "sell_price": 273,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2704.0,
+          "y": -1966.0
+        },
+        "station_type": "Shipyard",
+        "name": "Yard-752",
+        "size": 45,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Yard-752",
+          "prices": {
+            "food_rations": {
+              "buy_price": 47,
+              "sell_price": 38,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 110,
+              "sell_price": 92,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 362,
+              "sell_price": 306,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 80,
+              "sell_price": 64,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 135,
+              "sell_price": 108,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 551,
+              "sell_price": 459,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 197,
+              "sell_price": 157,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 556,
+              "sell_price": 470,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2858.0,
+          "y": -544.0
+        },
+        "station_type": "Research Station",
+        "name": "Institute-984",
+        "size": 31,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Institute-984",
+          "prices": {
+            "food_rations": {
+              "buy_price": 51,
+              "sell_price": 41,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 111,
+              "sell_price": 91,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 244,
+              "sell_price": 213,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 82,
+              "sell_price": 67,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 85,
+              "sell_price": 71,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 602,
+              "sell_price": 492,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 111,
+              "sell_price": 92,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 312,
+              "sell_price": 273,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2704.0,
+          "y": -966.0
+        },
+        "station_type": "Shipyard",
+        "name": "Yard-752",
+        "size": 45,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Yard-752",
+          "prices": {
+            "food_rations": {
+              "buy_price": 47,
+              "sell_price": 38,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 110,
+              "sell_price": 92,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 362,
+              "sell_price": 306,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 80,
+              "sell_price": 64,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 135,
+              "sell_price": 108,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 551,
+              "sell_price": 459,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 197,
+              "sell_price": 157,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 556,
+              "sell_price": 470,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2565.0,
+          "y": 935.0
+        },
+        "station_type": "Research Station",
+        "name": "Center-872",
+        "size": 35,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Center-872",
+          "prices": {
+            "food_rations": {
+              "buy_price": 51,
+              "sell_price": 41,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 115,
+              "sell_price": 94,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 239,
+              "sell_price": 209,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 94,
+              "sell_price": 77,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 92,
+              "sell_price": 77,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 589,
+              "sell_price": 481,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 116,
+              "sell_price": 97,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 296,
+              "sell_price": 259,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2823.0,
+          "y": 73.0
+        },
+        "station_type": "Shipyard",
+        "name": "Dock-453",
+        "size": 47,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Dock-453",
+          "prices": {
+            "food_rations": {
+              "buy_price": 48,
+              "sell_price": 38,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 111,
+              "sell_price": 93,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 353,
+              "sell_price": 299,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 79,
+              "sell_price": 63,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 142,
+              "sell_price": 113,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 573,
+              "sell_price": 477,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 217,
+              "sell_price": 174,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 484,
+              "sell_price": 410,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2909.0,
+          "y": 1027.0
+        },
+        "station_type": "Research Station",
+        "name": "Center-688",
+        "size": 30,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Center-688",
+          "prices": {
+            "food_rations": {
+              "buy_price": 55,
+              "sell_price": 45,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 113,
+              "sell_price": 93,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 217,
+              "sell_price": 189,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 86,
+              "sell_price": 70,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 98,
+              "sell_price": 81,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 509,
+              "sell_price": 417,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 112,
+              "sell_price": 94,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 330,
+              "sell_price": 289,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2275.0,
+          "y": 2810.0
+        },
+        "station_type": "Research Station",
+        "name": "Lab-967",
+        "size": 30,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Lab-967",
+          "prices": {
+            "food_rations": {
+              "buy_price": 53,
+              "sell_price": 43,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 106,
+              "sell_price": 87,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 216,
+              "sell_price": 189,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 84,
+              "sell_price": 69,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 97,
+              "sell_price": 81,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 536,
+              "sell_price": 439,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 127,
+              "sell_price": 106,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 349,
+              "sell_price": 305,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2999.0,
+          "y": 2725.0
+        },
+        "station_type": "Trading Post",
+        "name": "Trade-407",
+        "size": 31,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Trade-407",
+          "prices": {
+            "food_rations": {
+              "buy_price": 55,
+              "sell_price": 45,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 114,
+              "sell_price": 93,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 325,
+              "sell_price": 266,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 79,
+              "sell_price": 64,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 160,
+              "sell_price": 131,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 496,
+              "sell_price": 406,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 201,
+              "sell_price": 165,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 420,
+              "sell_price": 344,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 2177.0,
+          "y": 3899.0
+        },
+        "station_type": "Shipyard",
+        "name": "Port-949",
+        "size": 47,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Port-949",
+          "prices": {
+            "food_rations": {
+              "buy_price": 49,
+              "sell_price": 39,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 113,
+              "sell_price": 94,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 358,
+              "sell_price": 303,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 85,
+              "sell_price": 68,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 164,
+              "sell_price": 131,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 654,
+              "sell_price": 545,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 198,
+              "sell_price": 158,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 492,
+              "sell_price": 417,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 3493.0,
+          "y": -2313.0
+        },
+        "station_type": "Mining Station",
+        "name": "Quarry-722",
+        "size": 37,
+        "market": {
+          "station_type": "Mining Station",
+          "station_name": "Quarry-722",
+          "prices": {
+            "food_rations": {
+              "buy_price": 68,
+              "sell_price": 58,
+              "stock": 30,
+              "demand": 100,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 68,
+              "sell_price": 58,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 341,
+              "sell_price": 227,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 97,
+              "sell_price": 65,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 174,
+              "sell_price": 116,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 332,
+              "sell_price": 284,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 231,
+              "sell_price": 154,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 483,
+              "sell_price": 322,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 3716.0,
+          "y": -2642.0
+        },
+        "station_type": "Military Base",
+        "name": "Fort-623",
+        "size": 48,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Fort-623",
+          "prices": {
+            "food_rations": {
+              "buy_price": 55,
+              "sell_price": 45,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 116,
+              "sell_price": 95,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 427,
+              "sell_price": 361,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 94,
+              "sell_price": 77,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 147,
+              "sell_price": 114,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 569,
+              "sell_price": 466,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 177,
+              "sell_price": 137,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 535,
+              "sell_price": 453,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 3522.0,
+          "y": -1992.0
+        },
+        "station_type": "Military Base",
+        "name": "Base-340",
+        "size": 40,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Base-340",
+          "prices": {
+            "food_rations": {
+              "buy_price": 58,
+              "sell_price": 47,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 101,
+              "sell_price": 82,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 392,
+              "sell_price": 332,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 90,
+              "sell_price": 74,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 126,
+              "sell_price": 98,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 589,
+              "sell_price": 482,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 191,
+              "sell_price": 149,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 482,
+              "sell_price": 408,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 3522.0,
+          "y": -992.0
+        },
+        "station_type": "Military Base",
+        "name": "Base-340",
+        "size": 40,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Base-340",
+          "prices": {
+            "food_rations": {
+              "buy_price": 58,
+              "sell_price": 47,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 101,
+              "sell_price": 82,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 392,
+              "sell_price": 332,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 90,
+              "sell_price": 74,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 126,
+              "sell_price": 98,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 589,
+              "sell_price": 482,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 191,
+              "sell_price": 149,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 482,
+              "sell_price": 408,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 3991.0,
+          "y": 212.0
+        },
+        "station_type": "Trading Post",
+        "name": "Trade-837",
+        "size": 32,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Trade-837",
+          "prices": {
+            "food_rations": {
+              "buy_price": 52,
+              "sell_price": 43,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 100,
+              "sell_price": 81,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 326,
+              "sell_price": 267,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 82,
+              "sell_price": 67,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 161,
+              "sell_price": 131,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 498,
+              "sell_price": 408,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 230,
+              "sell_price": 188,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 468,
+              "sell_price": 383,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 3011.0,
+          "y": 1308.0
+        },
+        "station_type": "Shipyard",
+        "name": "Port-686",
+        "size": 48,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Port-686",
+          "prices": {
+            "food_rations": {
+              "buy_price": 51,
+              "sell_price": 41,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 125,
+              "sell_price": 104,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 364,
+              "sell_price": 308,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 73,
+              "sell_price": 59,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 138,
+              "sell_price": 111,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 591,
+              "sell_price": 492,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 210,
+              "sell_price": 168,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 556,
+              "sell_price": 470,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 3650.0,
+          "y": 2693.0
+        },
+        "station_type": "Trading Post",
+        "name": "Exchange-224",
+        "size": 31,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Exchange-224",
+          "prices": {
+            "food_rations": {
+              "buy_price": 58,
+              "sell_price": 48,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 102,
+              "sell_price": 83,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 325,
+              "sell_price": 266,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 89,
+              "sell_price": 73,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 168,
+              "sell_price": 137,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 511,
+              "sell_price": 418,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 239,
+              "sell_price": 196,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 468,
+              "sell_price": 382,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 3682.0,
+          "y": 3759.0
+        },
+        "station_type": "Trading Post",
+        "name": "Trade-950",
+        "size": 36,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Trade-950",
+          "prices": {
+            "food_rations": {
+              "buy_price": 50,
+              "sell_price": 41,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 106,
+              "sell_price": 87,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 360,
+              "sell_price": 295,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 75,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 152,
+              "sell_price": 124,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 562,
+              "sell_price": 459,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 228,
+              "sell_price": 187,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 464,
+              "sell_price": 379,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4468.0,
+          "y": -2252.0
+        },
+        "station_type": "Research Station",
+        "name": "Center-359",
+        "size": 29,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Center-359",
+          "prices": {
+            "food_rations": {
+              "buy_price": 53,
+              "sell_price": 44,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 99,
+              "sell_price": 81,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 251,
+              "sell_price": 220,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 94,
+              "sell_price": 77,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 83,
+              "sell_price": 69,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 551,
+              "sell_price": 451,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 108,
+              "sell_price": 90,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 302,
+              "sell_price": 264,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4508.0,
+          "y": -2991.0
+        },
+        "station_type": "Research Station",
+        "name": "Lab-761",
+        "size": 35,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Lab-761",
+          "prices": {
+            "food_rations": {
+              "buy_price": 52,
+              "sell_price": 43,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 104,
+              "sell_price": 85,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 251,
+              "sell_price": 220,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 87,
+              "sell_price": 71,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 96,
+              "sell_price": 80,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 573,
+              "sell_price": 469,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 114,
+              "sell_price": 95,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 312,
+              "sell_price": 273,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4109.0,
+          "y": -1334.0
+        },
+        "station_type": "Trading Post",
+        "name": "Exchange-101",
+        "size": 34,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Exchange-101",
+          "prices": {
+            "food_rations": {
+              "buy_price": 55,
+              "sell_price": 45,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 106,
+              "sell_price": 87,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 317,
+              "sell_price": 259,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 75,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 155,
+              "sell_price": 127,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 554,
+              "sell_price": 453,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 201,
+              "sell_price": 164,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 428,
+              "sell_price": 350,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4109.0,
+          "y": -334.0
+        },
+        "station_type": "Trading Post",
+        "name": "Exchange-101",
+        "size": 34,
+        "market": {
+          "station_type": "Trading Post",
+          "station_name": "Exchange-101",
+          "prices": {
+            "food_rations": {
+              "buy_price": 55,
+              "sell_price": 45,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 106,
+              "sell_price": 87,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 317,
+              "sell_price": 259,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 92,
+              "sell_price": 75,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 155,
+              "sell_price": 127,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 554,
+              "sell_price": 453,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 201,
+              "sell_price": 164,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 428,
+              "sell_price": 350,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4310.0,
+          "y": 630.0
+        },
+        "station_type": "Shipyard",
+        "name": "Yard-341",
+        "size": 52,
+        "market": {
+          "station_type": "Shipyard",
+          "station_name": "Yard-341",
+          "prices": {
+            "food_rations": {
+              "buy_price": 47,
+              "sell_price": 37,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 124,
+              "sell_price": 103,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 370,
+              "sell_price": 313,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 76,
+              "sell_price": 61,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 155,
+              "sell_price": 124,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 566,
+              "sell_price": 471,
+              "stock": 60,
+              "demand": 120,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 219,
+              "sell_price": 175,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 534,
+              "sell_price": 452,
+              "stock": 70,
+              "demand": 100,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4350.0,
+          "y": 326.0
+        },
+        "station_type": "Military Base",
+        "name": "Outpost-124",
+        "size": 50,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Outpost-124",
+          "prices": {
+            "food_rations": {
+              "buy_price": 51,
+              "sell_price": 42,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 118,
+              "sell_price": 97,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 418,
+              "sell_price": 354,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 94,
+              "sell_price": 77,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 137,
+              "sell_price": 107,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 551,
+              "sell_price": 451,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 180,
+              "sell_price": 140,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 478,
+              "sell_price": 405,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4009.0,
+          "y": 1663.0
+        },
+        "station_type": "Military Base",
+        "name": "Fort-859",
+        "size": 43,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Fort-859",
+          "prices": {
+            "food_rations": {
+              "buy_price": 54,
+              "sell_price": 44,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 116,
+              "sell_price": 95,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 382,
+              "sell_price": 323,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 81,
+              "sell_price": 66,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 132,
+              "sell_price": 103,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 506,
+              "sell_price": 414,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 181,
+              "sell_price": 141,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 522,
+              "sell_price": 442,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4304.0,
+          "y": 2009.0
+        },
+        "station_type": "Mining Station",
+        "name": "Dig-709",
+        "size": 35,
+        "market": {
+          "station_type": "Mining Station",
+          "station_name": "Dig-709",
+          "prices": {
+            "food_rations": {
+              "buy_price": 74,
+              "sell_price": 64,
+              "stock": 30,
+              "demand": 100,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 71,
+              "sell_price": 61,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 343,
+              "sell_price": 229,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 105,
+              "sell_price": 70,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 169,
+              "sell_price": 113,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 354,
+              "sell_price": 304,
+              "stock": 200,
+              "demand": 20,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 262,
+              "sell_price": 174,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 455,
+              "sell_price": 303,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4253.0,
+          "y": 3021.0
+        },
+        "station_type": "Military Base",
+        "name": "Base-717",
+        "size": 40,
+        "market": {
+          "station_type": "Military Base",
+          "station_name": "Base-717",
+          "prices": {
+            "food_rations": {
+              "buy_price": 56,
+              "sell_price": 46,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 102,
+              "sell_price": 83,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 384,
+              "sell_price": 325,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 96,
+              "sell_price": 78,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 126,
+              "sell_price": 98,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 575,
+              "sell_price": 471,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 163,
+              "sell_price": 127,
+              "stock": 40,
+              "demand": 20,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 537,
+              "sell_price": 454,
+              "stock": 80,
+              "demand": 80,
+              "available": true
+            }
+          }
+        }
+      },
+      {
+        "position": {
+          "x": 4870.0,
+          "y": 3335.0
+        },
+        "station_type": "Research Station",
+        "name": "Institute-687",
+        "size": 27,
+        "market": {
+          "station_type": "Research Station",
+          "station_name": "Institute-687",
+          "prices": {
+            "food_rations": {
+              "buy_price": 56,
+              "sell_price": 46,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "metal_ore": {
+              "buy_price": 113,
+              "sell_price": 93,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "electronics": {
+              "buy_price": 254,
+              "sell_price": 222,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            },
+            "fuel_cells": {
+              "buy_price": 95,
+              "sell_price": 78,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "consumer_goods": {
+              "buy_price": 90,
+              "sell_price": 75,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "rare_minerals": {
+              "buy_price": 557,
+              "sell_price": 456,
+              "stock": 100,
+              "demand": 50,
+              "available": true
+            },
+            "medical_supplies": {
+              "buy_price": 125,
+              "sell_price": 104,
+              "stock": 20,
+              "demand": 10,
+              "available": true
+            },
+            "machinery": {
+              "buy_price": 332,
+              "sell_price": 290,
+              "stock": 150,
+              "demand": 30,
+              "available": true
+            }
+          }
+        }
+      }
+    ],
+    "generated_chunks": [
+      [
+        4,
+        0
+      ],
+      [
+        3,
+        -2
+      ],
+      [
+        3,
+        -1
+      ],
+      [
+        4,
+        -3
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        -3,
+        -3
+      ],
+      [
+        -3,
+        0
+      ],
+      [
+        -3,
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        -3
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        -2,
+        -2
+      ],
+      [
+        -2,
+        -1
+      ],
+      [
+        -1,
+        -2
+      ],
+      [
+        -1,
+        -1
+      ],
+      [
+        -2,
+        1
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        3,
+        -3
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        -3,
+        2
+      ],
+      [
+        0,
+        -2
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        -2
+      ],
+      [
+        2,
+        -1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        -2,
+        -3
+      ],
+      [
+        -1,
+        -3
+      ],
+      [
+        -2,
+        0
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        -2,
+        3
+      ],
+      [
+        -1,
+        3
+      ],
+      [
+        4,
+        -2
+      ],
+      [
+        4,
+        -1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        -1,
+        2
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        -3,
+        -2
+      ],
+      [
+        -3,
+        -1
+      ],
+      [
+        0,
+        -3
+      ],
+      [
+        -3,
+        1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        2,
+        -3
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        -2
+      ],
+      [
+        1,
+        -1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        -2,
+        2
+      ]
+    ],
+    "current_chunk": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  "game_state": {
+    "current_state": 7,
+    "credits": 1000,
+    "play_time": 6.184000000000022
+  },
+  "metadata": {
+    "save_name": "test",
+    "save_date": "2025-07-16T01:21:04.784331",
+    "play_time": 6.184000000000022,
+    "credits": 1000,
+    "ship_upgrades_value": 0,
+    "location": "Sector (1, 0)"
+  }
+}

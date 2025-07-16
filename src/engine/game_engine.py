@@ -80,6 +80,11 @@ class GameEngine:
         # Game state
         self.running = True
         self.current_state = GameStates.MAIN_MENU
+        self.play_time = 0.0  # Total play time in seconds
+        
+        # Auto-save settings
+        self.auto_save_interval = 300.0  # Auto-save every 5 minutes
+        self.last_auto_save = 0.0
         
         # Resource management
         self.fonts: Dict[str, pygame.font.Font] = {}
@@ -90,14 +95,16 @@ class GameEngine:
         self._init_resources()
 
         # Initialize states
-        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState
+        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState, SaveGameState, LoadGameState
         self.states = {
             GameStates.MAIN_MENU: MenuState(self),
             GameStates.PLAYING: PlayingState(self),
             GameStates.PAUSED: PausedState(self),
             GameStates.SETTINGS: SettingsState(self),
             GameStates.TRADING: None,  # Will be created dynamically with station parameter
-            GameStates.UPGRADES: None  # Will be created dynamically with station parameter
+            GameStates.UPGRADES: None,  # Will be created dynamically with station parameter
+            GameStates.SAVE_GAME: None,  # Will be created dynamically
+            GameStates.LOAD_GAME: LoadGameState(self)
         }
         
         logger.info("GameEngine initialization complete")
@@ -176,6 +183,11 @@ class GameEngine:
     def update(self) -> None:
         """Update game logic based on current state"""
         self.delta_time = self.clock.get_time() / 1000.0  # Convert to seconds
+        
+        # Update play time when playing
+        if self.current_state == GameStates.PLAYING:
+            self.play_time += self.delta_time
+            self._check_auto_save()
         
         # Update current state
         current_state = self.states[self.current_state]
@@ -303,6 +315,24 @@ class GameEngine:
         
         pygame.quit()
 
+    def _check_auto_save(self):
+        """Check if auto-save should be triggered."""
+        if self.play_time - self.last_auto_save >= self.auto_save_interval:
+            self._auto_save()
+            self.last_auto_save = self.play_time
+    
+    def _auto_save(self):
+        """Perform an auto-save."""
+        try:
+            from src.save_system import save_system
+            success = save_system.save_game(self, "autosave")
+            if success:
+                logger.info("Auto-save completed successfully")
+            else:
+                logger.warning("Auto-save failed")
+        except Exception as e:
+            logger.error(f"Auto-save error: {e}")
+
     def change_state(self, new_state: GameStates, station=None) -> None:
         """Safely change the game state"""
         logger.info(f"Changing game state from {self.current_state} to {new_state}")
@@ -324,6 +354,14 @@ class GameEngine:
             # Create upgrade state with station parameter
             from src.states.game_state import UpgradeState
             self.states[GameStates.UPGRADES] = UpgradeState(self, station)
+        elif new_state == GameStates.SAVE_GAME:
+            # Create save state
+            from src.states.game_state import SaveGameState
+            self.states[GameStates.SAVE_GAME] = SaveGameState(self)
+        elif new_state == GameStates.LOAD_GAME:
+            # Refresh load state
+            from src.states.game_state import LoadGameState
+            self.states[GameStates.LOAD_GAME] = LoadGameState(self)
         elif new_state == GameStates.PLAYING:
             # Resume game
             pass
