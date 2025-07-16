@@ -211,7 +211,7 @@ class MissionManager:
         destination_station = random.choice(possible_destinations)
         
         # Medical/emergency supplies are preferred
-        emergency_commodities = ["food", "medical_supplies", "energy_cells"]
+        emergency_commodities = ["food_rations", "medical_supplies", "fuel_cells"]
         commodities = commodity_registry.get_all_commodities()
         
         # Try to find emergency commodities, otherwise use any
@@ -363,6 +363,22 @@ class MissionManager:
             "completed": len(self.completed_missions),
             "failed": len(self.failed_missions)
         }
+    
+    def get_station_by_name(self, station_name: str, stations_list):
+        """Get station object by name from the stations list."""
+        for station in stations_list:
+            if station.name == station_name:
+                return station
+        return None
+    
+    def get_station_coordinates(self, station_name: str, stations_list) -> Optional[str]:
+        """Get formatted coordinates for a station."""
+        station = self.get_station_by_name(station_name, stations_list)
+        if station:
+            sector_x = int(station.position.x // 1000)
+            sector_y = int(station.position.y // 1000)
+            return f"Sector ({sector_x}, {sector_y})"
+        return None
     
     def to_dict(self) -> Dict[str, Any]:
         """Serialize mission manager state for saving."""

@@ -37,7 +37,7 @@ class DeliveryMission(Mission):
         
         # Set mission details
         self.title = f"Deliver {commodity_name}"
-        self.description = f"Transport {quantity} units of {commodity_name} to the destination station. Cargo will be provided at pickup."
+        self.description = f"Transport {quantity} units of {commodity_name} from {origin_station_id} to {destination_station_id}. Cargo will be provided at pickup."
         
         # Set requirements
         cargo_space_needed = quantity
@@ -92,24 +92,33 @@ class DeliveryMission(Mission):
         
         # Check pickup objective
         if not self.pickup_completed and current_station:
-            station_id = getattr(current_station, 'id', str(current_station))
-            if station_id == self.origin_station_id:
-                # Check if player has the required cargo
-                if ship.cargo_hold.get_quantity(self.commodity_id) >= self.quantity:
-                    self.objectives[0].completed = True
-                    self.pickup_completed = True
-                    self.progress_description = f"Deliver {self.quantity} units to destination"
-                    self.status = MissionStatus.IN_PROGRESS
+            station_name = getattr(current_station, 'name', str(current_station))
+            if station_name == self.origin_station_id:
+                # Automatically provide cargo to player when docked at pickup station
+                if ship.cargo_hold.can_add(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.add_cargo(self.commodity_id, self.quantity):
+                        self.objectives[0].completed = True
+                        self.pickup_completed = True
+                        self.progress_description = f"Deliver {self.quantity} units to {self.destination_station_id}"
+                        self.status = MissionStatus.IN_PROGRESS
+                        return False
+                else:
+                    self.progress_description = f"Clear cargo space to pick up {self.quantity} units"
+                    return False
         
         # Check delivery objective
         if self.pickup_completed and current_station:
-            station_id = getattr(current_station, 'id', str(current_station))
-            if station_id == self.destination_station_id:
+            station_name = getattr(current_station, 'name', str(current_station))
+            if station_name == self.destination_station_id:
                 # Check if player still has the cargo to deliver
                 if ship.cargo_hold.get_quantity(self.commodity_id) >= self.quantity:
-                    self.objectives[1].completed = True
-                    self.complete()
-                    return True
+                    # Remove cargo from player's hold and complete mission
+                    if ship.cargo_hold.remove_cargo(self.commodity_id, self.quantity):
+                        self.objectives[1].completed = True
+                        self.complete()
+                        return True
+                else:
+                    self.progress_description = f"Missing cargo! Need {self.quantity} units of {self.commodity_id}"
         
         # Update completion percentage
         completed_objectives = sum(1 for obj in self.objectives if obj.completed)
@@ -141,36 +150,37 @@ class TradingContractMission(Mission):
             sell_name = sell_commodity
         
         self.title = f"Trade {buy_name} for {sell_name}"
-        self.description = (f"Acquire {buy_quantity} units of {buy_name} and "
-                           f"exchange them for {sell_quantity} units of {sell_name} at this station.")
+        self.description = (f"Bring {buy_quantity} units of {buy_name} to {station_id} and "
+                           f"exchange them for {sell_quantity} units of {sell_name}.")
         
-        # Set requirements
+        # Set requirements - player needs to bring the buy commodity
         self.requirements = MissionRequirement(
             min_cargo_capacity=max(buy_quantity, sell_quantity),
-            min_reputation=10
+            min_reputation=10,
+            required_items={buy_commodity: buy_quantity}
         )
         
         # Create objectives
         self.objectives = [
             MissionObjective(
-                description=f"Acquire {buy_quantity} units of {buy_name}",
+                description=f"Bring {buy_quantity} units of {buy_name} to station",
                 target_commodity=buy_commodity,
-                target_quantity=buy_quantity
+                target_quantity=buy_quantity,
+                target_station_id=station_id
             ),
             MissionObjective(
-                description=f"Exchange for {sell_quantity} units of {sell_name}",
+                description=f"Receive {sell_quantity} units of {sell_name}",
                 target_station_id=station_id,
                 target_commodity=sell_commodity,
                 target_quantity=sell_quantity
             )
         ]
         
-        # Set rewards
+        # Set rewards - no bonus items since trade gives the commodity
         base_reward = buy_quantity * 100 + sell_quantity * 120
         self.reward = MissionReward(
             credits=base_reward,
-            reputation_bonus=random.randint(10, 25),
-            bonus_items={sell_commodity: sell_quantity}
+            reputation_bonus=random.randint(10, 25)
         )
         
         # Set penalties
@@ -182,8 +192,52 @@ class TradingContractMission(Mission):
         # Longer time limit for trading missions
         self.time_limit = random.randint(10800, 28800)  # 3-8 hours
         
-        self.progress_description = f"Acquire {buy_quantity} units of {buy_name}"
+        self.progress_description = f"Bring {buy_quantity} units of {buy_name} to {station_id}"
         self.trade_completed = False
+    
+    def update_progress(self, ship, current_station=None) -> bool:
+        """Update trading contract mission progress."""
+        if self.status not in [MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS]:
+            return False
+        
+        if self.is_expired():
+            self.status = MissionStatus.EXPIRED
+            return False
+        
+        if not current_station:
+            return False
+        
+        station_name = getattr(current_station, 'name', str(current_station))
+        if station_name == self.origin_station_id:
+            # Check if player has the required commodity to trade
+            if ship.cargo_hold.get_quantity(self.buy_commodity) >= self.buy_quantity:
+                if not self.objectives[0].completed:
+                    self.objectives[0].completed = True
+                    self.progress_description = f"Ready to trade for {self.sell_quantity} units"
+                    self.status = MissionStatus.IN_PROGRESS
+                
+                # If first objective complete, perform the trade
+                if self.objectives[0].completed and not self.trade_completed:
+                    # Check if there's space for the new commodity
+                    if ship.cargo_hold.can_add(self.sell_commodity, self.sell_quantity):
+                        # Remove the buy commodity and add the sell commodity
+                        if ship.cargo_hold.remove_cargo(self.buy_commodity, self.buy_quantity):
+                            if ship.cargo_hold.add_cargo(self.sell_commodity, self.sell_quantity):
+                                self.objectives[1].completed = True
+                                self.trade_completed = True
+                                self.complete()
+                                return True
+                    else:
+                        self.progress_description = f"Clear cargo space for {self.sell_quantity} units"
+            else:
+                needed = self.buy_quantity - ship.cargo_hold.get_quantity(self.buy_commodity)
+                self.progress_description = f"Need {needed} more units of {self.buy_commodity}"
+        
+        # Update completion percentage
+        completed_objectives = sum(1 for obj in self.objectives if obj.completed)
+        self.completion_percentage = completed_objectives / len(self.objectives)
+        
+        return False
 
 
 class SupplyRunMission(Mission):
@@ -209,7 +263,7 @@ class SupplyRunMission(Mission):
                 total_quantity += quantity
         
         self.title = "Supply Run"
-        self.description = f"Deliver required supplies: {', '.join(supply_names[:3])}{'...' if len(supply_names) > 3 else ''}"
+        self.description = f"Deliver supplies to {destination_station_id}: {', '.join(supply_names[:3])}{'...' if len(supply_names) > 3 else ''}"
         
         # Set requirements
         self.requirements = MissionRequirement(
@@ -250,6 +304,75 @@ class SupplyRunMission(Mission):
         self.time_limit = base_time + (len(required_supplies) * 3600)  # +1 hour per supply type
         
         self.progress_description = "Gather required supplies and deliver to station"
+    
+    def update_progress(self, ship, current_station=None) -> bool:
+        """Update supply run mission progress."""
+        if self.status not in [MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS]:
+            return False
+        
+        if self.is_expired():
+            self.status = MissionStatus.EXPIRED
+            return False
+        
+        if not current_station:
+            return False
+        
+        station_name = getattr(current_station, 'name', str(current_station))
+        if station_name == self.destination_station_id:
+            # Check each required supply
+            completed_supplies = 0
+            missing_supplies = []
+            
+            for i, (commodity_id, required_quantity) in enumerate(self.required_supplies.items()):
+                current_quantity = ship.cargo_hold.get_quantity(commodity_id)
+                
+                if current_quantity >= required_quantity:
+                    if not self.objectives[i].completed:
+                        # Remove the supplied commodity and mark objective complete
+                        if ship.cargo_hold.remove_cargo(commodity_id, required_quantity):
+                            self.objectives[i].completed = True
+                            completed_supplies += 1
+                    else:
+                        completed_supplies += 1
+                else:
+                    needed = required_quantity - current_quantity
+                    try:
+                        commodity_name = commodity_registry.get_commodity(commodity_id).name
+                    except KeyError:
+                        commodity_name = commodity_id
+                    missing_supplies.append(f"{needed} {commodity_name}")
+            
+            # Update progress description
+            if missing_supplies:
+                self.progress_description = f"Still need: {', '.join(missing_supplies[:2])}{'...' if len(missing_supplies) > 2 else ''}"
+            else:
+                self.progress_description = "All supplies delivered!"
+            
+            # Check if mission is complete
+            if completed_supplies == len(self.required_supplies):
+                self.complete()
+                return True
+            
+            # Update status
+            if completed_supplies > 0 and self.status == MissionStatus.ACCEPTED:
+                self.status = MissionStatus.IN_PROGRESS
+        else:
+            # Update progress based on what player has
+            have_count = 0
+            for commodity_id, required_quantity in self.required_supplies.items():
+                if ship.cargo_hold.get_quantity(commodity_id) >= required_quantity:
+                    have_count += 1
+            
+            if have_count > 0:
+                self.progress_description = f"Have {have_count}/{len(self.required_supplies)} supplies. Deliver to {self.destination_station_id}"
+            else:
+                self.progress_description = "Gather required supplies and deliver to station"
+        
+        # Update completion percentage
+        completed_objectives = sum(1 for obj in self.objectives if obj.completed)
+        self.completion_percentage = completed_objectives / len(self.objectives)
+        
+        return False
 
 
 class EmergencyDeliveryMission(Mission):
@@ -273,7 +396,7 @@ class EmergencyDeliveryMission(Mission):
         
         self.title = f"URGENT: Deliver {commodity_name}"
         self.description = (f"EMERGENCY DELIVERY REQUIRED! Transport {quantity} units of "
-                           f"{commodity_name} immediately. Lives may depend on this delivery!")
+                           f"{commodity_name} from {origin_station_id} to {destination_station_id} immediately. Lives may depend on this delivery!")
         
         # Higher requirements for emergency missions
         self.requirements = MissionRequirement(
@@ -315,6 +438,52 @@ class EmergencyDeliveryMission(Mission):
         
         self.progress_description = "URGENT: Pick up emergency supplies immediately!"
         self.pickup_completed = False
+    
+    def update_progress(self, ship, current_station=None) -> bool:
+        """Update emergency delivery mission progress."""
+        if self.status not in [MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS]:
+            return False
+        
+        if self.is_expired():
+            self.status = MissionStatus.EXPIRED
+            return False
+        
+        # Check pickup objective
+        if not self.pickup_completed and current_station:
+            station_name = getattr(current_station, 'name', str(current_station))
+            if station_name == self.origin_station_id:
+                # Automatically provide emergency cargo when docked at pickup station
+                if ship.cargo_hold.can_add(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.add_cargo(self.commodity_id, self.quantity):
+                        self.objectives[0].completed = True
+                        self.pickup_completed = True
+                        self.progress_description = f"URGENT: Deliver to {self.destination_station_id} NOW!"
+                        self.status = MissionStatus.IN_PROGRESS
+                        return False
+                else:
+                    self.progress_description = f"URGENT: Clear {self.quantity} cargo space immediately!"
+                    return False
+        
+        # Check delivery objective
+        if self.pickup_completed and current_station:
+            station_name = getattr(current_station, 'name', str(current_station))
+            if station_name == self.destination_station_id:
+                # Check if player still has the emergency cargo
+                if ship.cargo_hold.get_quantity(self.commodity_id) >= self.quantity:
+                    # Remove emergency cargo and complete mission
+                    if ship.cargo_hold.remove_cargo(self.commodity_id, self.quantity):
+                        self.objectives[1].completed = True
+                        self.complete()
+                        return True
+                else:
+                    self.progress_description = f"EMERGENCY CARGO LOST! Mission failed!"
+                    self.status = MissionStatus.FAILED
+        
+        # Update completion percentage
+        completed_objectives = sum(1 for obj in self.objectives if obj.completed)
+        self.completion_percentage = completed_objectives / len(self.objectives)
+        
+        return False
 
 
 class ExplorationMission(Mission):

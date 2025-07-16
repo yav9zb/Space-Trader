@@ -1736,6 +1736,17 @@ class MissionBoardState(State):
             reward_surface = small_font.render(reward_text, True, (0, 255, 0))
             screen.blit(reward_surface, (50, y + 45))
             
+            # Destination info (if available)
+            if hasattr(mission, 'destination_station_id') and mission.destination_station_id:
+                dest_coords = self.mission_manager.get_station_coordinates(
+                    mission.destination_station_id, 
+                    self.game.universe.stations
+                )
+                if dest_coords:
+                    dest_text = f"Destination: {mission.destination_station_id} - {dest_coords}"
+                    dest_surface = small_font.render(dest_text, True, (150, 200, 255))
+                    screen.blit(dest_surface, (50, y + 65))
+            
             # Time remaining (if applicable)
             time_remaining = mission.get_formatted_time_remaining()
             if time_remaining != "No time limit":
@@ -1775,9 +1786,36 @@ class MissionBoardState(State):
             "",
             "Description:",
             mission.description,
-            "",
-            "Objectives:"
+            ""
         ]
+        
+        # Add location information if available
+        if hasattr(mission, 'origin_station_id') and mission.origin_station_id:
+            origin_coords = self.mission_manager.get_station_coordinates(
+                mission.origin_station_id, 
+                self.game.universe.stations
+            )
+            if origin_coords:
+                details.append(f"Origin: {mission.origin_station_id} - {origin_coords}")
+        
+        if hasattr(mission, 'destination_station_id') and mission.destination_station_id:
+            dest_coords = self.mission_manager.get_station_coordinates(
+                mission.destination_station_id, 
+                self.game.universe.stations
+            )
+            if dest_coords:
+                details.append(f"Destination: {mission.destination_station_id} - {dest_coords}")
+        
+        # Add trading station for trading contracts
+        if hasattr(mission, 'station_id') and mission.station_id and not hasattr(mission, 'origin_station_id'):
+            station_coords = self.mission_manager.get_station_coordinates(
+                mission.station_id, 
+                self.game.universe.stations
+            )
+            if station_coords:
+                details.append(f"Trading Station: {mission.station_id} - {station_coords}")
+        
+        details.extend(["", "Objectives:"])
         
         for detail in details:
             if detail == "":

@@ -316,7 +316,10 @@ class EnhancedHUD:
         
         # Panel position (top right)
         panel_width = int(280 * self.scale)
-        panel_height = min(int(200 * self.scale), len(active_missions) * 50 + 40)
+        # Calculate height based on missions and destination info
+        mission_height = 45
+        extra_height = sum(15 for mission in active_missions[:3] if hasattr(mission, 'destination_station_id') and mission.destination_station_id)
+        panel_height = min(int(200 * self.scale), len(active_missions[:3]) * mission_height + extra_height + 40)
         panel_x = self.screen_width - panel_width - int(10 * self.scale)
         panel_y = int(10 * self.scale)
         
@@ -339,11 +342,20 @@ class EnhancedHUD:
             title_surface = self.font_small.render(title_text, True, (255, 255, 255))
             surface.blit(title_surface, (panel_x + 10, y_offset))
             
+            # Destination info if available
+            if hasattr(mission, 'destination_station_id') and mission.destination_station_id:
+                dest_text = f"→ {mission.destination_station_id}"
+                dest_surface = self.font_small.render(dest_text, True, (150, 200, 255))
+                surface.blit(dest_surface, (panel_x + 10, y_offset + 15))
+                progress_y_offset = 30
+            else:
+                progress_y_offset = 15
+            
             # Progress bar
             progress_width = int(200 * self.scale)
             progress_height = int(8 * self.scale)
             progress_x = panel_x + 10
-            progress_y = y_offset + 15
+            progress_y = y_offset + progress_y_offset
             
             pygame.draw.rect(surface, (40, 40, 40), (progress_x, progress_y, progress_width, progress_height))
             
@@ -360,7 +372,7 @@ class EnhancedHUD:
                 time_surface = self.font_small.render(time_remaining, True, time_color)
                 surface.blit(time_surface, (panel_x + panel_width - 80, y_offset))
             
-            y_offset += 45
+            y_offset += 45 + (15 if hasattr(mission, 'destination_station_id') and mission.destination_station_id else 0)
     
     def _render_market_info(self, surface: pygame.Surface, game_engine):
         """Render market information panel."""
