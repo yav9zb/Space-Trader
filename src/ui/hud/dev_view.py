@@ -127,16 +127,16 @@ class DevView:
         surface.blit(header, (self.panel_x + 10, y_offset))
         y_offset += 20
         
-        # Position
-        pos_text = f"Pos: ({ship.position.x:.1f}, {ship.position.y:.1f})"
+        # Position (invert Y for display)
+        pos_text = f"Pos: ({ship.position.x:.1f}, {-ship.position.y:.1f})"
         pos_surface = self.font_small.render(pos_text, True, self.value_color)
         surface.blit(pos_surface, (self.panel_x + 15, y_offset))
         y_offset += 15
         
-        # Velocity
+        # Velocity (invert Y for display)
         velocity = ship.velocity
         speed = velocity.length()
-        vel_text = f"Velocity: ({velocity.x:.1f}, {velocity.y:.1f})"
+        vel_text = f"Velocity: ({velocity.x:.1f}, {-velocity.y:.1f})"
         vel_surface = self.font_small.render(vel_text, True, self.value_color)
         surface.blit(vel_surface, (self.panel_x + 15, y_offset))
         y_offset += 15
@@ -203,9 +203,9 @@ class DevView:
         surface.blit(header, (self.panel_x + 10, y_offset))
         y_offset += 20
         
-        # Camera offset
+        # Camera offset (invert Y for display)
         camera_offset = camera.get_offset()
-        offset_text = f"Offset: ({camera_offset.x:.1f}, {camera_offset.y:.1f})"
+        offset_text = f"Offset: ({camera_offset.x:.1f}, {-camera_offset.y:.1f})"
         offset_surface = self.font_small.render(offset_text, True, self.value_color)
         surface.blit(offset_surface, (self.panel_x + 15, y_offset))
         y_offset += 15

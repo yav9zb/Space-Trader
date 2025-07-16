@@ -279,9 +279,9 @@ class EnhancedHUD:
         
         y_offset = panel_y + 35
         
-        # Current position
+        # Current position (invert Y for display)
         sector_x = int(ship.position.x // 1000)
-        sector_y = int(ship.position.y // 1000)
+        sector_y = int(-ship.position.y // 1000)
         pos_text = f"Sector: ({sector_x}, {sector_y})"
         pos_surface = self.font_small.render(pos_text, True, (255, 255, 255))
         surface.blit(pos_surface, (panel_x + 10, y_offset))
