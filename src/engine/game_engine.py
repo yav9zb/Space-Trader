@@ -90,13 +90,14 @@ class GameEngine:
         self._init_resources()
 
         # Initialize states
-        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState
+        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState
         self.states = {
             GameStates.MAIN_MENU: MenuState(self),
             GameStates.PLAYING: PlayingState(self),
             GameStates.PAUSED: PausedState(self),
             GameStates.SETTINGS: SettingsState(self),
-            GameStates.TRADING: None  # Will be created dynamically with station parameter
+            GameStates.TRADING: None,  # Will be created dynamically with station parameter
+            GameStates.UPGRADES: None  # Will be created dynamically with station parameter
         }
         
         logger.info("GameEngine initialization complete")
@@ -319,6 +320,10 @@ class GameEngine:
             # Create trading state with station parameter
             from src.states.game_state import TradingState
             self.states[GameStates.TRADING] = TradingState(self, station)
+        elif new_state == GameStates.UPGRADES:
+            # Create upgrade state with station parameter
+            from src.states.game_state import UpgradeState
+            self.states[GameStates.UPGRADES] = UpgradeState(self, station)
         elif new_state == GameStates.PLAYING:
             # Resume game
             pass

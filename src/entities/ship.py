@@ -5,8 +5,12 @@ from pygame import Vector2
 
 try:
     from ..trading.cargo import CargoHold
+    from ..upgrades.ship_upgrades import ShipUpgrades, ShipStats
+    from ..upgrades.upgrade_system import upgrade_system
 except ImportError:
     from trading.cargo import CargoHold
+    from upgrades.ship_upgrades import ShipUpgrades, ShipStats
+    from upgrades.upgrade_system import upgrade_system
 
 
 class Ship:
@@ -38,6 +42,17 @@ class Ship:
         # Trading system
         self.cargo_hold = CargoHold(capacity=20)  # Starting ship has 20 cargo units
         self.credits = 1000  # Starting credits
+        
+        # Upgrade system
+        self.upgrades = ShipUpgrades()
+        self.base_stats = ShipStats(
+            cargo_capacity=20,
+            max_speed=400.0,
+            thrust_force=300.0,
+            hull_points=100,
+            scanner_range=150.0
+        )
+        self.current_hull = 100  # Current hull damage state
 
     def handle_input(self, delta_time):
         keys = pygame.key.get_pressed()
@@ -55,7 +70,9 @@ class Ship:
         # Thrust in ship's heading direction
         self.thrusting = keys[pygame.K_UP]
         if self.thrusting:
-            self.acceleration = self.heading * self.THRUST_FORCE
+            # Use upgraded thrust force
+            effective_stats = self.get_effective_stats()
+            self.acceleration = self.heading * effective_stats.get_effective_thrust_force()
         else:
             self.acceleration = Vector2(0, 0)
 
@@ -70,13 +87,18 @@ class Ship:
         # Apply drag
         self.velocity *= self.DRAG_COEFFICIENT
         
-        # Limit speed
+        # Limit speed using upgraded max speed
+        effective_stats = self.get_effective_stats()
+        max_speed = effective_stats.get_effective_max_speed()
         speed = self.velocity.length()
-        if speed > self.MAX_SPEED:
-            self.velocity = self.velocity.normalize() * self.MAX_SPEED
+        if speed > max_speed:
+            self.velocity = self.velocity.normalize() * max_speed
             
         # Update position
         self.position += self.velocity * delta_time
+        
+        # Update cargo hold capacity based on upgrades
+        self._update_cargo_capacity()
 
     def draw(self, screen, camera_offset):
         # Transform points based on position and rotation
@@ -190,3 +212,96 @@ class Ship:
                     self.velocity.length() < 50)
     
         return can_dock, distance
+    
+    def get_effective_stats(self) -> ShipStats:
+        """Get the effective stats with all upgrades applied."""
+        return self.upgrades.get_effective_stats(self.base_stats)
+    
+    def _update_cargo_capacity(self):
+        """Update cargo hold capacity based on upgrades."""
+        effective_stats = self.get_effective_stats()
+        new_capacity = effective_stats.get_effective_cargo_capacity()
+        
+        # Only update if capacity changed
+        if self.cargo_hold.capacity != new_capacity:
+            self.cargo_hold.capacity = new_capacity
+    
+    def install_upgrade(self, upgrade_id: str) -> bool:
+        """Install an upgrade on this ship."""
+        result, remaining_credits = upgrade_system.purchase_upgrade(
+            self.upgrades, upgrade_id, self.credits
+        )
+        
+        if result.success:
+            self.credits = remaining_credits
+            # Update cargo capacity immediately
+            self._update_cargo_capacity()
+            return True
+        return False
+    
+    def get_upgrade_cost(self, upgrade_id: str, station_type: str = "shipyard") -> int:
+        """Get the cost of an upgrade at a specific station type."""
+        try:
+            from ..upgrades.upgrade_definitions import upgrade_registry
+        except ImportError:
+            from upgrades.upgrade_definitions import upgrade_registry
+            
+        try:
+            upgrade = upgrade_registry.get_upgrade(upgrade_id)
+            return upgrade_system.get_discounted_price(upgrade, station_type)
+        except KeyError:
+            return 0
+    
+    def can_afford_upgrade(self, upgrade_id: str, station_type: str = "shipyard") -> bool:
+        """Check if the ship can afford an upgrade."""
+        cost = self.get_upgrade_cost(upgrade_id, station_type)
+        return self.credits >= cost
+    
+    def get_ship_info(self) -> dict:
+        """Get comprehensive ship information including upgrades."""
+        effective_stats = self.get_effective_stats()
+        
+        return {
+            "credits": self.credits,
+            "cargo_used": self.cargo_hold.get_used_capacity(),
+            "cargo_capacity": effective_stats.get_effective_cargo_capacity(),
+            "max_speed": effective_stats.get_effective_max_speed(),
+            "thrust_force": effective_stats.get_effective_thrust_force(),
+            "hull_current": self.current_hull,
+            "hull_max": effective_stats.get_effective_hull_points(),
+            "scanner_range": effective_stats.get_effective_scanner_range(),
+            "total_upgrade_value": self.upgrades.get_total_upgrade_value(),
+            "upgrade_summary": self.upgrades.get_upgrade_summary()
+        }
+    
+    def take_damage(self, damage: float):
+        """Apply damage to the ship, considering hull upgrades."""
+        effective_stats = self.get_effective_stats()
+        damage_multiplier = effective_stats.get_collision_damage_multiplier()
+        actual_damage = damage * damage_multiplier
+        
+        self.current_hull = max(0, self.current_hull - actual_damage)
+        
+        # Check if ship is destroyed
+        if self.current_hull <= 0:
+            return True  # Ship destroyed
+        return False  # Ship survived
+    
+    def repair_ship(self, repair_amount: float = None):
+        """Repair the ship to full hull points."""
+        effective_stats = self.get_effective_stats()
+        max_hull = effective_stats.get_effective_hull_points()
+        
+        if repair_amount is None:
+            self.current_hull = max_hull
+        else:
+            self.current_hull = min(max_hull, self.current_hull + repair_amount)
+    
+    def get_hull_percentage(self) -> float:
+        """Get hull integrity as a percentage (0.0 to 1.0)."""
+        effective_stats = self.get_effective_stats()
+        max_hull = effective_stats.get_effective_hull_points()
+        
+        if max_hull <= 0:
+            return 1.0
+        return max(0.0, min(1.0, self.current_hull / max_hull))
