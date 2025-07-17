@@ -250,19 +250,20 @@ class EnhancedHUD:
         cargo_total = ship.cargo_hold.capacity
         cargo_text = f"Cargo: {cargo_used}/{cargo_total}"
         cargo_surface = self.font_small.render(cargo_text, True, (255, 255, 255))
-        surface.blit(cargo_surface, (panel_x + 10, y_offset))
+        surface.blit(cargo_surface, (panel_x + self.ui_layout.padding, y_offset))
         
         # Cargo bar
-        self.cargo_bar.draw(surface, panel_x + 120, y_offset + 2)
-        y_offset += 25
+        cargo_bar_x = panel_x + int(120 * self.ui_layout.font_scale)
+        self.cargo_bar.draw(surface, cargo_bar_x, y_offset + 2)
+        y_offset += self.ui_layout.get_responsive_spacing(25)
         
         # Speed
         speed = ship.velocity.length()
         max_speed = ship.get_effective_stats().get_effective_max_speed()
         speed_text = f"Speed: {speed:.0f}/{max_speed:.0f}"
         speed_surface = self.font_small.render(speed_text, True, (255, 255, 255))
-        surface.blit(speed_surface, (panel_x + 10, y_offset))
-        y_offset += 20
+        surface.blit(speed_surface, (panel_x + self.ui_layout.padding, y_offset))
+        y_offset += self.ui_layout.get_responsive_spacing(20)
         
         # Upgrades summary
         upgrade_summary = ship.upgrades.get_upgrade_summary()
