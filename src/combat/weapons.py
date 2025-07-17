@@ -25,6 +25,8 @@ class WeaponStats:
     energy_cost: float
     projectile_speed: float
     spread: float = 0.0  # accuracy spread in degrees
+    ammo_type: str = "laser_cells"  # Type of ammo consumed
+    ammo_per_shot: int = 1  # Amount of ammo consumed per shot
 
 
 class Projectile:
@@ -89,19 +91,31 @@ class Weapon:
         self.max_energy = 100.0
         self.energy_regen_rate = 20.0  # energy per second
         
-    def can_fire(self, current_time: float) -> bool:
+    def can_fire(self, current_time: float, ship=None) -> bool:
         """Check if weapon can fire."""
         time_since_last_shot = current_time - self.last_fire_time
         fire_interval = 1.0 / self.stats.fire_rate
         
-        return (time_since_last_shot >= fire_interval and 
-                self.energy >= self.stats.energy_cost)
+        # Check basic firing conditions
+        if not (time_since_last_shot >= fire_interval and self.energy >= self.stats.energy_cost):
+            return False
+        
+        # Check ammo availability if ship is provided
+        if ship and hasattr(ship, 'has_ammo'):
+            return ship.has_ammo(self.stats.ammo_type, self.stats.ammo_per_shot)
+        
+        return True
     
     def fire(self, position: Vector2, direction: Vector2, owner, current_time: float) -> Optional[Projectile]:
         """Fire the weapon and return a projectile."""
-        if not self.can_fire(current_time):
+        if not self.can_fire(current_time, owner):
             return None
             
+        # Consume ammo if ship has ammo system
+        if hasattr(owner, 'consume_ammo'):
+            if not owner.consume_ammo(self.stats.ammo_type, self.stats.ammo_per_shot):
+                return None  # Not enough ammo
+        
         # Apply spread
         if self.stats.spread > 0:
             spread_angle = (random.random() - 0.5) * self.stats.spread
@@ -196,7 +210,9 @@ WEAPON_CONFIGS = {
         fire_rate=3.0,
         energy_cost=10.0,
         projectile_speed=1000.0,
-        spread=2.0
+        spread=2.0,
+        ammo_type="laser_cells",
+        ammo_per_shot=1
     ),
     "plasma_cannon": WeaponStats(
         damage=25.0,
@@ -204,7 +220,9 @@ WEAPON_CONFIGS = {
         fire_rate=1.5,
         energy_cost=20.0,
         projectile_speed=800.0,
-        spread=5.0
+        spread=5.0,
+        ammo_type="plasma_cartridges",
+        ammo_per_shot=1
     ),
     "missile_launcher": WeaponStats(
         damage=50.0,
@@ -212,7 +230,9 @@ WEAPON_CONFIGS = {
         fire_rate=0.5,
         energy_cost=40.0,
         projectile_speed=600.0,
-        spread=1.0
+        spread=1.0,
+        ammo_type="missiles",
+        ammo_per_shot=1
     ),
     "railgun": WeaponStats(
         damage=75.0,
@@ -220,7 +240,9 @@ WEAPON_CONFIGS = {
         fire_rate=0.3,
         energy_cost=60.0,
         projectile_speed=2000.0,
-        spread=0.5
+        spread=0.5,
+        ammo_type="railgun_slugs",
+        ammo_per_shot=1
     )
 }
 

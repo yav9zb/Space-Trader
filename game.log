@@ -3216,3 +3216,61 @@
 2025-07-17 00:45:24,526 - src.missions.mission_manager - INFO - Refreshing missions for 20 visited stations
 2025-07-17 00:51:32,161 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-07-17 00:51:32,266 - src.main - INFO - Game terminated
+2025-07-17 11:50:16,043 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 11:50:16,043 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 11:50:16,572 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 11:50:16,585 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 11:50:16,595 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 11:50:16,599 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 11:50:16,599 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 11:50:19,733 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-17 11:50:19,734 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 11:50:19,734 - src.engine.game_engine - INFO - New universe created with seed: 887650755
+2025-07-17 11:50:19,734 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-17 11:50:19,743 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 11:50:19,751 - src.engine.game_engine - ERROR - Error in game loop: 'BanditShip' object has no attribute 'COLLISION_BUFFER'
+2025-07-17 11:50:19,751 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-17 11:50:19,866 - src.main - ERROR - Fatal error: 'BanditShip' object has no attribute 'COLLISION_BUFFER'
+2025-07-17 11:50:19,866 - src.main - INFO - Game terminated
+2025-07-17 11:50:59,822 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 11:50:59,822 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 11:51:00,317 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 11:51:00,323 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 11:51:00,332 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 11:51:00,336 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 11:51:00,336 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 11:52:08,849 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 11:52:08,849 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 11:52:09,331 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 11:52:09,338 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 11:52:09,345 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 11:52:09,349 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 11:52:09,350 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 11:52:09,965 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-17 11:52:09,966 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 11:52:09,966 - src.engine.game_engine - INFO - New universe created with seed: 1779786864
+2025-07-17 11:52:09,966 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-17 11:52:09,974 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 11:52:11,480 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 11:52:26,228 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-17 11:52:30,375 - src.states.game_state - INFO - Planet collision detected in PlayingState
+2025-07-17 11:52:31,852 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 11:52:32,431 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 11:52:34,341 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 11:52:34,712 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 11:52:34,796 - src.docking.docking_manager - INFO - Initiating docking with Excavation-405
+2025-07-17 11:52:34,796 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 11:52:35,307 - src.docking.docking_manager - INFO - Initiating docking with Excavation-405
+2025-07-17 11:52:37,298 - src.docking.docking_manager - INFO - Successfully docked at Excavation-405
+2025-07-17 11:52:37,299 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 11:52:46,904 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 11:53:15,953 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 11:53:27,740 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 11:53:32,260 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 11:53:36,233 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 11:53:44,621 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 11:53:49,775 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 11:53:49,775 - src.missions.mission_manager - INFO - Generating 7 missions for first visit to Excavation-405
+2025-07-17 11:53:49,775 - src.missions.mission_manager - INFO - Generated 7 missions for Excavation-405
+2025-07-17 11:54:13,994 - src.missions.mission_manager - INFO - Mission accepted: Deliver Laser Cells
+2025-07-17 11:54:15,320 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING

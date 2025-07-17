@@ -10,6 +10,7 @@ class CommodityCategory(Enum):
     TECHNOLOGY = "Technology"
     ENERGY = "Energy & Fuel"
     CONSUMER = "Consumer Goods"
+    MILITARY = "Military & Munitions"
 
 
 @dataclass
@@ -104,6 +105,58 @@ class CommodityRegistry:
                 base_price=400,
                 category=CommodityCategory.TECHNOLOGY,
                 volume=3
+            ),
+            
+            # Fuel and Energy
+            Commodity(
+                id="ship_fuel",
+                name="Ship Fuel",
+                description="Refined fuel for ship engines and thrusters",
+                base_price=25,
+                category=CommodityCategory.ENERGY,
+                volume=1
+            ),
+            Commodity(
+                id="deuterium",
+                name="Deuterium",
+                description="High-grade fuel for advanced ship systems",
+                base_price=60,
+                category=CommodityCategory.ENERGY,
+                volume=1
+            ),
+            
+            # Ammunition and Military
+            Commodity(
+                id="laser_cells",
+                name="Laser Cells",
+                description="Energy cells for laser weapon systems",
+                base_price=15,
+                category=CommodityCategory.MILITARY,
+                volume=1
+            ),
+            Commodity(
+                id="plasma_cartridges",
+                name="Plasma Cartridges",
+                description="Plasma ammunition for energy weapons",
+                base_price=30,
+                category=CommodityCategory.MILITARY,
+                volume=1
+            ),
+            Commodity(
+                id="missiles",
+                name="Missiles",
+                description="Guided projectiles for missile weapon systems",
+                base_price=75,
+                category=CommodityCategory.MILITARY,
+                volume=2
+            ),
+            Commodity(
+                id="railgun_slugs",
+                name="Railgun Slugs",
+                description="Dense metal projectiles for railgun systems",
+                base_price=20,
+                category=CommodityCategory.MILITARY,
+                volume=1
             )
         ]
         

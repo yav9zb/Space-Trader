@@ -127,6 +127,7 @@ class BanditShip:
         # Physics constants
         self.drag_coefficient = 0.98
         self.rotation_speed = 150  # degrees per second
+        self.COLLISION_BUFFER = 5  # Additional buffer for collision detection
     
     def _get_color(self) -> tuple:
         """Get bandit ship color based on type."""

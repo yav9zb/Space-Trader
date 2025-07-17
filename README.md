@@ -1,39 +1,87 @@
 # Space Trader
 
-A 2D space trading simulation game built with Python and Pygame. Navigate through a procedurally generated universe, dock with stations, trade commodities, and build your trading empire.
+A 2D space trading simulation game built with Python and Pygame. Navigate through a procedurally generated universe, dock with stations, trade commodities, complete missions, and survive in a hostile galaxy filled with hazards and enemies.
 
 ## Features
 
 ### Currently Implemented ✅
+
+#### Core Systems
 - **Ship Movement**: Smooth physics-based ship control with thrust, rotation, and momentum
-- **Camera System**: Multiple camera modes (Centered, Smooth, Deadzone) with configurable settings
+- **Camera System**: Multiple camera modes (Centered, Smooth, Deadzone) with configurable settings  
 - **Procedural Universe**: Infinite chunk-based universe generation with stations, planets, and debris
 - **Collision Detection**: Accurate collision system between ships and space objects
-- **Station Types**: Multiple station types (Trading, Military, Mining, Research, Shipyard) with unique appearances
-- **Planet Generation**: Varied planet types with procedural features and atmosphere effects
+- **Save/Load System**: Persistent game state with autosave and multiple save slots
 - **Settings System**: Comprehensive settings with JSON persistence and in-game configuration
 - **Debug Mode**: Toggle-able debug overlay with performance metrics and object information
-- **Minimap**: Real-time minimap showing nearby objects and ship position
-- **Docking System**: Complete station docking with approach detection, visual feedback, and state management
 
-### In Development 🚧
+#### Universe & Environment
+- **Station Types**: Multiple station types (Trading, Military, Mining, Research, Shipyard) with unique appearances
+- **Planet Generation**: Varied planet types with procedural features and atmosphere effects
+- **Hazard System**: Dangerous asteroids, black holes, and environmental hazards
+- **Debris Field**: Space debris affected by gravitational forces
+
+#### Docking & Trading
+- **Docking System**: Complete station docking with approach detection, visual feedback, and state management
 - **Trading Interface**: Buy/sell commodities with dynamic market pricing
-- **Resource Management**: Fuel system and cargo capacity management
+- **Commodity System**: 15+ commodities across 5 categories (Food, Metals, Technology, Energy, Consumer)
+- **Market Dynamics**: Station-specific pricing and supply/demand mechanics
+
+#### Mission System
+- **5 Mission Types**: Delivery, Trading Contracts, Supply Runs, Emergency Delivery, Exploration
+- **Mission Generation**: Dynamic mission creation based on station types and universe state
+- **Mission Tracking**: Progress tracking, time limits, and completion rewards
+- **Mission Cargo**: Special tracking for mission-related commodities
+
+#### Combat System
+- **Enemy Ships**: 4 types of bandit ships (Scout, Fighter, Heavy, Boss) with unique AI behaviors
+- **Combat Hazards**: Destructible asteroids, radioactive zones, explosive asteroids, black holes
+- **Weapon System**: 4 weapon types (Laser, Plasma, Missile, Railgun) with different characteristics
+- **Ship Destruction**: Respawn system with progress penalties
+- **Enemy AI**: Distance-based pursuit, state machine behaviors, hazard avoidance
+
+#### Ship Systems
+- **Upgrade System**: 5 upgrade categories (Cargo, Engine, Hull, Scanner, Stealth) with 4 tiers each
+- **Cloaking System**: Stealth mechanics with effectiveness, duration, and cooldown
+- **Repair System**: Station repairs, emergency kits, and auto-repair when docked
+- **Enhanced HUD**: Comprehensive status display, navigation info, and system indicators
+
+#### User Interface
+- **Minimap**: Real-time minimap showing nearby objects and ship position
+- **Large Map**: Detailed universe overview with station locations
+- **Enhanced HUD**: Multi-panel interface with ship stats, navigation, and mission info
+- **Multiple Screens**: Trading, upgrades, missions, settings, save/load interfaces
 
 ### Planned Features 📋
-- **Economy System**: Dynamic market prices based on supply/demand
-- **Mission System**: Delivery missions and contracts between stations
-- **Ship Upgrades**: Engine improvements, cargo expansions, and specialized equipment
-- **Save/Load System**: Persistent game state and player progress
+
+#### Near Future (Next Release)
+- **Afterburners**: Boost system for enhanced speed and maneuverability
+- **WASD Controls**: Alternative control scheme for improved accessibility
+- **Difficulty Levels**: Configurable challenge affecting hazard frequency, damage, and enemy strength
+- **Enhanced Debris Physics**: Debris affected by gravitational pull from planets and black holes
+
+#### Future Development
+- **Advanced AI**: Improved enemy tactics and faction-based behaviors
+- **Base Building**: Construct and manage your own stations
+- **Multiplayer**: Cooperative and competitive multiplayer modes
+- **Faction System**: Reputation and relationships with different groups
+- **Story Mode**: Narrative campaign with scripted events
 - **Audio System**: Sound effects and ambient music
-- **Advanced UI**: Comprehensive HUD with status indicators and information panels
+- **Visual Effects**: Enhanced explosions, particle systems, and environmental effects
 
 ## Controls
 
 ### Gameplay
 - **Arrow Keys**: Ship movement (Left/Right to rotate, Up to thrust, Down to brake)
+- **SPACE**: Fire weapons
 - **D**: Manual docking when near a station
-- **U**: Undock from current station
+- **X**: Undock from current station
+- **T**: Trading interface (when docked)
+- **U**: Upgrades interface (when docked at compatible stations)
+- **M**: Mission board (when docked)
+- **C**: Toggle cloaking device (if installed)
+- **R**: Repair ship (station repair when docked, emergency repair in space)
+- **TAB**: Toggle large map
 - **ESC**: Pause game
 - **F3**: Toggle debug mode
 
@@ -42,6 +90,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **LEFT/RIGHT**: Adjust values (in settings)
 - **ENTER**: Select/confirm
 - **ESC**: Go back
+- **A**: Accept mission/purchase (context-dependent)
 
 ## Getting Started
 
@@ -76,41 +125,44 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 
 ### Core Systems
 - **Game Engine** (`src/engine/game_engine.py`): Main game loop and state management
-- **State Management** (`src/states/game_state.py`): Menu, playing, paused, and settings states
+- **State Management** (`src/states/game_state.py`): Menu, playing, paused, trading, upgrades, missions states
 - **Universe** (`src/universe.py`): Procedural generation and spatial partitioning
 - **Camera** (`src/camera.py`): Multiple camera modes with smooth following
 - **Settings** (`src/settings.py`): Configuration management with persistence
 
 ### Entity System
-- **Ship** (`src/entities/ship.py`): Player-controlled vessel with physics
+- **Ship** (`src/entities/ship.py`): Player-controlled vessel with physics and upgrade system
 - **Station** (`src/entities/station.py`): Trading posts and service stations
 - **Planet** (`src/entities/planet.py`): Procedural planets with unique features
 - **Debris** (`src/entities/debris.py`): Space debris and obstacles
+- **Bandit** (`src/entities/bandit.py`): Enemy ships with AI behaviors
+- **Asteroid** (`src/entities/asteroid.py`): Hazardous space rocks with special types
+- **Black Hole** (`src/entities/black_hole.py`): Gravitational hazards with event horizons
 
-### Upcoming: Docking System
+### Combat System
+- **Combat Manager** (`src/combat/combat_manager.py`): Handles all combat interactions
+- **Weapon System** (`src/combat/weapons.py`): Projectile weapons and firing mechanics
+- **Respawn System** (`src/systems/respawn_system.py`): Ship destruction and revival
 
-The docking system will provide seamless interaction between ships and stations:
+### Trading & Economy
+- **Commodity System** (`src/trading/commodity.py`): Tradeable goods and categories
+- **Market System** (`src/trading/market.py`): Dynamic pricing and station inventories
+- **Cargo Hold** (`src/trading/cargo.py`): Inventory management with mission tracking
 
-#### Docking Requirements
-- **Approach Speed**: Ships must approach stations at low velocity (< 50 units/sec)
-- **Proximity**: Must be within docking range (station radius + 20 units)
-- **Alignment**: Optional alignment requirements for realistic docking
+### Mission System
+- **Mission Manager** (`src/missions/mission_manager.py`): Mission generation and tracking
+- **Mission Types** (`src/missions/mission_types.py`): Base mission classes and structures
+- **Specific Missions** (`src/missions/specific_missions.py`): Implementation of mission types
 
-#### Docking Process
-1. **Approach Phase**: Ship approaches station within docking parameters
-2. **Docking Request**: Automatic docking initiation when requirements are met
-3. **Docking Animation**: Smooth transition animation to station
-4. **Interface Access**: Access to trading, services, and station information
+### Ship Systems
+- **Upgrade System** (`src/upgrades/`): Ship improvement and enhancement systems
+- **Cloaking System** (`src/systems/cloaking_system.py`): Stealth mechanics
+- **Repair System** (`src/systems/repair_system.py`): Ship maintenance and healing
 
-#### Visual Feedback
-- **Docking Zone Indicators**: Visual range indicators around stations
-- **Approach Guidance**: Speed and distance feedback during approach
-- **Status Messages**: Clear docking status and requirement notifications
-
-#### Technical Implementation
-- **State Machine**: Clean docking state transitions (Approaching → Docking → Docked)
-- **Event System**: Docking events for UI triggers and game state changes
-- **Collision Integration**: Enhanced collision system for docking detection
+### User Interface
+- **Enhanced HUD** (`src/ui/hud/enhanced_hud.py`): Multi-panel status display
+- **Large Map** (`src/ui/large_map.py`): Universe overview interface
+- **Minimap** (`src/ui/minimap.py`): Real-time local area display
 
 ## Development
 
@@ -125,45 +177,64 @@ python -m pytest tests/ -v
 space_trader/
 ├── src/
 │   ├── engine/          # Core game engine
-│   ├── entities/        # Game objects (ship, stations, planets)
+│   ├── entities/        # Game objects (ship, stations, planets, enemies)
 │   ├── states/          # Game state management
 │   ├── ui/              # User interface components
+│   ├── trading/         # Economy and commodity systems
+│   ├── missions/        # Mission system
+│   ├── combat/          # Combat mechanics
+│   ├── upgrades/        # Ship upgrade system
+│   ├── systems/         # Ship systems (cloak, repair, etc.)
+│   ├── docking/         # Docking mechanics
 │   ├── camera.py        # Camera system
 │   ├── settings.py      # Configuration management
 │   └── universe.py      # Universe generation
+├── saves/               # Save game files
 ├── tests/               # Unit tests
 ├── settings.json        # Game configuration
 └── requirements.txt     # Dependencies
 ```
 
-### Contributing
+## Gameplay Guide
+
+### Getting Started
+1. Launch the game and create a new game or load an existing save
+2. Use arrow keys to pilot your ship through space
+3. Approach stations (blue circles) and dock with 'D' when close and moving slowly
+4. Trade commodities for profit using the 'T' key when docked
+5. Accept missions from the mission board ('M' key) for additional income
+6. Upgrade your ship at shipyards and research stations ('U' key)
+
+### Combat
+- Enemy bandit ships will attack on sight
+- Use SPACE to fire weapons
+- Different weapon types have varying damage, range, and energy costs
+- Avoid or destroy hazardous asteroids
+- Stay away from black holes - they're extremely dangerous
+- Purchase stealth systems to avoid detection
+- Use repair systems to maintain your ship's hull
+
+### Trading Strategy
+- Buy low at production stations, sell high at consumption stations
+- Mining stations often have cheap metals
+- Research stations pay well for technology
+- Monitor market prices and station inventories
+- Mission commodities are tracked separately from regular cargo
+
+### Ship Progression
+- Earn credits through trading and missions
+- Purchase upgrades in categories: Cargo, Engine, Hull, Scanner, Stealth
+- Each category has 4 tiers of improvements
+- Higher tier upgrades require previous tiers
+- Specialized stations offer discounts on certain upgrade types
+
+## Contributing
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests for new functionality
 5. Run the test suite
 6. Submit a pull request
-
-## Roadmap
-
-### Phase 1: Core Trading (Current)
-- [x] Basic ship movement and physics
-- [x] Universe generation and camera system
-- [x] Docking system implementation
-- [ ] Basic trading interface
-- [ ] Resource management (fuel/cargo)
-
-### Phase 2: Economy & Progression
-- [ ] Dynamic market system
-- [ ] Mission and contract system
-- [ ] Ship upgrades and customization
-- [ ] Player progression and achievements
-
-### Phase 3: Advanced Features
-- [ ] Multiplayer support
-- [ ] Advanced AI for NPCs
-- [ ] Combat system
-- [ ] Station construction and management
 
 ## License
 

@@ -106,6 +106,7 @@ class EnhancedHUD:
         bar_height = int(12 * self.ui_layout.font_scale)
         self.hull_bar = StatusBar(bar_width, bar_height, (0, 255, 0))
         self.cargo_bar = StatusBar(bar_width, bar_height, (255, 255, 0))
+        self.fuel_bar = StatusBar(bar_width, bar_height, (0, 150, 255))
         
         # HUD panels
         self.show_ship_status = True
@@ -145,6 +146,11 @@ class EnhancedHUD:
         cargo_percentage = ship.cargo_hold.get_used_capacity() / ship.cargo_hold.capacity
         self.cargo_bar.set_value(cargo_percentage)
         self.cargo_bar.update(delta_time)
+        
+        # Update fuel bar
+        fuel_percentage = ship.get_fuel_percentage()
+        self.fuel_bar.set_value(fuel_percentage)
+        self.fuel_bar.update(delta_time)
         
         # Update credits animation
         self.credits_target = ship.credits
@@ -212,8 +218,8 @@ class EnhancedHUD:
         """Render ship status panel."""
         ship = game_engine.ship
         
-        # Panel dimensions using responsive sizing
-        panel_width, panel_height = self.ui_layout.get_panel_size(250, 180, 0.3, 0.4)
+        # Panel dimensions using responsive sizing - made taller for fuel/ammo
+        panel_width, panel_height = self.ui_layout.get_panel_size(250, 280, 0.3, 0.6)
         panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_LEFT, panel_width, panel_height)
         
         # Panel background and border using theme
@@ -257,6 +263,37 @@ class EnhancedHUD:
         self.cargo_bar.draw(surface, cargo_bar_x, y_offset + 2)
         y_offset += self.ui_layout.get_responsive_spacing(25)
         
+        # Fuel status
+        fuel_text = f"Fuel: {ship.current_fuel:.0f}/{ship.fuel_capacity:.0f}"
+        fuel_surface = self.font_small.render(fuel_text, True, (255, 255, 255))
+        surface.blit(fuel_surface, (panel_x + self.ui_layout.padding, y_offset))
+        
+        # Fuel bar
+        fuel_bar_x = panel_x + int(120 * self.ui_layout.font_scale)
+        self.fuel_bar.draw(surface, fuel_bar_x, y_offset + 2)
+        y_offset += self.ui_layout.get_responsive_spacing(25)
+        
+        # Ammo status - show counts for each type
+        ammo_text = "Ammo:"
+        ammo_surface = self.font_small.render(ammo_text, True, (255, 255, 255))
+        surface.blit(ammo_surface, (panel_x + self.ui_layout.padding, y_offset))
+        y_offset += self.ui_layout.get_responsive_spacing(15)
+        
+        # Display ammo counts in compact format
+        ammo_info = [
+            f"Laser: {ship.get_ammo_count('laser_cells')}/{ship.get_max_ammo_capacity('laser_cells')}",
+            f"Plasma: {ship.get_ammo_count('plasma_cartridges')}/{ship.get_max_ammo_capacity('plasma_cartridges')}",
+            f"Missiles: {ship.get_ammo_count('missiles')}/{ship.get_max_ammo_capacity('missiles')}",
+            f"Railgun: {ship.get_ammo_count('railgun_slugs')}/{ship.get_max_ammo_capacity('railgun_slugs')}"
+        ]
+        
+        for i, ammo_line in enumerate(ammo_info):
+            ammo_line_surface = self.font_small.render(ammo_line, True, (200, 200, 200))
+            surface.blit(ammo_line_surface, (panel_x + self.ui_layout.padding + 10, y_offset))
+            y_offset += self.ui_layout.get_responsive_spacing(12)
+        
+        y_offset += self.ui_layout.get_responsive_spacing(10)
+        
         # Speed
         speed = ship.velocity.length()
         max_speed = ship.get_effective_stats().get_effective_max_speed()
@@ -280,8 +317,8 @@ class EnhancedHUD:
         
         # Panel dimensions using responsive sizing
         panel_width, panel_height = self.ui_layout.get_panel_size(250, 120, 0.3, 0.3)
-        # Position below ship status panel with spacing
-        ship_status_height = self.ui_layout.get_panel_size(250, 180, 0.3, 0.4)[1]
+        # Position below ship status panel with spacing - updated height
+        ship_status_height = self.ui_layout.get_panel_size(250, 280, 0.3, 0.6)[1]
         offset_y = ship_status_height + self.ui_layout.get_responsive_spacing(20)
         panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_LEFT, panel_width, panel_height, 0, offset_y)
         
@@ -474,6 +511,7 @@ class EnhancedHUD:
         bar_height = int(12 * self.ui_layout.font_scale)
         self.hull_bar = StatusBar(bar_width, bar_height, (0, 255, 0))
         self.cargo_bar = StatusBar(bar_width, bar_height, (255, 255, 0))
+        self.fuel_bar = StatusBar(bar_width, bar_height, (0, 150, 255))
         
         # Resize dev view
         self.dev_view.resize(screen_width, screen_height)

@@ -63,6 +63,28 @@ class Ship:
         # Start with basic laser
         basic_laser = create_weapon("basic_laser")
         self.weapon_system.add_weapon(basic_laser)
+        
+        # Fuel and ammo systems
+        self.fuel_capacity = 100.0  # Maximum fuel capacity
+        self.current_fuel = 100.0   # Current fuel level
+        self.fuel_consumption_rate = 2.0  # Fuel per second when thrusting
+        self.idle_fuel_consumption = 0.1  # Fuel per second when idle
+        
+        # Ammo storage for different weapon types
+        self.ammo_storage = {
+            "laser_cells": 50,        # Starting ammo for laser weapons
+            "plasma_cartridges": 25,  # Starting ammo for plasma weapons
+            "missiles": 10,           # Starting ammo for missiles
+            "railgun_slugs": 30       # Starting ammo for railgun
+        }
+        
+        # Maximum ammo capacity
+        self.max_ammo_capacity = {
+            "laser_cells": 200,
+            "plasma_cartridges": 100,
+            "missiles": 50,
+            "railgun_slugs": 150
+        }
 
     def handle_input(self, delta_time):
         keys = pygame.key.get_pressed()
@@ -79,7 +101,7 @@ class Ship:
             
         # Thrust in ship's heading direction
         self.thrusting = keys[pygame.K_UP]
-        if self.thrusting:
+        if self.thrusting and self.current_fuel > 0:
             # Use upgraded thrust force
             effective_stats = self.get_effective_stats()
             self.acceleration = self.heading * effective_stats.get_effective_thrust_force()
@@ -122,6 +144,9 @@ class Ship:
         
         # Update cloaking system
         cloaking_system.update(delta_time, self.get_effective_stats())
+        
+        # Update fuel consumption
+        self._update_fuel_consumption(delta_time)
 
     def draw(self, screen, camera_offset):
         # Check if ship should be drawn (cloaking)
@@ -362,3 +387,76 @@ class Ship:
         if max_hull <= 0:
             return 1.0
         return max(0.0, min(1.0, self.current_hull / max_hull))
+    
+    def _update_fuel_consumption(self, delta_time: float):
+        """Update fuel consumption based on ship activity."""
+        if self.thrusting:
+            # Consume fuel when thrusting
+            fuel_consumed = self.fuel_consumption_rate * delta_time
+            self.current_fuel = max(0, self.current_fuel - fuel_consumed)
+        else:
+            # Consume idle fuel for life support and basic systems
+            idle_consumed = self.idle_fuel_consumption * delta_time
+            self.current_fuel = max(0, self.current_fuel - idle_consumed)
+    
+    def get_fuel_percentage(self) -> float:
+        """Get fuel level as a percentage (0.0 to 1.0)."""
+        if self.fuel_capacity <= 0:
+            return 1.0
+        return max(0.0, min(1.0, self.current_fuel / self.fuel_capacity))
+    
+    def refuel(self, amount: float) -> float:
+        """Add fuel to the ship. Returns actual amount added."""
+        max_add = self.fuel_capacity - self.current_fuel
+        actual_add = min(amount, max_add)
+        self.current_fuel += actual_add
+        return actual_add
+    
+    def can_add_fuel(self, amount: float) -> bool:
+        """Check if fuel can be added to the ship."""
+        return self.current_fuel + amount <= self.fuel_capacity
+    
+    def get_ammo_count(self, ammo_type: str) -> int:
+        """Get current ammo count for a specific type."""
+        return self.ammo_storage.get(ammo_type, 0)
+    
+    def get_max_ammo_capacity(self, ammo_type: str) -> int:
+        """Get maximum ammo capacity for a specific type."""
+        return self.max_ammo_capacity.get(ammo_type, 0)
+    
+    def add_ammo(self, ammo_type: str, amount: int) -> int:
+        """Add ammo to the ship. Returns actual amount added."""
+        if ammo_type not in self.ammo_storage:
+            return 0
+        
+        current = self.ammo_storage[ammo_type]
+        max_capacity = self.max_ammo_capacity[ammo_type]
+        max_add = max_capacity - current
+        actual_add = min(amount, max_add)
+        
+        self.ammo_storage[ammo_type] += actual_add
+        return actual_add
+    
+    def can_add_ammo(self, ammo_type: str, amount: int) -> bool:
+        """Check if ammo can be added to the ship."""
+        if ammo_type not in self.ammo_storage:
+            return False
+        
+        current = self.ammo_storage[ammo_type]
+        max_capacity = self.max_ammo_capacity[ammo_type]
+        return current + amount <= max_capacity
+    
+    def consume_ammo(self, ammo_type: str, amount: int) -> bool:
+        """Consume ammo if available. Returns True if successful."""
+        if ammo_type not in self.ammo_storage:
+            return False
+        
+        current = self.ammo_storage[ammo_type]
+        if current >= amount:
+            self.ammo_storage[ammo_type] -= amount
+            return True
+        return False
+    
+    def has_ammo(self, ammo_type: str, amount: int = 1) -> bool:
+        """Check if ship has enough ammo of a specific type."""
+        return self.ammo_storage.get(ammo_type, 0) >= amount

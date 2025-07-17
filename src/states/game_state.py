@@ -1161,13 +1161,43 @@ class TradingState(State):
             
         # Execute transaction
         if self.market.buy_from_station(commodity.id, 1):
-            if self.ship.cargo_hold.add_cargo(commodity.id, 1):
-                self.ship.credits -= buy_price
-                self._show_message(f"Bought {commodity.name} for {buy_price} credits")
+            success = False
+            
+            # Handle special commodities (fuel and ammo)
+            if commodity.id in ["ship_fuel", "deuterium"]:
+                # Add fuel directly to ship
+                fuel_amount = 10.0 if commodity.id == "ship_fuel" else 15.0  # Deuterium is more efficient
+                if self.ship.can_add_fuel(fuel_amount):
+                    actual_added = self.ship.refuel(fuel_amount)
+                    if actual_added > 0:
+                        self.ship.credits -= buy_price
+                        self._show_message(f"Refueled {actual_added:.1f} units for {buy_price} credits")
+                        success = True
+                else:
+                    self._show_message("Fuel tank is full")
+            elif commodity.id in ["laser_cells", "plasma_cartridges", "missiles", "railgun_slugs"]:
+                # Add ammo directly to ship
+                ammo_amount = 10  # Standard ammo purchase quantity
+                if self.ship.can_add_ammo(commodity.id, ammo_amount):
+                    actual_added = self.ship.add_ammo(commodity.id, ammo_amount)
+                    if actual_added > 0:
+                        self.ship.credits -= buy_price
+                        self._show_message(f"Bought {actual_added} {commodity.name} for {buy_price} credits")
+                        success = True
+                else:
+                    self._show_message("Ammo storage is full")
             else:
-                # Rollback market transaction if cargo add failed
+                # Regular commodity - add to cargo
+                if self.ship.cargo_hold.add_cargo(commodity.id, 1):
+                    self.ship.credits -= buy_price
+                    self._show_message(f"Bought {commodity.name} for {buy_price} credits")
+                    success = True
+                else:
+                    self._show_message("Transaction failed - cargo error")
+            
+            if not success:
+                # Rollback market transaction if purchase failed
                 self.market.sell_to_station(commodity.id, 1)
-                self._show_message("Transaction failed - cargo error")
         else:
             self._show_message("Transaction failed")
     
