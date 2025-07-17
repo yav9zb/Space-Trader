@@ -11,7 +11,6 @@ from src.docking.docking_manager import DockingManager
 from ..states.game_state import GameStates
 from ..entities.ship import Ship
 from ..entities.station import Station
-from ..entities.commodity import Market
 from ..ui.minimap import Minimap
 from ..entities.starfield import StarField
 from ..universe import Universe
@@ -70,7 +69,6 @@ class GameEngine:
             Station(100, 500)
         ]
         self.minimap = Minimap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
-        self.market = Market()
     
         # Place ship at first station
         if self.universe.stations:
