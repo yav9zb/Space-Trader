@@ -418,6 +418,10 @@ class GameEngine:
             # Refresh load state
             from src.states.game_state import LoadGameState
             self.states[GameStates.LOAD_GAME] = LoadGameState(self)
+        elif new_state == GameStates.SETTINGS:
+            # Create settings state with previous state tracking
+            from src.states.game_state import SettingsState
+            self.states[GameStates.SETTINGS] = SettingsState(self, self.current_state)
         elif new_state == GameStates.PLAYING:
             # Resume game
             pass

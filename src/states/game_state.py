@@ -119,13 +119,16 @@ class MenuState(State):
             self.game.running = False
 
 class SettingsState(State):
-    def __init__(self, game):
+    def __init__(self, game, previous_state=None):
         super().__init__(game)
         from ..settings import game_settings, CameraMode
         self.settings = game_settings
         self.title = "Settings"
         self.categories = ["Camera", "Display", "Controls", "Dev View", "Help", "Back"]
         self.selected_category = 0
+        
+        # Track where settings was accessed from to return properly
+        self.previous_state = previous_state or GameStates.MAIN_MENU
         
         # Camera settings options
         self.camera_options = ["Camera Mode", "Smoothing", "Deadzone", "Back"]
@@ -332,7 +335,7 @@ class SettingsState(State):
                 elif self.viewing_help:
                     self.viewing_help = False
                 else:
-                    self.game.change_state(GameStates.MAIN_MENU)
+                    self.game.change_state(self.previous_state)
             elif not self.viewing_camera and not self.viewing_controls and not self.viewing_dev and not self.viewing_help:
                 self._handle_main_input(event)
             elif self.viewing_camera:
@@ -409,7 +412,7 @@ class SettingsState(State):
             self.viewing_help = True
             self.selected_help_option = 0
         elif self.selected_category == 5:  # Back
-            self.game.change_state(GameStates.MAIN_MENU)
+            self.game.change_state(self.previous_state)
     
     def _handle_camera_input(self, event):
         """Handle input for camera settings"""
