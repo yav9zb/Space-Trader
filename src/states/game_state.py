@@ -774,7 +774,7 @@ class PlayingState(State):
 
     def handle_input(self, event):
         # Let large map handle input first (if it's visible)
-        if self.large_map.handle_input(event):
+        if self.large_map.handle_input(event, self.game.ship.position):
             return
             
         if event.type == pygame.KEYDOWN:
