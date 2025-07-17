@@ -7,10 +7,12 @@ try:
     from ..trading.commodity import commodity_registry
     from ..systems.cloaking_system import cloaking_system
     from ..systems.repair_system import repair_system
+    from ..input.control_schemes import control_scheme_manager
 except ImportError:
     from trading.commodity import commodity_registry
     from systems.cloaking_system import cloaking_system
     from systems.repair_system import repair_system
+    from input.control_schemes import control_scheme_manager
 
 logger = logging.getLogger(__name__)
 
@@ -122,13 +124,18 @@ class SettingsState(State):
         from ..settings import game_settings, CameraMode
         self.settings = game_settings
         self.title = "Settings"
-        self.categories = ["Camera", "Display", "Dev View", "Help", "Back"]
+        self.categories = ["Camera", "Display", "Controls", "Dev View", "Help", "Back"]
         self.selected_category = 0
         
         # Camera settings options
         self.camera_options = ["Camera Mode", "Smoothing", "Deadzone", "Back"]
         self.selected_camera_option = 0
         self.viewing_camera = False
+        
+        # Control scheme settings options
+        self.control_options = ["Control Scheme", "Show Controls", "Back"]
+        self.selected_control_option = 0
+        self.viewing_controls = False
         
         # Dev view settings options
         self.dev_options = ["Enable Dev View", "Show FPS", "Show Ship Pos", "Show Docking", "Show Stations", "Show Camera", "Back"]
@@ -143,6 +150,7 @@ class SettingsState(State):
         # Mouse interaction rectangles
         self.category_rects = []
         self.camera_rects = []
+        self.control_rects = []
         self.dev_rects = []
         self.help_rects = []
         
@@ -155,10 +163,12 @@ class SettingsState(State):
         title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
         screen.blit(title, title_rect)
         
-        if not self.viewing_camera and not self.viewing_dev and not self.viewing_help:
+        if not self.viewing_camera and not self.viewing_dev and not self.viewing_controls and not self.viewing_help:
             self._render_main_categories(screen)
         elif self.viewing_camera:
             self._render_camera_settings(screen)
+        elif self.viewing_controls:
+            self._render_control_settings(screen)
         elif self.viewing_dev:
             self._render_dev_settings(screen)
         elif self.viewing_help:
@@ -233,21 +243,102 @@ class SettingsState(State):
         instr_rect = instr_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 40))
         screen.blit(instr_text, instr_rect)
     
+    def _render_control_settings(self, screen):
+        """Render control scheme settings submenu"""
+        option_font = pygame.font.Font(None, 40)
+        small_font = pygame.font.Font(None, 28)
+        
+        # Draw control settings title
+        subtitle = option_font.render("Control Settings", True, (200, 200, 255))
+        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 150))
+        screen.blit(subtitle, subtitle_rect)
+        
+        y_offset = 220
+        self.control_rects = []  # Reset rectangles
+        
+        for i, option in enumerate(self.control_options):
+            color = (255, 255, 0) if i == self.selected_control_option else (255, 255, 255)
+            
+            if option == "Control Scheme":
+                scheme_info = control_scheme_manager.get_scheme_info()
+                scheme_text = f"Control Scheme: {scheme_info['name']}"
+                text = option_font.render(scheme_text, True, color)
+                # Add description
+                desc = small_font.render(scheme_info['description'], True, (150, 150, 150))
+                desc_rect = desc.get_rect(center=(screen.get_width() // 2, y_offset + 25))
+                screen.blit(desc, desc_rect)
+                y_offset += 25
+                
+            elif option == "Show Controls":
+                text = option_font.render("Show Current Controls", True, color)
+                
+            else:  # Back
+                text = option_font.render(option, True, color)
+            
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(text, text_rect)
+            
+            # Store expanded rectangle for mouse interaction
+            expanded_rect = text_rect.inflate(40, 20)
+            self.control_rects.append(expanded_rect)
+            y_offset += 60
+        
+        # Show current control scheme bindings
+        if self.control_options[self.selected_control_option] == "Show Controls":
+            self._render_current_controls(screen, y_offset + 40)
+        
+        # Instructions
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = "Use LEFT/RIGHT to change control scheme, ENTER to select, ESC to go back"
+        instr_text = instruction_font.render(instructions, True, (150, 150, 150))
+        instr_rect = instr_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 40))
+        screen.blit(instr_text, instr_rect)
+    
+    def _render_current_controls(self, screen, start_y):
+        """Render current control scheme bindings"""
+        small_font = pygame.font.Font(None, 24)
+        controls_help = control_scheme_manager.get_controls_help()
+        
+        x_left = screen.get_width() // 2 - 200
+        x_right = screen.get_width() // 2 + 200
+        
+        y_offset = start_y
+        for section_name, controls in controls_help.items():
+            # Section header
+            section_text = small_font.render(section_name, True, (200, 255, 200))
+            section_rect = section_text.get_rect(center=(x_left if len(controls_help) > 3 else screen.get_width() // 2, y_offset))
+            screen.blit(section_text, section_rect)
+            y_offset += 25
+            
+            # Controls in section
+            for key, description in controls.items():
+                control_text = f"{key}: {description}"
+                control_surface = small_font.render(control_text, True, (255, 255, 255))
+                control_rect = control_surface.get_rect(center=(x_left if len(controls_help) > 3 else screen.get_width() // 2, y_offset))
+                screen.blit(control_surface, control_rect)
+                y_offset += 20
+            
+            y_offset += 10  # Extra spacing between sections
+    
     def handle_input(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 if self.viewing_camera:
                     self.viewing_camera = False
+                elif self.viewing_controls:
+                    self.viewing_controls = False
                 elif self.viewing_dev:
                     self.viewing_dev = False
                 elif self.viewing_help:
                     self.viewing_help = False
                 else:
                     self.game.change_state(GameStates.MAIN_MENU)
-            elif not self.viewing_camera and not self.viewing_dev and not self.viewing_help:
+            elif not self.viewing_camera and not self.viewing_controls and not self.viewing_dev and not self.viewing_help:
                 self._handle_main_input(event)
             elif self.viewing_camera:
                 self._handle_camera_input(event)
+            elif self.viewing_controls:
+                self._handle_control_input(event)
             elif self.viewing_dev:
                 self._handle_dev_input(event)
             elif self.viewing_help:
@@ -255,10 +346,15 @@ class SettingsState(State):
         elif event.type == pygame.MOUSEMOTION:
             # Check for mouse hover on options
             mouse_pos = pygame.mouse.get_pos()
-            if not self.viewing_camera and not self.viewing_dev and not self.viewing_help:
+            if not self.viewing_camera and not self.viewing_controls and not self.viewing_dev and not self.viewing_help:
                 for i, rect in enumerate(self.category_rects):
                     if rect.collidepoint(mouse_pos):
                         self.selected_category = i
+                        break
+            elif self.viewing_controls:
+                for i, rect in enumerate(self.control_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_control_option = i
                         break
             elif self.viewing_help:
                 for i, rect in enumerate(self.help_rects):
@@ -268,11 +364,17 @@ class SettingsState(State):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left click
                 mouse_pos = pygame.mouse.get_pos()
-                if not self.viewing_camera and not self.viewing_dev and not self.viewing_help:
+                if not self.viewing_camera and not self.viewing_controls and not self.viewing_dev and not self.viewing_help:
                     for i, rect in enumerate(self.category_rects):
                         if rect.collidepoint(mouse_pos):
                             self.selected_category = i
                             self._select_main_option()
+                            break
+                elif self.viewing_controls:
+                    for i, rect in enumerate(self.control_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.selected_control_option = i
+                            self._select_control_option()
                             break
                 elif self.viewing_help:
                     for i, rect in enumerate(self.help_rects):
@@ -297,13 +399,16 @@ class SettingsState(State):
             self.selected_camera_option = 0
         elif self.selected_category == 1:  # Display (future feature)
             pass  # TODO: Implement display settings
-        elif self.selected_category == 2:  # Dev View
+        elif self.selected_category == 2:  # Controls
+            self.viewing_controls = True
+            self.selected_control_option = 0
+        elif self.selected_category == 3:  # Dev View
             self.viewing_dev = True
             self.selected_dev_option = 0
-        elif self.selected_category == 3:  # Help
+        elif self.selected_category == 4:  # Help
             self.viewing_help = True
             self.selected_help_option = 0
-        elif self.selected_category == 4:  # Back
+        elif self.selected_category == 5:  # Back
             self.game.change_state(GameStates.MAIN_MENU)
     
     def _handle_camera_input(self, event):
@@ -402,6 +507,39 @@ class SettingsState(State):
             status_surface = small_font.render(status_text, True, (150, 255, 150))
             status_rect = status_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() - 70))
             screen.blit(status_surface, status_rect)
+    
+    def _handle_control_input(self, event):
+        """Handle input for control scheme settings"""
+        if event.key == pygame.K_UP:
+            self.selected_control_option = (self.selected_control_option - 1) % len(self.control_options)
+        elif event.key == pygame.K_DOWN:
+            self.selected_control_option = (self.selected_control_option + 1) % len(self.control_options)
+        elif event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+            self._change_control_scheme()
+        elif event.key == pygame.K_RETURN:
+            self._select_control_option()
+    
+    def _select_control_option(self):
+        """Handle control option selection"""
+        if self.selected_control_option == len(self.control_options) - 1:  # Back
+            self.viewing_controls = False
+        elif self.control_options[self.selected_control_option] == "Control Scheme":
+            self._change_control_scheme()
+        # "Show Controls" is handled by the rendering method
+    
+    def _change_control_scheme(self):
+        """Cycle through available control schemes"""
+        from ..input.control_schemes import ControlScheme
+        
+        current_scheme = control_scheme_manager.get_current_scheme()
+        all_schemes = list(ControlScheme)
+        current_index = all_schemes.index(current_scheme)
+        
+        # Cycle to next scheme
+        next_index = (current_index + 1) % len(all_schemes)
+        next_scheme = all_schemes[next_index]
+        
+        control_scheme_manager.set_scheme(next_scheme)
     
     def _handle_dev_input(self, event):
         """Handle input for dev view settings"""
@@ -802,25 +940,25 @@ class PlayingState(State):
             return
             
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+            if event.key == control_scheme_manager.get_key("pause"):
                 self.game.change_state(GameStates.PAUSED)
-            elif event.key == pygame.K_TAB:  # Large map toggle
+            elif event.key == control_scheme_manager.get_key("toggle_map"):
                 self.large_map.toggle_visibility()
                 # Center the map on the player when opened
                 if self.large_map.visible:
                     self.large_map.center_on_ship(self.game.ship.position)
-            elif event.key == pygame.K_d:  # Manual docking
+            elif event.key == control_scheme_manager.get_key("dock"):
                 result = self.game.docking_manager.attempt_manual_docking(
                     self.game.ship, 
                     self.game.universe.stations
                 )
                 if result != DockingResult.SUCCESS:
                     logger.info(f"Docking failed: {result.value}")
-            elif event.key == pygame.K_t:  # Trading
+            elif event.key == control_scheme_manager.get_key("trading"):
                 if self.game.docking_manager.is_docked():
                     station = self.game.docking_manager.get_target_station()
                     self.game.change_state(GameStates.TRADING, station)
-            elif event.key == pygame.K_u:  # Upgrades
+            elif event.key == control_scheme_manager.get_key("upgrades"):
                 if self.game.docking_manager.is_docked():
                     station = self.game.docking_manager.get_target_station()
                     # Check if station offers upgrades
@@ -829,19 +967,19 @@ class PlayingState(State):
                         self.game.change_state(GameStates.UPGRADES, station)
                     else:
                         logger.info(f"Station {station.name} does not offer upgrades")
-            elif event.key == pygame.K_m:  # Missions
+            elif event.key == control_scheme_manager.get_key("missions"):
                 if self.game.docking_manager.is_docked():
                     station = self.game.docking_manager.get_target_station()
                     self.game.change_state(GameStates.MISSIONS, station)
-            elif event.key == pygame.K_x:  # Undocking (changed from U to X to avoid conflict)
+            elif event.key == control_scheme_manager.get_key("undock"):
                 if self.game.docking_manager.is_docked():
                     result = self.game.docking_manager.attempt_undocking(self.game.ship)
                     if result != DockingResult.SUCCESS:
                         logger.info(f"Undocking failed: {result.value}")
-            elif event.key == pygame.K_c:  # Cloaking
+            elif event.key == control_scheme_manager.get_key("cloaking"):
                 effective_stats = self.game.ship.get_effective_stats()
                 cloaking_system.handle_input(event, effective_stats)
-            elif event.key == pygame.K_r:  # Repair
+            elif event.key == control_scheme_manager.get_key("repair"):
                 if self.game.docking_manager.is_docked():
                     station = self.game.docking_manager.get_target_station()
                     repair_system.handle_input(event, self.game.ship, station)

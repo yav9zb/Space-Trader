@@ -3443,3 +3443,40 @@
 2025-07-17 12:52:11,912 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
 2025-07-17 12:52:13,170 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-07-17 12:52:13,289 - src.main - INFO - Game terminated
+2025-07-17 13:11:43,091 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 13:11:43,092 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 13:11:44,063 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 13:11:44,069 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 13:11:44,078 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 13:11:44,081 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 13:11:44,081 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 13:11:45,715 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-17 13:11:45,716 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 13:11:45,716 - src.engine.game_engine - INFO - New universe created with seed: 285378397
+2025-07-17 13:11:45,716 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-17 13:11:45,716 - src.engine.game_engine - ERROR - Error in game loop: 'pygame.key.ScancodeWrapper' object has no attribute 'get'
+2025-07-17 13:11:45,716 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-17 13:11:45,825 - src.main - ERROR - Fatal error: 'pygame.key.ScancodeWrapper' object has no attribute 'get'
+2025-07-17 13:11:45,825 - src.main - INFO - Game terminated
+2025-07-17 13:14:15,407 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 13:14:15,407 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 13:14:15,955 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 13:14:15,959 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 13:14:15,965 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 13:14:15,967 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 13:14:15,967 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 13:14:16,838 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-17 13:14:16,839 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 13:14:16,839 - src.engine.game_engine - INFO - New universe created with seed: 2004965578
+2025-07-17 13:14:16,839 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-17 13:14:16,846 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 13:14:18,270 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 13:14:19,731 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-17 13:14:21,004 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.SETTINGS
+2025-07-17 13:14:34,048 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.MAIN_MENU
+2025-07-17 13:14:42,279 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-17 13:14:42,279 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 13:14:42,279 - src.engine.game_engine - INFO - New universe created with seed: 1453921152
+2025-07-17 13:14:42,279 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-17 13:14:42,292 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 13:14:43,211 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED

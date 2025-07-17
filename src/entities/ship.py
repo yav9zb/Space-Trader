@@ -9,12 +9,14 @@ try:
     from ..upgrades.upgrade_system import upgrade_system
     from ..combat.weapons import WeaponSystem, create_weapon
     from ..systems.cloaking_system import cloaking_system
+    from ..input.control_schemes import control_scheme_manager
 except ImportError:
     from trading.cargo import CargoHold
     from upgrades.ship_upgrades import ShipUpgrades, ShipStats
     from upgrades.upgrade_system import upgrade_system
     from combat.weapons import WeaponSystem, create_weapon
     from systems.cloaking_system import cloaking_system
+    from input.control_schemes import control_scheme_manager
 
 
 class Ship:
@@ -100,18 +102,18 @@ class Ship:
     def handle_input(self, delta_time):
         keys = pygame.key.get_pressed()
         
-        # Rotation
-        if keys[pygame.K_LEFT]:
+        # Rotation using control scheme
+        if control_scheme_manager.is_key_pressed("rotate_left", keys):
             self.rotation -= self.ROTATION_SPEED * delta_time
-        if keys[pygame.K_RIGHT]:
+        if control_scheme_manager.is_key_pressed("rotate_right", keys):
             self.rotation += self.ROTATION_SPEED * delta_time
         
         # Update heading vector after any rotation
         angle_rad = math.radians(self.rotation - 90)
         self.heading = Vector2(math.cos(angle_rad), math.sin(angle_rad))
             
-        # Thrust in ship's heading direction
-        self.thrusting = keys[pygame.K_UP]
+        # Thrust in ship's heading direction using control scheme
+        self.thrusting = control_scheme_manager.is_key_pressed("thrust", keys)
         
         # Check for emergency fuel activation
         if self.current_fuel <= 0 and not self.emergency_fuel_active:
@@ -119,8 +121,8 @@ class Ship:
         elif self.current_fuel > 0 and self.emergency_fuel_active:
             self.emergency_fuel_active = False
         
-        # Afterburner input handling (disabled during emergency fuel)
-        afterburner_input = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
+        # Afterburner input handling (disabled during emergency fuel) using control scheme
+        afterburner_input = control_scheme_manager.is_key_pressed("afterburner", keys)
         if afterburner_input and self.afterburner_cooldown <= 0 and self.current_fuel > 0 and not self.emergency_fuel_active:
             self.afterburner_active = True
         else:
@@ -145,12 +147,12 @@ class Ship:
         else:
             self.acceleration = Vector2(0, 0)
 
-        # Brake/reverse thrusters
-        if keys[pygame.K_DOWN]:
+        # Brake/reverse thrusters using control scheme
+        if control_scheme_manager.is_key_pressed("brake", keys):
             self.velocity *= 0.95
         
-        # Weapon firing
-        if keys[pygame.K_SPACE]:
+        # Weapon firing using control scheme
+        if control_scheme_manager.is_key_pressed("fire_weapons", keys):
             current_time = pygame.time.get_ticks() / 1000.0
             self.weapon_system.fire_weapons(self.position, self.heading, self, current_time)
             # Firing can break cloak
