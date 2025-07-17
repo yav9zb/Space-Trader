@@ -35,6 +35,17 @@ class Ship:
         self.rotation = 0 # in degrees
         self.thrusting = False
         
+        # Afterburner system
+        self.afterburner_active = False
+        self.afterburner_cooldown = 0.0
+        self.afterburner_max_cooldown = 3.0  # 3 seconds
+        self.afterburner_speed_multiplier = 2.0
+        self.afterburner_fuel_multiplier = 5.0
+        
+        # Emergency fuel system
+        self.emergency_fuel_active = False
+        self.emergency_fuel_speed_multiplier = 0.25  # 25% speed
+        
         # Ship characteristics
         # Create a simple triangle shape for the ship
         self.size = 15 # slightly smaller collision radius
@@ -101,10 +112,27 @@ class Ship:
             
         # Thrust in ship's heading direction
         self.thrusting = keys[pygame.K_UP]
+        
+        # Afterburner input handling
+        afterburner_input = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
+        if afterburner_input and self.afterburner_cooldown <= 0 and self.current_fuel > 0:
+            self.afterburner_active = True
+        else:
+            if self.afterburner_active:
+                # Start cooldown when afterburner is deactivated
+                self.afterburner_cooldown = self.afterburner_max_cooldown
+            self.afterburner_active = False
+        
         if self.thrusting and self.current_fuel > 0:
             # Use upgraded thrust force
             effective_stats = self.get_effective_stats()
-            self.acceleration = self.heading * effective_stats.get_effective_thrust_force()
+            thrust_force = effective_stats.get_effective_thrust_force()
+            
+            # Apply afterburner boost to thrust if active
+            if self.afterburner_active:
+                thrust_force *= self.afterburner_speed_multiplier
+            
+            self.acceleration = self.heading * thrust_force
         else:
             self.acceleration = Vector2(0, 0)
 
@@ -129,6 +157,11 @@ class Ship:
         # Limit speed using upgraded max speed
         effective_stats = self.get_effective_stats()
         max_speed = effective_stats.get_effective_max_speed()
+        
+        # Apply afterburner speed boost if active
+        if self.afterburner_active:
+            max_speed *= self.afterburner_speed_multiplier
+        
         speed = self.velocity.length()
         if speed > max_speed:
             self.velocity = self.velocity.normalize() * max_speed
@@ -144,6 +177,12 @@ class Ship:
         
         # Update cloaking system
         cloaking_system.update(delta_time, self.get_effective_stats())
+        
+        # Update afterburner cooldown
+        if self.afterburner_cooldown > 0:
+            self.afterburner_cooldown -= delta_time
+            if self.afterburner_cooldown < 0:
+                self.afterburner_cooldown = 0
         
         # Update fuel consumption
         self._update_fuel_consumption(delta_time)
@@ -188,11 +227,21 @@ class Ship:
         
         # Draw thrust flame when accelerating
         if self.thrusting:
-            flame_points = [
-                Vector2(0, self.size/2),
-                Vector2(-self.size/3, self.size),
-                Vector2(self.size/3, self.size)
-            ]
+            # Enhanced flame for afterburner
+            if self.afterburner_active:
+                flame_points = [
+                    Vector2(0, self.size/2),
+                    Vector2(-self.size/2, self.size * 1.5),
+                    Vector2(self.size/2, self.size * 1.5)
+                ]
+                flame_color = (0, 150, 255)  # Blue flame for afterburner
+            else:
+                flame_points = [
+                    Vector2(0, self.size/2),
+                    Vector2(-self.size/3, self.size),
+                    Vector2(self.size/3, self.size)
+                ]
+                flame_color = (255, 165, 0)  # Normal orange flame
             
             flame_transformed = []
             for point in flame_points:
@@ -200,7 +249,7 @@ class Ship:
                 transformed_point = (rotated_point + screen_pos)
                 flame_transformed.append(transformed_point)
                 
-            pygame.draw.polygon(screen, (255, 165, 0), flame_transformed)
+            pygame.draw.polygon(screen, flame_color, flame_transformed)
 
         # Draw direction indicator (debug)
         direction_end = screen_pos + self.heading * 30
@@ -391,8 +440,13 @@ class Ship:
     def _update_fuel_consumption(self, delta_time: float):
         """Update fuel consumption based on ship activity."""
         if self.thrusting:
-            # Consume fuel when thrusting
+            # Base fuel consumption when thrusting
             fuel_consumed = self.fuel_consumption_rate * delta_time
+            
+            # Apply afterburner fuel multiplier if active
+            if self.afterburner_active:
+                fuel_consumed *= self.afterburner_fuel_multiplier
+            
             self.current_fuel = max(0, self.current_fuel - fuel_consumed)
         else:
             # Consume idle fuel for life support and basic systems
@@ -460,3 +514,14 @@ class Ship:
     def has_ammo(self, ammo_type: str, amount: int = 1) -> bool:
         """Check if ship has enough ammo of a specific type."""
         return self.ammo_storage.get(ammo_type, 0) >= amount
+    
+    def get_afterburner_status(self) -> dict:
+        """Get afterburner system status."""
+        return {
+            "active": self.afterburner_active,
+            "cooldown": self.afterburner_cooldown,
+            "max_cooldown": self.afterburner_max_cooldown,
+            "ready": self.afterburner_cooldown <= 0,
+            "speed_multiplier": self.afterburner_speed_multiplier,
+            "fuel_multiplier": self.afterburner_fuel_multiplier
+        }

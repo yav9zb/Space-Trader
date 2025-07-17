@@ -3274,3 +3274,63 @@
 2025-07-17 11:53:49,775 - src.missions.mission_manager - INFO - Generated 7 missions for Excavation-405
 2025-07-17 11:54:13,994 - src.missions.mission_manager - INFO - Mission accepted: Deliver Laser Cells
 2025-07-17 11:54:15,320 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 12:07:53,667 - src.missions.mission_manager - INFO - Refreshing missions for 1 visited stations
+2025-07-17 12:10:51,833 - src.save_system - INFO - Game saved successfully to saves/autosave.json
+2025-07-17 12:10:51,833 - src.engine.game_engine - INFO - Auto-save completed successfully
+2025-07-17 12:15:51,841 - src.save_system - INFO - Game saved successfully to saves/autosave.json
+2025-07-17 12:15:51,841 - src.engine.game_engine - INFO - Auto-save completed successfully
+2025-07-17 12:20:51,848 - src.save_system - INFO - Game saved successfully to saves/autosave.json
+2025-07-17 12:20:51,849 - src.engine.game_engine - INFO - Auto-save completed successfully
+2025-07-17 12:22:53,671 - src.missions.mission_manager - INFO - Refreshing missions for 1 visited stations
+2025-07-17 12:25:10,046 - __main__ - INFO - Starting Space Trading Simulator
+2025-07-17 12:25:10,046 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 12:25:10,623 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 12:25:10,627 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 12:25:10,637 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 12:25:10,638 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 12:25:10,638 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 12:25:51,856 - src.save_system - INFO - Game saved successfully to saves/autosave.json
+2025-07-17 12:25:51,856 - src.engine.game_engine - INFO - Auto-save completed successfully
+2025-07-17 12:27:32,432 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-17 12:27:34,485 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-17 12:27:35,643 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-17 12:27:35,757 - src.main - INFO - Game terminated
+2025-07-17 12:27:37,659 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 12:27:37,659 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 12:27:38,132 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 12:27:38,140 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 12:27:38,146 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 12:27:38,147 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 12:27:38,147 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 12:27:39,104 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.LOAD_GAME
+2025-07-17 12:27:43,797 - src.save_system - INFO - Game loaded successfully from saves/autosave.json
+2025-07-17 12:27:43,798 - src.engine.game_engine - INFO - Changing game state from GameStates.LOAD_GAME to GameStates.PLAYING
+2025-07-17 12:27:43,810 - src.save_system - INFO - Game saved successfully to saves/autosave.json
+2025-07-17 12:27:43,810 - src.engine.game_engine - INFO - Auto-save completed successfully
+2025-07-17 12:27:43,810 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 12:27:43,810 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 12:27:45,264 - src.docking.docking_manager - INFO - Initiating docking with Excavation-405
+2025-07-17 12:27:45,264 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 12:27:47,272 - src.docking.docking_manager - INFO - Successfully docked at Excavation-405
+2025-07-17 12:27:47,272 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 12:27:48,426 - src.docking.docking_manager - INFO - Initiating undocking from Excavation-405
+2025-07-17 12:27:50,409 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 12:27:52,262 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 12:27:52,467 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 12:27:53,128 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 12:27:58,817 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 12:27:58,919 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 12:27:59,072 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 12:27:59,176 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 12:27:59,683 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 12:27:59,938 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 12:27:59,989 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 12:28:00,126 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 12:28:00,516 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 12:28:02,047 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 12:28:02,183 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 12:28:02,640 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 12:28:18,019 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-17 12:28:19,138 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-17 12:28:20,295 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-17 12:28:20,408 - src.main - INFO - Game terminated

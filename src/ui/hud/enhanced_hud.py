@@ -302,6 +302,22 @@ class EnhancedHUD:
         surface.blit(speed_surface, (panel_x + self.ui_layout.padding, y_offset))
         y_offset += self.ui_layout.get_responsive_spacing(20)
         
+        # Afterburner status
+        afterburner_status = ship.get_afterburner_status()
+        if afterburner_status['active']:
+            afterburner_text = "AFTERBURNER: ACTIVE"
+            afterburner_color = (0, 150, 255)  # Blue for active
+        elif afterburner_status['cooldown'] > 0:
+            afterburner_text = f"AFTERBURNER: {afterburner_status['cooldown']:.1f}s"
+            afterburner_color = (255, 100, 100)  # Red for cooling down
+        else:
+            afterburner_text = "AFTERBURNER: READY"
+            afterburner_color = (100, 255, 100)  # Green for ready
+        
+        afterburner_surface = self.font_small.render(afterburner_text, True, afterburner_color)
+        surface.blit(afterburner_surface, (panel_x + self.ui_layout.padding, y_offset))
+        y_offset += self.ui_layout.get_responsive_spacing(20)
+        
         # Upgrades summary
         upgrade_summary = ship.upgrades.get_upgrade_summary()
         upgrade_text = f"Upgrades: {sum(1 for v in upgrade_summary.values() if v != 'None')}/4"
