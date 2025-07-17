@@ -84,13 +84,37 @@ class RespawnSystem:
         
         # Reset weapon system to basic
         ship.weapon_system = None
-        from ..combat.weapons import WeaponSystem, create_weapon
+        try:
+            from ..combat.weapons import WeaponSystem, create_weapon
+        except ImportError:
+            from combat.weapons import WeaponSystem, create_weapon
         ship.weapon_system = WeaponSystem()
         basic_laser = create_weapon("basic_laser")
         ship.weapon_system.add_weapon(basic_laser)
         
+        # Reset fuel to full capacity
+        ship.current_fuel = ship.fuel_capacity
+        
+        # Reset emergency fuel system
+        ship.emergency_fuel_active = False
+        
+        # Reset afterburner system
+        ship.afterburner_active = False
+        ship.afterburner_cooldown = 0.0
+        
+        # Reset ammo to starting amounts
+        ship.ammo_storage = {
+            "laser_cells": 50,
+            "plasma_cartridges": 25,
+            "missiles": 10,
+            "railgun_slugs": 30
+        }
+        
         # Reset missions
-        from ..missions.mission_manager import mission_manager
+        try:
+            from ..missions.mission_manager import mission_manager
+        except ImportError:
+            from missions.mission_manager import mission_manager
         mission_manager.available_missions.clear()
         mission_manager.active_missions.clear()
         mission_manager.completed_missions.clear()
@@ -194,6 +218,7 @@ class RespawnSystem:
             "• Credits reset to 1,000",
             "• All upgrades removed", 
             "• Cargo lost",
+            "• Fuel and ammo restored",
             "• Missions reset"
         ]
         
