@@ -1,9 +1,7 @@
-import random
 import pygame
 import logging
-from enum import Enum
 from pygame.locals import *
-from typing import Dict, Optional
+from typing import Dict
 from src.camera import Camera
 from src.universe import Universe
 from src.docking.docking_manager import DockingManager
@@ -13,7 +11,6 @@ from ..entities.ship import Ship
 from ..entities.station import Station
 from ..ui.minimap import Minimap
 from ..entities.starfield import StarField
-from ..universe import Universe
 
 
 # Set up logging

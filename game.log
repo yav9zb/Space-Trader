@@ -1555,3 +1555,23 @@
 2025-07-16 17:00:06,150 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
 2025-07-16 17:00:07,476 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-07-16 17:00:07,644 - src.main - INFO - Game terminated
+2025-07-16 21:15:06,544 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 21:15:06,544 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 21:15:07,144 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 21:15:07,154 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:15:07,161 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 21:15:07,163 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 21:15:07,163 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 21:15:11,770 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-16 21:15:11,771 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:15:11,771 - src.engine.game_engine - INFO - New universe created with seed: 1074201737
+2025-07-16 21:15:11,771 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 21:15:11,776 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 21:15:13,488 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 21:15:14,644 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 21:15:15,189 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 21:15:15,410 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 21:15:15,580 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 21:15:15,750 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 21:15:15,953 - src.engine.game_engine - INFO - Collision detected with station
+2025-07-16 21:15:16,209 - src.engine.game_engine - INFO - Collision detected with station

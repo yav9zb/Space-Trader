@@ -148,7 +148,7 @@ class Station:
                          (int(screen_pos.x), int(screen_pos.y)), 
                          self.size)
         
-        # Draw docking zone (slightly larger than staton)
+        # Draw docking zone (slightly larger than station)
         pygame.draw.circle(screen, (100, 100, 100), 
                            (int(screen_pos.x), int(screen_pos.y)), 
                            self.size + 10,
@@ -159,6 +159,7 @@ class Station:
     def _draw_military_features(self, screen, pos):
         """Draw military-specific features"""
         # Radar visualization removed for cleaner visuals
+        # TODO: Implement military visual features
         pass
 
     def _draw_mining_features(self, screen, pos):

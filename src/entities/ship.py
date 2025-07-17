@@ -33,7 +33,7 @@ class Ship:
         
         # Ship characteristics
         # Create a simple triangle shape for the ship
-        self.size = 15 # slighly smaller collision radius
+        self.size = 15 # slightly smaller collision radius
         self.mass = 1.0 # kg
         self.points = [Vector2(0, -self.size), 
                       Vector2(-self.size/2, self.size/2),

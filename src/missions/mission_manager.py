@@ -3,7 +3,7 @@ import time
 import logging
 from typing import List, Dict, Optional, Any
 
-from .mission_types import Mission, MissionStatus, MissionType, MissionPriority
+from .mission_types import Mission, MissionStatus, MissionType
 from .specific_missions import (
     DeliveryMission, TradingContractMission, SupplyRunMission,
     EmergencyDeliveryMission, ExplorationMission

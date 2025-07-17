@@ -1,5 +1,4 @@
 import random
-import hashlib
 from pygame import Vector2
 from .entities.station import Station
 from .entities.planet import Planet
@@ -23,7 +22,7 @@ class Universe:
         self.planets = []
         self.debris = []
         
-    def generate_universe(self, num_stations=10, num_planets=5, num_debris=100):
+    def generate_universe(self):
         """Generate initial universe content - kept for backward compatibility"""
         # Generate initial area around spawn point
         self.generate_chunk_around_position(Vector2(500, 500))
