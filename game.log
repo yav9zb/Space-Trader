@@ -3543,3 +3543,226 @@
 2025-07-17 13:19:43,847 - src.engine.game_engine - INFO - Changing game state from GameStates.LOAD_GAME to GameStates.MAIN_MENU
 2025-07-17 13:19:44,612 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-07-17 13:19:44,715 - src.main - INFO - Game terminated
+2025-07-17 14:50:00,855 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 14:50:00,855 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 14:50:01,418 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 14:50:01,424 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 14:50:01,433 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 14:50:01,436 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 14:50:01,436 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 14:50:02,161 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-17 14:50:02,162 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 14:50:02,162 - src.engine.game_engine - INFO - New universe created with seed: 452765422
+2025-07-17 14:50:02,162 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-17 14:50:02,170 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:50:03,935 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-17 14:50:04,958 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.SETTINGS
+2025-07-17 14:50:09,167 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.PAUSED
+2025-07-17 14:50:10,102 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-17 14:50:11,884 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:50:42,002 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:50:42,834 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:50:50,253 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:50:50,860 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:50:52,541 - src.states.game_state - INFO - Planet collision detected in PlayingState
+2025-07-17 14:50:59,798 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:51:00,820 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:51:00,836 - src.docking.docking_manager - INFO - Initiating docking with Market-178
+2025-07-17 14:51:00,836 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:51:02,837 - src.docking.docking_manager - INFO - Successfully docked at Market-178
+2025-07-17 14:51:02,838 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:51:08,489 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:51:08,489 - src.missions.mission_manager - INFO - Generating 10 missions for first visit to Market-178
+2025-07-17 14:51:08,489 - src.missions.mission_manager - INFO - Generated 10 missions for Market-178
+2025-07-17 14:51:11,380 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:51:12,540 - src.states.game_state - INFO - Station Market-178 does not offer upgrades
+2025-07-17 14:51:13,394 - src.states.game_state - INFO - Station Market-178 does not offer upgrades
+2025-07-17 14:51:14,075 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:51:18,104 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:51:21,973 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:51:44,457 - src.missions.mission_manager - INFO - Mission accepted: Deliver Metal Ore
+2025-07-17 14:51:45,443 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:51:46,621 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:51:55,067 - src.missions.mission_manager - INFO - Mission accepted: Deliver Railgun Slugs
+2025-07-17 14:52:03,168 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:52:09,201 - src.docking.docking_manager - INFO - Initiating undocking from Market-178
+2025-07-17 14:52:11,197 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:52:11,213 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:52:11,344 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:52:13,457 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:52:14,152 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:52:29,574 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:52:30,091 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:52:30,108 - src.docking.docking_manager - INFO - Initiating docking with Yard-372
+2025-07-17 14:52:30,108 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:52:32,123 - src.docking.docking_manager - INFO - Successfully docked at Yard-372
+2025-07-17 14:52:32,123 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:52:45,871 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:52:45,872 - src.missions.mission_manager - INFO - Generating 8 missions for first visit to Yard-372
+2025-07-17 14:52:45,872 - src.missions.mission_manager - INFO - Generated 8 missions for Yard-372
+2025-07-17 14:52:51,580 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:52:56,573 - src.docking.docking_manager - INFO - Initiating undocking from Yard-372
+2025-07-17 14:52:58,573 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:52:58,590 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:52:59,518 - src.docking.docking_manager - INFO - Initiating docking with Market-199
+2025-07-17 14:52:59,518 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:52:59,601 - src.docking.docking_manager - INFO - Initiating docking with Market-199
+2025-07-17 14:53:01,599 - src.docking.docking_manager - INFO - Successfully docked at Market-199
+2025-07-17 14:53:01,599 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:53:01,615 - src.missions.mission_manager - INFO - Mission completed: Deliver Metal Ore (Reward: 500 credits)
+2025-07-17 14:53:08,671 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:53:08,671 - src.missions.mission_manager - INFO - Generating 2 missions for first visit to Market-199
+2025-07-17 14:53:08,671 - src.missions.mission_manager - INFO - Generated 2 missions for Market-199
+2025-07-17 14:53:13,476 - src.missions.mission_manager - INFO - Mission accepted: Deliver Plasma Cartridges
+2025-07-17 14:53:15,664 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:53:18,619 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:53:19,297 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:53:19,849 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:53:28,518 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:53:31,128 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:53:34,745 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:53:36,875 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-17 14:53:37,174 - src.docking.docking_manager - INFO - Initiating undocking from Market-199
+2025-07-17 14:53:39,160 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:53:55,781 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:53:56,458 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:53:56,482 - src.docking.docking_manager - INFO - Initiating docking with Lab-526
+2025-07-17 14:53:56,482 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:53:58,483 - src.docking.docking_manager - INFO - Successfully docked at Lab-526
+2025-07-17 14:53:58,483 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:54:04,622 - src.docking.docking_manager - INFO - Initiating undocking from Lab-526
+2025-07-17 14:54:06,621 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:54:13,139 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:54:13,899 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:54:19,949 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:54:20,513 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:54:20,537 - src.docking.docking_manager - INFO - Initiating docking with Trade-710
+2025-07-17 14:54:20,537 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:54:22,550 - src.docking.docking_manager - INFO - Successfully docked at Trade-710
+2025-07-17 14:54:22,550 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:54:31,536 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:54:31,536 - src.missions.mission_manager - INFO - Generating 7 missions for first visit to Trade-710
+2025-07-17 14:54:31,536 - src.missions.mission_manager - INFO - Generated 7 missions for Trade-710
+2025-07-17 14:54:41,349 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:54:43,894 - src.docking.docking_manager - INFO - Initiating undocking from Trade-710
+2025-07-17 14:54:45,878 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:54:45,878 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:54:45,897 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:54:45,917 - src.docking.docking_manager - INFO - Initiating docking with Port-196
+2025-07-17 14:54:45,917 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:54:47,924 - src.docking.docking_manager - INFO - Successfully docked at Port-196
+2025-07-17 14:54:47,924 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:54:50,731 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:54:50,731 - src.missions.mission_manager - INFO - Generating 9 missions for first visit to Port-196
+2025-07-17 14:54:50,731 - src.missions.mission_manager - INFO - Generated 9 missions for Port-196
+2025-07-17 14:54:59,577 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:55:00,876 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:55:05,309 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:55:06,330 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:55:27,681 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:55:29,276 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:55:37,033 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:55:40,941 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:55:41,620 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:55:45,784 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:55:51,361 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:55:53,981 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-17 14:55:54,540 - src.docking.docking_manager - INFO - Initiating undocking from Port-196
+2025-07-17 14:55:56,535 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:55:56,535 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:55:56,554 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:55:57,809 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:55:57,829 - src.docking.docking_manager - INFO - Initiating docking with Port-196
+2025-07-17 14:55:57,829 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:55:59,843 - src.docking.docking_manager - INFO - Successfully docked at Port-196
+2025-07-17 14:55:59,843 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:56:02,202 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:56:14,307 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:56:16,733 - src.docking.docking_manager - INFO - Initiating undocking from Port-196
+2025-07-17 14:56:18,736 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:56:19,559 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:56:19,822 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:56:25,643 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:56:26,324 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:56:26,351 - src.docking.docking_manager - INFO - Initiating docking with Excavation-954
+2025-07-17 14:56:26,351 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:56:28,375 - src.docking.docking_manager - INFO - Successfully docked at Excavation-954
+2025-07-17 14:56:28,375 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:56:31,554 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:56:33,339 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:56:34,348 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:56:34,348 - src.missions.mission_manager - INFO - Generating 3 missions for first visit to Excavation-954
+2025-07-17 14:56:34,348 - src.missions.mission_manager - INFO - Generated 3 missions for Excavation-954
+2025-07-17 14:57:22,060 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:57:25,150 - src.docking.docking_manager - INFO - Initiating undocking from Excavation-954
+2025-07-17 14:57:27,127 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:57:40,230 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:57:42,197 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:57:43,890 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:57:44,280 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-17 14:57:45,011 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-17 14:57:46,476 - src.states.game_state - INFO - Docking failed: too_far
+2025-07-17 14:57:46,600 - src.docking.docking_manager - INFO - Initiating docking with Base-483
+2025-07-17 14:57:46,600 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:57:48,617 - src.docking.docking_manager - INFO - Successfully docked at Base-483
+2025-07-17 14:57:48,618 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:57:48,638 - src.missions.mission_manager - INFO - Mission completed: Deliver Plasma Cartridges (Reward: 500 credits)
+2025-07-17 14:57:52,420 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:57:53,287 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:57:54,457 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:57:54,457 - src.missions.mission_manager - INFO - Generating 5 missions for first visit to Base-483
+2025-07-17 14:57:54,457 - src.missions.mission_manager - INFO - Generated 4 missions for Base-483
+2025-07-17 14:57:58,534 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:58:01,188 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:58:03,191 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:58:04,928 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:58:08,565 - src.missions.mission_manager - INFO - Mission abandoned: Deliver Railgun Slugs (Penalty: 100 credits)
+2025-07-17 14:58:10,095 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:58:12,349 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:58:22,116 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:58:36,270 - src.docking.docking_manager - INFO - Initiating undocking from Base-483
+2025-07-17 14:58:38,260 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:58:42,889 - src.save_system - INFO - Game saved successfully to saves/autosave.json
+2025-07-17 14:58:42,889 - src.engine.game_engine - INFO - Auto-save completed successfully
+2025-07-17 14:58:46,745 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:58:47,721 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-17 14:58:47,746 - src.docking.docking_manager - INFO - Initiating docking with Quarry-668
+2025-07-17 14:58:47,746 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-17 14:58:49,754 - src.docking.docking_manager - INFO - Successfully docked at Quarry-668
+2025-07-17 14:58:49,754 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-17 14:58:51,088 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:58:51,088 - src.missions.mission_manager - INFO - Generating 5 missions for first visit to Quarry-668
+2025-07-17 14:58:51,088 - src.missions.mission_manager - INFO - Generated 5 missions for Quarry-668
+2025-07-17 14:58:58,554 - src.missions.mission_manager - INFO - Mission accepted: Deliver Railgun Slugs
+2025-07-17 14:59:00,818 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:59:06,378 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-17 14:59:07,516 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-17 14:59:08,066 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.TRADING
+2025-07-17 14:59:14,208 - src.engine.game_engine - INFO - Changing game state from GameStates.TRADING to GameStates.PLAYING
+2025-07-17 14:59:18,780 - src.states.game_state - INFO - Docking failed: already_docked
+2025-07-17 14:59:19,493 - src.docking.docking_manager - INFO - Initiating undocking from Quarry-668
+2025-07-17 14:59:21,475 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-17 14:59:21,499 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:59:21,764 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:59:24,959 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 14:59:25,137 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 14:59:26,461 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 14:59:26,511 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 14:59:29,465 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-17 15:14:26,511 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 15:29:26,528 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 15:44:26,535 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 15:59:26,549 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 16:14:26,576 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 16:29:26,582 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 16:44:26,585 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 16:59:26,599 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 17:14:26,614 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 17:29:26,618 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 17:44:26,624 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 17:59:26,638 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 18:14:26,664 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 18:29:26,676 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 18:44:26,689 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 18:59:26,704 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations
+2025-07-17 19:14:26,707 - src.missions.mission_manager - INFO - Refreshing missions for 8 visited stations

@@ -2,11 +2,12 @@ import random
 from pygame import Vector2
 from .entities.station import Station
 from .entities.planet import Planet
-from .entities.debris import Debris
+from .entities.debris import Debris, DebrisType
 from .entities.asteroid import create_asteroid_field
 from .entities.bandit import create_bandit_encounter
 from .entities.black_hole import create_black_hole_field
 from .combat.combat_manager import combat_manager
+from .systems.debris_field_manager import debris_field_manager
 
 class Universe:
     def __init__(self, width=10000, height=10000, seed=None):
@@ -77,16 +78,61 @@ class Universe:
                 self.planets.append(planet)
                 placed_objects.append((pos, planet.size))
 
-        # Generate debris using layer 2 seed
+        # Generate enhanced debris using layer 2 seed
         debris_seed = self._get_chunk_seed(chunk_x, chunk_y, 2)
         random.seed(debris_seed)
-        num_debris = random.randint(10, 20)
-        for _ in range(num_debris):
-            pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=20)
-            if pos:
-                debris = Debris(pos.x, pos.y)
-                self.debris.append(debris)
-                placed_objects.append((pos, debris.size))
+        
+        # Determine debris field type and density
+        field_type = random.choice(['sparse', 'dense', 'battle_aftermath', 'asteroid_belt'])
+        
+        if field_type == 'sparse':
+            # Normal scattered debris
+            num_debris = random.randint(5, 12)
+            debris_types = [DebrisType.METAL, DebrisType.ICE]
+            
+            for _ in range(num_debris):
+                pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=30)
+                if pos:
+                    debris_type = random.choice(debris_types)
+                    debris = Debris(pos.x, pos.y, debris_type)
+                    self.debris.append(debris)
+                    debris_field_manager.add_debris(debris)
+                    placed_objects.append((pos, debris.size))
+        
+        elif field_type == 'dense':
+            # Dense debris field
+            center_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=100)
+            if center_pos:
+                debris_types = [DebrisType.METAL, DebrisType.ICE, DebrisType.SHIP_PART]
+                created_debris = debris_field_manager.create_debris_field(
+                    center_pos, 150, random.randint(15, 25), debris_types
+                )
+                self.debris.extend(created_debris)
+                placed_objects.append((center_pos, 150))
+        
+        elif field_type == 'battle_aftermath':
+            # Aftermath of a space battle
+            if random.random() < 0.3:  # 30% chance
+                center_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=100)
+                if center_pos:
+                    # Create explosion debris
+                    explosion_debris = debris_field_manager.create_explosion_debris(
+                        center_pos, random.uniform(40, 80), random.randint(20, 35)
+                    )
+                    self.debris.extend(explosion_debris)
+                    placed_objects.append((center_pos, 100))
+        
+        elif field_type == 'asteroid_belt':
+            # Asteroid debris belt
+            if random.random() < 0.2:  # 20% chance
+                center_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=150)
+                if center_pos:
+                    # Create orbital debris pattern
+                    orbital_debris = debris_field_manager.create_orbital_debris(
+                        center_pos, random.uniform(100, 200), random.randint(10, 20)
+                    )
+                    self.debris.extend(orbital_debris)
+                    placed_objects.append((center_pos, 200))
         
         # Generate asteroid fields using layer 3 seed
         asteroid_seed = self._get_chunk_seed(chunk_x, chunk_y, 3)
@@ -173,8 +219,13 @@ class Universe:
     
     def update(self, delta_time):
         """Update all dynamic objects in the universe"""
+        # Update debris field manager (handles all debris physics)
+        debris_field_manager.update(delta_time)
+        
+        # Update individual debris (legacy support)
         for debris in self.debris:
-            debris.update(delta_time)
+            if debris not in debris_field_manager.debris_list:
+                debris.update(delta_time)
     
     def _add_station(self, x, y):
         """Add a station to the universe"""

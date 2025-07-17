@@ -734,10 +734,74 @@ class PlayingState(State):
                 if self.game.ship.check_collision_detailed(planet):
                     logger.info("Planet collision detected in PlayingState")
             
-            # Check debris collisions
-            for debris in self.game.universe.debris:
+            # Check debris collisions with enhanced physics
+            from ..systems.debris_field_manager import debris_field_manager
+            
+            # Get nearby debris for collision checking
+            nearby_debris = debris_field_manager.get_debris_at_position(
+                self.game.ship.position, self.game.ship.size + 50
+            )
+            
+            for debris in nearby_debris:
                 if self.game.ship.check_collision_detailed(debris):
-                    logger.info("Debris collision detected in PlayingState")
+                    logger.info(f"Debris collision detected: {debris.debris_type.value}")
+                    
+                    # Apply debris physics to ship collision
+                    self._handle_ship_debris_collision(debris)
+            
+            # Also check legacy debris (backward compatibility)
+            for debris in self.game.universe.debris:
+                if debris not in debris_field_manager.debris_list:
+                    if self.game.ship.check_collision_detailed(debris):
+                        logger.info("Legacy debris collision detected in PlayingState")
+    
+    def _handle_ship_debris_collision(self, debris):
+        """Handle collision between ship and debris with enhanced physics."""
+        from ..systems.debris_field_manager import debris_field_manager
+        
+        # Calculate collision response for ship
+        ship = self.game.ship
+        
+        # Calculate momentum transfer
+        ship_momentum = ship.velocity * ship.mass
+        debris_momentum = debris.velocity * debris.mass
+        
+        # Apply momentum transfer to debris
+        momentum_transfer = ship_momentum * 0.1  # Ship transfers some momentum to debris
+        debris.velocity += momentum_transfer / debris.mass
+        
+        # Create collision effects
+        debris._create_collision_sparks(debris)  # Visual effects
+        
+        # Apply damage based on debris type and collision speed
+        collision_speed = (ship.velocity - debris.velocity).length()
+        
+        if debris.debris_type.value == "metal":
+            # Metal debris does more damage
+            damage = max(1, collision_speed * 0.2)
+        elif debris.debris_type.value == "ice":
+            # Ice debris does less damage but may fragment
+            damage = max(0.5, collision_speed * 0.1)
+            if collision_speed > 50:
+                fragments = debris.fragment(3)
+                for fragment in fragments:
+                    debris_field_manager.add_debris(fragment)
+        else:
+            # Standard damage
+            damage = max(1, collision_speed * 0.15)
+        
+        # Apply damage to ship
+        ship.take_damage(damage)
+        
+        # High-speed collisions might cause debris to fragment
+        if collision_speed > 40 and debris.size > 10:
+            fragments = debris.fragment()
+            if fragments:
+                # Remove original debris and add fragments
+                if debris in debris_field_manager.debris_list:
+                    debris_field_manager.debris_list.remove(debris)
+                for fragment in fragments:
+                    debris_field_manager.add_debris(fragment)
 
     def render(self, screen):
         """Render the playing state"""
@@ -839,14 +903,19 @@ class PlayingState(State):
                 -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
                 planet.draw(screen, camera_offset)
 
-        # Draw debris
+        # Draw debris using debris field manager
+        from ..systems.debris_field_manager import debris_field_manager
+        debris_field_manager.draw(screen, camera_offset)
+        
+        # Draw legacy debris (backward compatibility)
         for debris in self.game.universe.debris:
-            screen_pos = self.game.camera.world_to_screen(debris.position)
-            # Only draw if on screen (with buffer for debris size)
-            buffer = debris.size + 50  # Add buffer for debris size
-            if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and 
-                -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
-                debris.draw(screen, camera_offset)
+            if debris not in debris_field_manager.debris_list:
+                screen_pos = self.game.camera.world_to_screen(debris.position)
+                # Only draw if on screen (with buffer for debris size)
+                buffer = debris.size + 50  # Add buffer for debris size
+                if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and 
+                    -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
+                    debris.draw(screen, camera_offset)
         
         # Draw combat entities (asteroids and bandits)
         from ..combat.combat_manager import combat_manager
