@@ -263,14 +263,22 @@ class EnhancedHUD:
         self.cargo_bar.draw(surface, cargo_bar_x, y_offset + 2)
         y_offset += self.ui_layout.get_responsive_spacing(25)
         
-        # Fuel status
-        fuel_text = f"Fuel: {ship.current_fuel:.0f}/{ship.fuel_capacity:.0f}"
-        fuel_surface = self.font_small.render(fuel_text, True, (255, 255, 255))
+        # Fuel status with emergency fuel indicator
+        emergency_fuel_status = ship.get_emergency_fuel_status()
+        if emergency_fuel_status['active']:
+            fuel_text = f"Fuel: EMERGENCY MODE"
+            fuel_color = (255, 50, 50)  # Red for emergency
+        else:
+            fuel_text = f"Fuel: {ship.current_fuel:.0f}/{ship.fuel_capacity:.0f}"
+            fuel_color = (255, 255, 255)  # Normal white
+        
+        fuel_surface = self.font_small.render(fuel_text, True, fuel_color)
         surface.blit(fuel_surface, (panel_x + self.ui_layout.padding, y_offset))
         
-        # Fuel bar
-        fuel_bar_x = panel_x + int(120 * self.ui_layout.font_scale)
-        self.fuel_bar.draw(surface, fuel_bar_x, y_offset + 2)
+        # Fuel bar (only show if not in emergency mode)
+        if not emergency_fuel_status['active']:
+            fuel_bar_x = panel_x + int(120 * self.ui_layout.font_scale)
+            self.fuel_bar.draw(surface, fuel_bar_x, y_offset + 2)
         y_offset += self.ui_layout.get_responsive_spacing(25)
         
         # Ammo status - show counts for each type
@@ -302,9 +310,14 @@ class EnhancedHUD:
         surface.blit(speed_surface, (panel_x + self.ui_layout.padding, y_offset))
         y_offset += self.ui_layout.get_responsive_spacing(20)
         
-        # Afterburner status
+        # Afterburner status (disabled during emergency fuel)
         afterburner_status = ship.get_afterburner_status()
-        if afterburner_status['active']:
+        emergency_fuel_status = ship.get_emergency_fuel_status()
+        
+        if emergency_fuel_status['active']:
+            afterburner_text = "AFTERBURNER: DISABLED"
+            afterburner_color = (100, 100, 100)  # Gray for disabled
+        elif afterburner_status['active']:
             afterburner_text = "AFTERBURNER: ACTIVE"
             afterburner_color = (0, 150, 255)  # Blue for active
         elif afterburner_status['cooldown'] > 0:

@@ -113,9 +113,15 @@ class Ship:
         # Thrust in ship's heading direction
         self.thrusting = keys[pygame.K_UP]
         
-        # Afterburner input handling
+        # Check for emergency fuel activation
+        if self.current_fuel <= 0 and not self.emergency_fuel_active:
+            self.emergency_fuel_active = True
+        elif self.current_fuel > 0 and self.emergency_fuel_active:
+            self.emergency_fuel_active = False
+        
+        # Afterburner input handling (disabled during emergency fuel)
         afterburner_input = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
-        if afterburner_input and self.afterburner_cooldown <= 0 and self.current_fuel > 0:
+        if afterburner_input and self.afterburner_cooldown <= 0 and self.current_fuel > 0 and not self.emergency_fuel_active:
             self.afterburner_active = True
         else:
             if self.afterburner_active:
@@ -123,14 +129,17 @@ class Ship:
                 self.afterburner_cooldown = self.afterburner_max_cooldown
             self.afterburner_active = False
         
-        if self.thrusting and self.current_fuel > 0:
+        if self.thrusting and (self.current_fuel > 0 or self.emergency_fuel_active):
             # Use upgraded thrust force
             effective_stats = self.get_effective_stats()
             thrust_force = effective_stats.get_effective_thrust_force()
             
-            # Apply afterburner boost to thrust if active
-            if self.afterburner_active:
+            # Apply afterburner boost to thrust if active (only when not in emergency mode)
+            if self.afterburner_active and not self.emergency_fuel_active:
                 thrust_force *= self.afterburner_speed_multiplier
+            # Apply emergency fuel speed penalty
+            elif self.emergency_fuel_active:
+                thrust_force *= self.emergency_fuel_speed_multiplier
             
             self.acceleration = self.heading * thrust_force
         else:
@@ -158,9 +167,12 @@ class Ship:
         effective_stats = self.get_effective_stats()
         max_speed = effective_stats.get_effective_max_speed()
         
-        # Apply afterburner speed boost if active
-        if self.afterburner_active:
+        # Apply afterburner speed boost if active (only when not in emergency mode)
+        if self.afterburner_active and not self.emergency_fuel_active:
             max_speed *= self.afterburner_speed_multiplier
+        # Apply emergency fuel speed penalty
+        elif self.emergency_fuel_active:
+            max_speed *= self.emergency_fuel_speed_multiplier
         
         speed = self.velocity.length()
         if speed > max_speed:
@@ -228,13 +240,21 @@ class Ship:
         # Draw thrust flame when accelerating
         if self.thrusting:
             # Enhanced flame for afterburner
-            if self.afterburner_active:
+            if self.afterburner_active and not self.emergency_fuel_active:
                 flame_points = [
                     Vector2(0, self.size/2),
                     Vector2(-self.size/2, self.size * 1.5),
                     Vector2(self.size/2, self.size * 1.5)
                 ]
                 flame_color = (0, 150, 255)  # Blue flame for afterburner
+            # Emergency fuel flame
+            elif self.emergency_fuel_active:
+                flame_points = [
+                    Vector2(0, self.size/2),
+                    Vector2(-self.size/4, self.size * 0.8),
+                    Vector2(self.size/4, self.size * 0.8)
+                ]
+                flame_color = (255, 50, 50)  # Red flame for emergency fuel
             else:
                 flame_points = [
                     Vector2(0, self.size/2),
@@ -439,6 +459,10 @@ class Ship:
     
     def _update_fuel_consumption(self, delta_time: float):
         """Update fuel consumption based on ship activity."""
+        # No fuel consumption during emergency fuel mode
+        if self.emergency_fuel_active:
+            return
+            
         if self.thrusting:
             # Base fuel consumption when thrusting
             fuel_consumed = self.fuel_consumption_rate * delta_time
@@ -524,4 +548,11 @@ class Ship:
             "ready": self.afterburner_cooldown <= 0,
             "speed_multiplier": self.afterburner_speed_multiplier,
             "fuel_multiplier": self.afterburner_fuel_multiplier
+        }
+    
+    def get_emergency_fuel_status(self) -> dict:
+        """Get emergency fuel system status."""
+        return {
+            "active": self.emergency_fuel_active,
+            "speed_multiplier": self.emergency_fuel_speed_multiplier
         }

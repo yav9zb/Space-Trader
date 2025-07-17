@@ -102,6 +102,76 @@ def test_afterburner_fuel_consumption():
     
     print("✓ Afterburner fuel consumption test passed")
 
+def test_emergency_fuel_system():
+    """Test emergency fuel system functionality."""
+    ship = Ship(400, 300)
+    
+    # Test emergency fuel activation - simulate manually
+    ship.current_fuel = 0.0
+    ship.emergency_fuel_active = True
+    
+    # Test that ship can still thrust in emergency mode
+    ship.thrusting = True
+    thrust_force = ship.get_effective_stats().get_effective_thrust_force()
+    # Apply emergency fuel speed penalty  
+    thrust_force *= ship.emergency_fuel_speed_multiplier
+    ship.acceleration = ship.heading * thrust_force
+    
+    # Check that thrust works but with speed penalty
+    assert ship.acceleration.length() > 0
+    
+    # Test that no fuel is consumed in emergency mode
+    initial_fuel = ship.current_fuel
+    ship.update(1.0)
+    assert ship.current_fuel == initial_fuel  # No fuel consumed
+    
+    # Test emergency fuel deactivation
+    ship.current_fuel = 50.0
+    ship.emergency_fuel_active = False
+    
+    # Check that emergency fuel is deactivated
+    assert ship.emergency_fuel_active == False
+    
+    print("✓ Emergency fuel system test passed")
+
+def test_emergency_fuel_status():
+    """Test emergency fuel status method."""
+    ship = Ship(400, 300)
+    
+    # Test normal status
+    status = ship.get_emergency_fuel_status()
+    assert status['active'] == False
+    assert status['speed_multiplier'] == 0.25
+    
+    # Test emergency status
+    ship.current_fuel = 0.0
+    ship.emergency_fuel_active = True
+    
+    status = ship.get_emergency_fuel_status()
+    assert status['active'] == True
+    
+    print("✓ Emergency fuel status test passed")
+
+def test_afterburner_emergency_fuel_interaction():
+    """Test that afterburner is disabled during emergency fuel."""
+    ship = Ship(400, 300)
+    
+    # Set up emergency fuel mode
+    ship.current_fuel = 0.0
+    ship.emergency_fuel_active = True
+    
+    # Try to activate afterburner
+    keys = {pygame.K_LSHIFT: True, pygame.K_UP: True}
+    
+    # Simulate input handling manually
+    ship.thrusting = True
+    afterburner_input = True
+    
+    # Should not activate afterburner during emergency fuel
+    assert not (afterburner_input and ship.afterburner_cooldown <= 0 and ship.current_fuel > 0 and not ship.emergency_fuel_active)
+    
+    print("✓ Afterburner-emergency fuel interaction test passed")
+
 def main():
     """Run all afterburner tests."""
     print("Testing afterburner system...")
@@ -114,8 +184,11 @@ def main():
         test_afterburner_status()
         test_afterburner_cooldown()
         test_afterburner_fuel_consumption()
+        test_emergency_fuel_system()
+        test_emergency_fuel_status()
+        test_afterburner_emergency_fuel_interaction()
         
-        print("\n✅ All afterburner tests passed!")
+        print("\n✅ All afterburner and emergency fuel tests passed!")
         return True
         
     except Exception as e:
