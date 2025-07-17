@@ -7,10 +7,14 @@ try:
     from ..trading.cargo import CargoHold
     from ..upgrades.ship_upgrades import ShipUpgrades, ShipStats
     from ..upgrades.upgrade_system import upgrade_system
+    from ..combat.weapons import WeaponSystem, create_weapon
+    from ..systems.cloaking_system import cloaking_system
 except ImportError:
     from trading.cargo import CargoHold
     from upgrades.ship_upgrades import ShipUpgrades, ShipStats
     from upgrades.upgrade_system import upgrade_system
+    from combat.weapons import WeaponSystem, create_weapon
+    from systems.cloaking_system import cloaking_system
 
 
 class Ship:
@@ -53,6 +57,12 @@ class Ship:
             scanner_range=150.0
         )
         self.current_hull = 100  # Current hull damage state
+        
+        # Combat system
+        self.weapon_system = WeaponSystem()
+        # Start with basic laser
+        basic_laser = create_weapon("basic_laser")
+        self.weapon_system.add_weapon(basic_laser)
 
     def handle_input(self, delta_time):
         keys = pygame.key.get_pressed()
@@ -79,6 +89,13 @@ class Ship:
         # Brake/reverse thrusters
         if keys[pygame.K_DOWN]:
             self.velocity *= 0.95
+        
+        # Weapon firing
+        if keys[pygame.K_SPACE]:
+            current_time = pygame.time.get_ticks() / 1000.0
+            self.weapon_system.fire_weapons(self.position, self.heading, self, current_time)
+            # Firing can break cloak
+            cloaking_system.break_cloak_from_action(self.get_effective_stats(), "firing")
 
     def update(self, delta_time):
         # Apply acceleration in ships heading direction
@@ -99,8 +116,19 @@ class Ship:
         
         # Update cargo hold capacity based on upgrades
         self._update_cargo_capacity()
+        
+        # Update weapon system
+        self.weapon_system.update(delta_time)
+        
+        # Update cloaking system
+        cloaking_system.update(delta_time, self.get_effective_stats())
 
     def draw(self, screen, camera_offset):
+        # Check if ship should be drawn (cloaking)
+        effective_stats = self.get_effective_stats()
+        if not cloaking_system.should_draw_ship(effective_stats):
+            return
+            
         # Transform points based on position and rotation
         transformed_points = []
         screen_pos = self.position - camera_offset
@@ -110,8 +138,28 @@ class Ship:
             transformed_point = (rotated_point + screen_pos)
             transformed_points.append(transformed_point)
 
-        # Draw the ship
-        pygame.draw.polygon(screen, (255, 255, 255), transformed_points)
+        # Get cloaking alpha
+        ship_alpha = cloaking_system.get_ship_alpha(effective_stats)
+        
+        # Draw the ship with appropriate alpha
+        if ship_alpha < 255:
+            # Create surface with alpha for cloaked ship
+            ship_surface = pygame.Surface((self.size * 4, self.size * 4), pygame.SRCALPHA)
+            ship_surface.set_alpha(ship_alpha)
+            
+            # Adjust points for surface coordinates
+            surface_center = Vector2(self.size * 2, self.size * 2)
+            surface_points = []
+            for point in self.points:
+                rotated_point = point.rotate(self.rotation)
+                surface_point = (rotated_point + surface_center)
+                surface_points.append(surface_point)
+            
+            pygame.draw.polygon(ship_surface, (255, 255, 255), surface_points)
+            screen.blit(ship_surface, (screen_pos.x - self.size * 2, screen_pos.y - self.size * 2))
+        else:
+            # Normal drawing
+            pygame.draw.polygon(screen, (255, 255, 255), transformed_points)
         
         # Draw thrust flame when accelerating
         if self.thrusting:
@@ -143,6 +191,12 @@ class Ship:
                              (int(screen_pos.x), int(screen_pos.y)), 
                              int(self.size), 
                              1)  # Draw ship's collision radius
+        
+        # Draw weapon projectiles
+        self.weapon_system.draw(screen, camera_offset)
+        
+        # Draw cloaking effects
+        cloaking_system.draw_cloak_effects(screen, self.position, camera_offset)
 
     def check_collision_detailed(self, other_object):
         """Enhanced collision detection with visual debugging"""
@@ -281,6 +335,9 @@ class Ship:
         actual_damage = damage * damage_multiplier
         
         self.current_hull = max(0, self.current_hull - actual_damage)
+        
+        # Taking damage can break cloak
+        cloaking_system.break_cloak_from_action(effective_stats, "taking_damage")
         
         # Check if ship is destroyed
         if self.current_hull <= 0:

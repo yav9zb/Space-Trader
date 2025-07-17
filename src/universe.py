@@ -3,6 +3,10 @@ from pygame import Vector2
 from .entities.station import Station
 from .entities.planet import Planet
 from .entities.debris import Debris
+from .entities.asteroid import create_asteroid_field
+from .entities.bandit import create_bandit_encounter
+from .entities.black_hole import create_black_hole_field
+from .combat.combat_manager import combat_manager
 
 class Universe:
     def __init__(self, width=10000, height=10000, seed=None):
@@ -83,6 +87,51 @@ class Universe:
                 debris = Debris(pos.x, pos.y)
                 self.debris.append(debris)
                 placed_objects.append((pos, debris.size))
+        
+        # Generate asteroid fields using layer 3 seed
+        asteroid_seed = self._get_chunk_seed(chunk_x, chunk_y, 3)
+        random.seed(asteroid_seed)
+        if random.random() < 0.3:  # 30% chance of asteroid field
+            field_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=200)
+            if field_pos:
+                asteroids = create_asteroid_field(field_pos, 150, random.randint(3, 8), special_chance=0.25)
+                for asteroid in asteroids:
+                    combat_manager.add_asteroid(asteroid)
+                    placed_objects.append((asteroid.position, asteroid.size))
+        
+        # Generate bandit encounters using layer 4 seed
+        bandit_seed = self._get_chunk_seed(chunk_x, chunk_y, 4)
+        random.seed(bandit_seed)
+        # Less frequent bandit encounters, avoid starting area
+        start_distance = ((chunk_x * self.sector_size) ** 2 + (chunk_y * self.sector_size) ** 2) ** 0.5
+        if start_distance > 1500 and random.random() < 0.15:  # 15% chance away from spawn
+            encounter_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=300)
+            if encounter_pos:
+                encounter_types = ["scout_patrol", "fighter_squad"]
+                if start_distance > 3000:  # Add tougher encounters further out
+                    encounter_types.extend(["heavy_escort"])
+                if start_distance > 5000:  # Boss encounters very far out
+                    encounter_types.append("boss_fleet")
+                
+                encounter_type = random.choice(encounter_types)
+                bandits = create_bandit_encounter(encounter_pos, encounter_type)
+                for bandit in bandits:
+                    combat_manager.add_bandit(bandit)
+                    placed_objects.append((bandit.position, bandit.base_size))
+        
+        # Generate black holes using layer 5 seed (very rare)
+        black_hole_seed = self._get_chunk_seed(chunk_x, chunk_y, 5)
+        random.seed(black_hole_seed)
+        # Black holes are very rare and only in deep space
+        if start_distance > 2000 and random.random() < 0.05:  # 5% chance far from spawn
+            hole_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=400)
+            if hole_pos:
+                # Usually single black holes, occasionally pairs
+                hole_count = 1 if random.random() < 0.8 else 2
+                black_holes = create_black_hole_field(hole_pos, 200, hole_count)
+                for black_hole in black_holes:
+                    combat_manager.add_black_hole(black_hole)
+                    placed_objects.append((black_hole.position, black_hole.size))
         
     def _find_safe_position(self, chunk_start_x, chunk_start_y, chunk_size, placed_objects, min_distance=50, max_attempts=100):
         """Find a position that doesn't overlap with existing objects"""

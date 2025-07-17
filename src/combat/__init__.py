@@ -1,0 +1,1 @@
+"""Combat system for Space Trading Simulator."""

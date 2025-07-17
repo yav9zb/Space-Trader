@@ -64,19 +64,24 @@ class DeliveryMission(Mission):
         
         # Set rewards based on distance and cargo value
         base_reward = max(500, int(base_value * 0.3))
+        # Use mission ID hash for deterministic randomness
+        reputation_seed = hash(self.id + "reputation") % 11 + 5  # 5-15 range
+        penalty_seed = hash(self.id + "penalty") % 11 + 10  # 10-20 range
+        time_seed = hash(self.id + "time") % 14401 + 7200  # 2-6 hours range
+        
         self.reward = MissionReward(
             credits=base_reward,
-            reputation_bonus=random.randint(5, 15)
+            reputation_bonus=reputation_seed
         )
         
         # Set penalties
         self.penalty = MissionPenalty(
             credits=int(base_reward * 0.2),
-            reputation_loss=random.randint(10, 20)
+            reputation_loss=penalty_seed
         )
         
         # Set time limit (2-6 hours of real time)
-        self.time_limit = random.randint(7200, 21600)  # 2-6 hours in seconds
+        self.time_limit = time_seed
         
         self.progress_description = f"Pick up {commodity_name} at origin station"
         self.pickup_completed = False
@@ -96,15 +101,19 @@ class DeliveryMission(Mission):
             if station_name == self.origin_station_id:
                 # Automatically provide cargo to player when docked at pickup station
                 if ship.cargo_hold.can_add(self.commodity_id, self.quantity):
-                    if ship.cargo_hold.add_cargo(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.add_mission_cargo(self.commodity_id, self.quantity):
                         self.objectives[0].completed = True
                         self.pickup_completed = True
                         self.progress_description = f"Deliver {self.quantity} units to {self.destination_station_id}"
                         self.status = MissionStatus.IN_PROGRESS
+                        print(f"DEBUG: Pickup completed! Added {self.quantity} {self.commodity_id} to cargo hold")
                         return False
                 else:
                     self.progress_description = f"Clear cargo space to pick up {self.quantity} units"
+                    print(f"DEBUG: Cannot pickup - not enough cargo space. Need {self.quantity} units")
                     return False
+            else:
+                print(f"DEBUG: At station {station_name}, but need to be at {self.origin_station_id} for pickup")
         
         # Check delivery objective
         if self.pickup_completed and current_station:
@@ -113,7 +122,7 @@ class DeliveryMission(Mission):
                 # Check if player still has the cargo to deliver
                 if ship.cargo_hold.get_quantity(self.commodity_id) >= self.quantity:
                     # Remove cargo from player's hold and complete mission
-                    if ship.cargo_hold.remove_cargo(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.remove_mission_cargo(self.commodity_id, self.quantity):
                         self.objectives[1].completed = True
                         self.complete()
                         return True
@@ -178,19 +187,24 @@ class TradingContractMission(Mission):
         
         # Set rewards - no bonus items since trade gives the commodity
         base_reward = buy_quantity * 100 + sell_quantity * 120
+        # Use mission ID hash for deterministic randomness
+        reputation_seed = hash(self.id + "reputation") % 16 + 10  # 10-25 range
+        penalty_seed = hash(self.id + "penalty") % 16 + 15  # 15-30 range
+        time_seed = hash(self.id + "time") % 18001 + 10800  # 3-8 hours range
+        
         self.reward = MissionReward(
             credits=base_reward,
-            reputation_bonus=random.randint(10, 25)
+            reputation_bonus=reputation_seed
         )
         
         # Set penalties
         self.penalty = MissionPenalty(
             credits=int(base_reward * 0.3),
-            reputation_loss=random.randint(15, 30)
+            reputation_loss=penalty_seed
         )
         
         # Longer time limit for trading missions
-        self.time_limit = random.randint(10800, 28800)  # 3-8 hours
+        self.time_limit = time_seed
         
         self.progress_description = f"Bring {buy_quantity} units of {buy_name} to {station_id}"
         self.trade_completed = False
@@ -288,15 +302,19 @@ class SupplyRunMission(Mission):
         
         # Set rewards based on total supplies
         base_reward = total_quantity * 80
+        # Use mission ID hash for deterministic randomness
+        reputation_seed = hash(self.id + "reputation") % 21 + 15  # 15-35 range
+        penalty_seed = hash(self.id + "penalty") % 21 + 20  # 20-40 range
+        
         self.reward = MissionReward(
             credits=base_reward,
-            reputation_bonus=random.randint(15, 35)
+            reputation_bonus=reputation_seed
         )
         
         # Set penalties
         self.penalty = MissionPenalty(
             credits=int(base_reward * 0.25),
-            reputation_loss=random.randint(20, 40)
+            reputation_loss=penalty_seed
         )
         
         # Time limit based on number of supplies
@@ -422,19 +440,24 @@ class EmergencyDeliveryMission(Mission):
         
         # Much higher rewards for emergency missions
         base_reward = quantity * 200
+        # Use mission ID hash for deterministic randomness
+        reputation_seed = hash(self.id + "reputation") % 26 + 25  # 25-50 range
+        penalty_seed = hash(self.id + "penalty") % 41 + 40  # 40-80 range
+        time_seed = hash(self.id + "time") % 5401 + 1800  # 30 minutes to 2 hours range
+        
         self.reward = MissionReward(
             credits=base_reward,
-            reputation_bonus=random.randint(25, 50)
+            reputation_bonus=reputation_seed
         )
         
         # Higher penalties for failure
         self.penalty = MissionPenalty(
             credits=int(base_reward * 0.5),
-            reputation_loss=random.randint(40, 80)
+            reputation_loss=penalty_seed
         )
         
         # Much shorter time limit (30 minutes to 2 hours)
-        self.time_limit = random.randint(1800, 7200)
+        self.time_limit = time_seed
         
         self.progress_description = "URGENT: Pick up emergency supplies immediately!"
         self.pickup_completed = False
@@ -454,7 +477,7 @@ class EmergencyDeliveryMission(Mission):
             if station_name == self.origin_station_id:
                 # Automatically provide emergency cargo when docked at pickup station
                 if ship.cargo_hold.can_add(self.commodity_id, self.quantity):
-                    if ship.cargo_hold.add_cargo(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.add_mission_cargo(self.commodity_id, self.quantity):
                         self.objectives[0].completed = True
                         self.pickup_completed = True
                         self.progress_description = f"URGENT: Deliver to {self.destination_station_id} NOW!"
@@ -471,7 +494,7 @@ class EmergencyDeliveryMission(Mission):
                 # Check if player still has the emergency cargo
                 if ship.cargo_hold.get_quantity(self.commodity_id) >= self.quantity:
                     # Remove emergency cargo and complete mission
-                    if ship.cargo_hold.remove_cargo(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.remove_mission_cargo(self.commodity_id, self.quantity):
                         self.objectives[1].completed = True
                         self.complete()
                         return True
@@ -514,15 +537,19 @@ class ExplorationMission(Mission):
         
         # Set rewards
         base_reward = len(target_sectors) * 800
+        # Use mission ID hash for deterministic randomness
+        reputation_seed = hash(self.id + "reputation") % 21 + 20  # 20-40 range
+        penalty_seed = hash(self.id + "penalty") % 11 + 15  # 15-25 range
+        
         self.reward = MissionReward(
             credits=base_reward,
-            reputation_bonus=random.randint(20, 40)
+            reputation_bonus=reputation_seed
         )
         
         # Set penalties
         self.penalty = MissionPenalty(
             credits=int(base_reward * 0.2),
-            reputation_loss=random.randint(15, 25)
+            reputation_loss=penalty_seed
         )
         
         # Long time limit for exploration
@@ -542,7 +569,7 @@ class ExplorationMission(Mission):
         
         # Check if ship is in any target sector
         ship_sector_x = int(ship.position.x // 1000)
-        ship_sector_y = int(ship.position.y // 1000)
+        ship_sector_y = int(-ship.position.y // 1000)  # Invert Y for consistency with display
         current_sector = (ship_sector_x, ship_sector_y)
         
         if current_sector in self.target_sectors and current_sector not in self.explored_sectors:

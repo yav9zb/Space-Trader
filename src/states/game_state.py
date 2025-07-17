@@ -5,8 +5,12 @@ import pygame
 from src.docking.docking_state import DockingResult
 try:
     from ..trading.commodity import commodity_registry
+    from ..systems.cloaking_system import cloaking_system
+    from ..systems.repair_system import repair_system
 except ImportError:
     from trading.commodity import commodity_registry
+    from systems.cloaking_system import cloaking_system
+    from systems.repair_system import repair_system
 
 logger = logging.getLogger(__name__)
 
@@ -574,6 +578,10 @@ class PlayingState(State):
         # Update enhanced HUD
         self.enhanced_hud.update(delta_time, self.game)
         
+        # Update repair system
+        is_docked = self.game.docking_manager.is_docked()
+        repair_system.update(delta_time, self.game.ship, is_docked)
+        
         # Check collisions after movement (only if not docking/docked)
         if not self.game.docking_manager.is_docking_in_progress() and not self.game.docking_manager.is_docked():
             for station in self.game.universe.stations:
@@ -699,8 +707,15 @@ class PlayingState(State):
                 -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
                 debris.draw(screen, camera_offset)
         
+        # Draw combat entities (asteroids and bandits)
+        from ..combat.combat_manager import combat_manager
+        combat_manager.draw_entities(screen, camera_offset)
+        
         # Draw ship
         self.game.ship.draw(screen, camera_offset)
+        
+        # Draw combat effects (explosions, etc.)
+        combat_manager.draw_combat_effects(screen, camera_offset)
         
         # Draw minimap last (so it's on top)
         self.game.minimap.draw(screen, self.game.ship,
@@ -712,6 +727,15 @@ class PlayingState(State):
         
         # Draw large map overlay if visible (should be on top of everything)
         self.large_map.draw(screen, self.game.ship, self.game.universe.stations, self.game.universe.planets)
+        
+        # Draw respawn UI if ship is destroyed
+        from ..systems.respawn_system import respawn_system
+        respawn_system.draw_respawn_ui(screen)
+        
+        # Draw repair UI if docked and ship needs repair
+        if self.game.docking_manager.is_docked():
+            station = self.game.docking_manager.get_target_station()
+            repair_system.draw_repair_ui(screen, self.game.ship, station)
         
 
     def _draw_debug_info(self, screen, camera_offset):
@@ -814,6 +838,16 @@ class PlayingState(State):
                     result = self.game.docking_manager.attempt_undocking(self.game.ship)
                     if result != DockingResult.SUCCESS:
                         logger.info(f"Undocking failed: {result.value}")
+            elif event.key == pygame.K_c:  # Cloaking
+                effective_stats = self.game.ship.get_effective_stats()
+                cloaking_system.handle_input(event, effective_stats)
+            elif event.key == pygame.K_r:  # Repair
+                if self.game.docking_manager.is_docked():
+                    station = self.game.docking_manager.get_target_station()
+                    repair_system.handle_input(event, self.game.ship, station)
+                else:
+                    # Emergency repair when not docked
+                    repair_system.handle_input(event, self.game.ship, None)
 
 class PausedState(State):
     def __init__(self, game):
@@ -2173,7 +2207,7 @@ class MissionBoardState(State):
             self.message_timer = 2.0
             return
         
-        success, message = self.mission_manager.accept_mission(mission.id, self.game.ship)
+        success, message = self.mission_manager.accept_mission(mission.id, self.game.ship, self.game)
         
         self.message = message
         self.message_timer = 2.0

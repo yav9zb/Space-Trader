@@ -21,6 +21,7 @@ class Commodity:
     base_price: int  # Standard market price in credits
     category: CommodityCategory
     volume: int  # Cargo space required per unit
+    mission_related: bool = False  # Whether this cargo is for an active mission
     
     def __post_init__(self):
         """Validate commodity data."""

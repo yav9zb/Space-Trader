@@ -6,6 +6,7 @@ from src.camera import Camera
 from src.universe import Universe
 from src.docking.docking_manager import DockingManager
 from src.settings import DisplayMode
+from src.combat.combat_manager import combat_manager
 
 from ..states.game_state import GameStates
 from ..entities.ship import Ship
@@ -213,6 +214,9 @@ class GameEngine:
         
         # Update mission system
         self.mission_manager.update(self)
+        
+        # Update combat system
+        combat_manager.update(self.delta_time, self)
         
         # Update current state
         current_state = self.states[self.current_state]

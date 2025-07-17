@@ -352,7 +352,7 @@ class MissionManager:
         
         return station_missions
     
-    def accept_mission(self, mission_id: str, ship) -> tuple[bool, str]:
+    def accept_mission(self, mission_id: str, ship, game_engine=None) -> tuple[bool, str]:
         """Accept a mission."""
         mission = self.get_mission_by_id(mission_id, self.available_missions)
         if not mission:
@@ -368,6 +368,13 @@ class MissionManager:
         if mission.accept(ship):
             self.available_missions.remove(mission)
             self.active_missions.append(mission)
+            
+            # Immediately update mission progress to handle cargo pickup if at origin station
+            if game_engine:
+                current_station = self.get_current_station(game_engine)
+                if current_station:
+                    mission.update_progress(ship, current_station)
+            
             logger.info(f"Mission accepted: {mission.title}")
             return True, "Mission accepted successfully"
         
@@ -468,7 +475,7 @@ class MissionManager:
         station = self.get_station_by_name(station_name, stations_list)
         if station:
             sector_x = int(station.position.x // 1000)
-            sector_y = int(station.position.y // 1000)
+            sector_y = int(-station.position.y // 1000)  # Invert Y for display consistency
             return f"Sector ({sector_x}, {sector_y})"
         return None
     

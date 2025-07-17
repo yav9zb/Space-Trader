@@ -20,6 +20,11 @@ class ShipStats:
     scanner_range_multiplier: float = 1.0
     scanner_detail: int = 0  # 0 = basic, higher = more detailed info
     
+    # Cloaking stats
+    cloak_effectiveness: float = 0.0  # 0.0 = no cloak, 1.0 = perfect invisibility
+    cloak_duration: float = 0.0  # Maximum cloak duration in seconds
+    cloak_cooldown: float = 0.0  # Cooldown between cloak uses in seconds
+    
     def get_effective_cargo_capacity(self) -> int:
         """Get the effective cargo capacity including upgrades."""
         return self.cargo_capacity
@@ -56,6 +61,7 @@ class ShipUpgrades:
     engine_tier: int = 0
     hull_tier: int = 0
     scanner_tier: int = 0
+    stealth_tier: int = 0
     
     def install_upgrade(self, upgrade_id: str) -> bool:
         """Install an upgrade if requirements are met."""
@@ -85,6 +91,8 @@ class ShipUpgrades:
             self.hull_tier = max(self.hull_tier, upgrade.tier)
         elif upgrade.category == UpgradeCategory.SCANNER:
             self.scanner_tier = max(self.scanner_tier, upgrade.tier)
+        elif upgrade.category == UpgradeCategory.STEALTH:
+            self.stealth_tier = max(self.stealth_tier, upgrade.tier)
         
         return True
     
@@ -216,6 +224,7 @@ class ShipUpgrades:
         self.engine_tier = 0
         self.hull_tier = 0
         self.scanner_tier = 0
+        self.stealth_tier = 0
     
     def to_dict(self) -> Dict[str, any]:
         """Serialize upgrades to dictionary for saving."""
@@ -224,7 +233,8 @@ class ShipUpgrades:
             "cargo_tier": self.cargo_tier,
             "engine_tier": self.engine_tier,
             "hull_tier": self.hull_tier,
-            "scanner_tier": self.scanner_tier
+            "scanner_tier": self.scanner_tier,
+            "stealth_tier": self.stealth_tier
         }
     
     def from_dict(self, data: Dict[str, any]):
@@ -234,3 +244,4 @@ class ShipUpgrades:
         self.engine_tier = data.get("engine_tier", 0)
         self.hull_tier = data.get("hull_tier", 0)
         self.scanner_tier = data.get("scanner_tier", 0)
+        self.stealth_tier = data.get("stealth_tier", 0)

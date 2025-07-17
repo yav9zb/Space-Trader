@@ -9,6 +9,7 @@ class UpgradeCategory(Enum):
     ENGINE = "Engine"
     HULL = "Hull"
     SCANNER = "Scanner"
+    STEALTH = "Stealth Systems"
 
 
 @dataclass
@@ -207,6 +208,48 @@ class UpgradeRegistry:
                 description="Research-grade sensors for maximum detection range",
                 requirements=["scanner_military"],
                 stats={"scanner_range_multiplier": 4.0, "scanner_detail": 4}
+            ),
+            
+            # Stealth/Cloaking Upgrades
+            UpgradeDefinition(
+                id="stealth_basic",
+                name="Basic Cloaking Device",
+                category=UpgradeCategory.STEALTH,
+                tier=1,
+                cost=12000,
+                description="Basic cloaking field generator - partial invisibility to enemies",
+                requirements=[],
+                stats={"cloak_effectiveness": 0.3, "cloak_duration": 10.0, "cloak_cooldown": 30.0}
+            ),
+            UpgradeDefinition(
+                id="stealth_advanced",
+                name="Advanced Cloaking Device",
+                category=UpgradeCategory.STEALTH,
+                tier=2,
+                cost=25000,
+                description="Improved cloaking field with better effectiveness and duration",
+                requirements=["stealth_basic"],
+                stats={"cloak_effectiveness": 0.6, "cloak_duration": 15.0, "cloak_cooldown": 25.0}
+            ),
+            UpgradeDefinition(
+                id="stealth_military",
+                name="Military Cloaking Device",
+                category=UpgradeCategory.STEALTH,
+                tier=3,
+                cost=50000,
+                description="Military-grade cloaking system with near-total invisibility",
+                requirements=["stealth_advanced"],
+                stats={"cloak_effectiveness": 0.85, "cloak_duration": 20.0, "cloak_cooldown": 20.0}
+            ),
+            UpgradeDefinition(
+                id="stealth_prototype",
+                name="Prototype Cloaking Device",
+                category=UpgradeCategory.STEALTH,
+                tier=4,
+                cost=100000,
+                description="Experimental phase-shift cloaking with perfect invisibility",
+                requirements=["stealth_military"],
+                stats={"cloak_effectiveness": 1.0, "cloak_duration": 30.0, "cloak_cooldown": 15.0}
             )
         ]
         
