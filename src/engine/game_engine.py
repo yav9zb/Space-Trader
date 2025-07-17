@@ -5,6 +5,7 @@ from typing import Dict
 from src.camera import Camera
 from src.universe import Universe
 from src.docking.docking_manager import DockingManager
+from src.settings import DisplayMode
 
 from ..states.game_state import GameStates
 from ..entities.ship import Ship
@@ -151,6 +152,13 @@ class GameEngine:
             if event.type == QUIT:
                 self.running = False
                 return
+            elif event.type == pygame.VIDEORESIZE:
+                # Handle window resize events (for windowed mode)
+                if self.settings.display_mode == DisplayMode.WINDOWED:
+                    self.settings.window_width = event.w
+                    self.settings.window_height = event.h
+                    self._update_display()
+            
             # Let the current state handle the event first
             current_state = self.states[self.current_state]
             current_state.handle_input(event)
@@ -324,8 +332,16 @@ class GameEngine:
     def toggle_fullscreen(self):
         """Toggle fullscreen mode."""
         self.settings.toggle_fullscreen()
+        self._update_display()
+    
+    def _update_display(self):
+        """Update display and resize all UI components."""
+        old_size = self.WINDOW_SIZE
         self.screen = self.settings.apply_display_settings(self.screen)
         self.WINDOW_SIZE = self.screen.get_size()
+        
+        # Log the change
+        logger.info(f"Display updated: {old_size[0]}x{old_size[1]} -> {self.WINDOW_SIZE[0]}x{self.WINDOW_SIZE[1]}")
         
         # Recreate starfield with new dimensions
         self.starfield = StarField(100, self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
@@ -334,17 +350,18 @@ class GameEngine:
         self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
         
         # Update minimap with new window size
-        self.minimap = Minimap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        self.minimap.resize(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
         
-        # Update HUD and large map if playing state exists
-        if (self.current_state == GameStates.PLAYING and 
-            hasattr(self.states[GameStates.PLAYING], 'enhanced_hud')):
-            self.states[GameStates.PLAYING].enhanced_hud.resize(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
-            if hasattr(self.states[GameStates.PLAYING], 'large_map'):
+        # Update all state UI components
+        for state in self.states.values():
+            if hasattr(state, 'enhanced_hud'):
+                state.enhanced_hud.resize(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+            if hasattr(state, 'large_map'):
+                # For large map, recreate with new size
                 from ..ui.large_map import LargeMap
-                self.states[GameStates.PLAYING].large_map = LargeMap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+                state.large_map = LargeMap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
         
-        logger.info(f"Display mode changed to {self.settings.display_mode.value} ({self.WINDOW_SIZE[0]}x{self.WINDOW_SIZE[1]})")
+        logger.info(f"Display mode: {self.settings.display_mode.value} ({self.WINDOW_SIZE[0]}x{self.WINDOW_SIZE[1]})")
 
     def _check_auto_save(self):
         """Check if auto-save should be triggered."""

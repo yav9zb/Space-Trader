@@ -1648,3 +1648,159 @@
 2025-07-16 21:29:47,196 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
 2025-07-16 21:29:48,487 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-07-16 21:29:48,922 - src.main - INFO - Game terminated
+2025-07-16 21:34:02,772 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 21:34:02,772 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 21:34:03,319 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 21:34:03,331 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:34:03,340 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 21:34:03,343 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 21:34:03,343 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 21:34:03,406 - src.engine.game_engine - ERROR - Error in game loop: name 'DisplayMode' is not defined
+2025-07-16 21:34:03,406 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 21:34:03,553 - src.main - ERROR - Fatal error: name 'DisplayMode' is not defined
+2025-07-16 21:34:03,553 - src.main - INFO - Game terminated
+2025-07-16 21:34:38,521 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 21:34:38,521 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 21:34:39,047 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 21:34:39,057 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:34:39,065 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 21:34:39,068 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 21:34:39,068 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 21:34:41,744 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-16 21:34:41,745 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:34:41,745 - src.engine.game_engine - INFO - New universe created with seed: 723185230
+2025-07-16 21:34:41,745 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 21:34:41,750 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 21:34:43,106 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 21:34:44,722 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:35:01,155 - src.engine.game_engine - INFO - Dev view: True
+2025-07-16 21:35:04,161 - src.engine.game_engine - INFO - Dev view: False
+2025-07-16 21:35:04,838 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:35:09,251 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:35:13,892 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:35:17,419 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:35:20,144 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:35:36,535 - src.states.game_state - INFO - Docking failed: no_target
+2025-07-16 21:35:37,183 - src.states.game_state - INFO - Docking failed: no_target
+2025-07-16 21:35:40,484 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 21:35:40,552 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 21:35:44,781 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 21:35:45,258 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 21:35:47,135 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 21:35:50,605 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 21:35:50,621 - src.docking.docking_manager - INFO - Initiating docking with Market-540
+2025-07-16 21:35:50,622 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 21:35:52,634 - src.docking.docking_manager - INFO - Successfully docked at Market-540
+2025-07-16 21:35:52,634 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 21:35:52,954 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 21:35:52,954 - src.missions.mission_manager - INFO - Generating 9 missions for first visit to Market-540
+2025-07-16 21:35:52,955 - src.missions.mission_manager - INFO - Generated 9 missions for Market-540
+2025-07-16 21:35:56,149 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 21:35:56,901 - src.states.game_state - INFO - Station Market-540 does not offer upgrades
+2025-07-16 21:35:57,452 - src.states.game_state - INFO - Station Market-540 does not offer upgrades
+2025-07-16 21:35:58,886 - src.docking.docking_manager - INFO - Initiating undocking from Market-540
+2025-07-16 21:36:00,884 - src.docking.docking_manager - INFO - Docking state changed: undocking -> free_flight
+2025-07-16 21:36:02,015 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 21:36:02,538 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 21:36:02,554 - src.docking.docking_manager - INFO - Initiating docking with Outpost-603
+2025-07-16 21:36:02,554 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 21:36:04,563 - src.docking.docking_manager - INFO - Successfully docked at Outpost-603
+2025-07-16 21:36:04,563 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 21:36:05,965 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.MISSIONS
+2025-07-16 21:36:05,965 - src.missions.mission_manager - INFO - Generating 2 missions for first visit to Outpost-603
+2025-07-16 21:36:05,965 - src.missions.mission_manager - INFO - Generated 1 missions for Outpost-603
+2025-07-16 21:36:08,071 - src.engine.game_engine - INFO - Changing game state from GameStates.MISSIONS to GameStates.PLAYING
+2025-07-16 21:36:08,855 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.UPGRADES
+2025-07-16 21:36:10,284 - src.engine.game_engine - INFO - Changing game state from GameStates.UPGRADES to GameStates.PLAYING
+2025-07-16 21:36:10,805 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 21:36:14,262 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.SETTINGS
+2025-07-16 21:36:16,501 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.MAIN_MENU
+2025-07-16 21:36:18,031 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.SETTINGS
+2025-07-16 21:36:20,039 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.MAIN_MENU
+2025-07-16 21:36:21,876 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 21:36:22,018 - src.main - INFO - Game terminated
+2025-07-16 21:38:44,491 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 21:38:44,492 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 21:38:45,023 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 21:38:45,032 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:38:45,039 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 21:38:45,042 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 21:38:45,042 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 21:38:46,120 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-16 21:38:46,121 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:38:46,121 - src.engine.game_engine - INFO - New universe created with seed: 88885055
+2025-07-16 21:38:46,121 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 21:38:46,125 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 21:38:47,700 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 21:38:48,262 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:38:48,721 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:38:49,196 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:38:49,502 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:38:49,705 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:38:49,909 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:38:51,595 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 21:38:51,849 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 21:38:53,346 - src.states.game_state - INFO - Collision detected in PlayingState
+2025-07-16 21:38:53,362 - src.docking.docking_manager - INFO - Initiating docking with Dig-684
+2025-07-16 21:38:53,362 - src.docking.docking_manager - INFO - Docking state changed: approaching -> docking
+2025-07-16 21:38:55,368 - src.docking.docking_manager - INFO - Successfully docked at Dig-684
+2025-07-16 21:38:55,368 - src.docking.docking_manager - INFO - Docking state changed: docking -> docked
+2025-07-16 21:38:57,475 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 21:38:59,082 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 21:38:59,572 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 21:39:00,044 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-16 21:39:00,554 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-16 21:39:10,078 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-16 21:39:11,624 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-16 21:39:11,780 - src.main - INFO - Game terminated
+2025-07-16 21:42:23,988 - src.main - INFO - Starting Space Trading Simulator
+2025-07-16 21:42:23,988 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-16 21:42:24,528 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-16 21:42:24,532 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:42:24,540 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-16 21:42:24,543 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-16 21:42:24,543 - src.engine.game_engine - INFO - Starting game loop
+2025-07-16 21:42:29,249 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-16 21:42:29,249 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-16 21:42:29,249 - src.engine.game_engine - INFO - New universe created with seed: 957683958
+2025-07-16 21:42:29,249 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-16 21:42:29,255 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 21:42:30,540 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 21:42:33,120 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:42:33,817 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:42:34,038 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:42:34,208 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:42:34,394 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:42:37,251 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:42:38,769 - src.engine.game_engine - INFO - Display updated: 1870x980 -> 1820x927
+2025-07-16 21:42:38,770 - src.engine.game_engine - INFO - Display mode: Windowed (1820x927)
+2025-07-16 21:42:39,498 - src.engine.game_engine - INFO - Display updated: 1820x927 -> 1770x827
+2025-07-16 21:42:39,499 - src.engine.game_engine - INFO - Display mode: Fullscreen (1770x827)
+2025-07-16 21:42:40,097 - src.engine.game_engine - INFO - Display updated: 1770x827 -> 1670x727
+2025-07-16 21:42:40,098 - src.engine.game_engine - INFO - Display mode: Windowed (1670x727)
+2025-07-16 21:42:40,422 - src.engine.game_engine - INFO - Display updated: 1670x727 -> 1620x627
+2025-07-16 21:42:40,424 - src.engine.game_engine - INFO - Display mode: Fullscreen (1620x627)
+2025-07-16 21:42:42,966 - src.engine.game_engine - INFO - Display updated: 1620x627 -> 1520x527
+2025-07-16 21:42:42,967 - src.engine.game_engine - INFO - Display mode: Windowed (1520x527)
+2025-07-16 21:42:43,763 - src.engine.game_engine - INFO - Display updated: 1520x527 -> 1470x500
+2025-07-16 21:42:43,764 - src.engine.game_engine - INFO - Display mode: Fullscreen (1470x500)
+2025-07-16 21:42:44,152 - src.engine.game_engine - INFO - Display updated: 1470x500 -> 1370x500
+2025-07-16 21:42:44,153 - src.engine.game_engine - INFO - Display mode: Windowed (1370x500)
+2025-07-16 21:42:44,642 - src.engine.game_engine - INFO - Display updated: 1370x500 -> 1320x500
+2025-07-16 21:42:44,643 - src.engine.game_engine - INFO - Display mode: Fullscreen (1320x500)
+2025-07-16 21:42:45,049 - src.engine.game_engine - INFO - Display updated: 1320x500 -> 1220x500
+2025-07-16 21:42:45,050 - src.engine.game_engine - INFO - Display mode: Windowed (1220x500)
+2025-07-16 21:42:46,015 - src.engine.game_engine - INFO - Display updated: 1220x500 -> 1170x500
+2025-07-16 21:42:46,017 - src.engine.game_engine - INFO - Display mode: Fullscreen (1170x500)
+2025-07-16 21:42:46,370 - src.engine.game_engine - INFO - Display updated: 1170x500 -> 1070x500
+2025-07-16 21:42:46,371 - src.engine.game_engine - INFO - Display mode: Windowed (1070x500)
+2025-07-16 21:42:46,609 - src.engine.game_engine - INFO - Display updated: 1070x500 -> 1020x500
+2025-07-16 21:42:46,611 - src.engine.game_engine - INFO - Display mode: Fullscreen (1020x500)
+2025-07-16 21:42:46,809 - src.engine.game_engine - INFO - Display updated: 1020x500 -> 920x500
+2025-07-16 21:42:46,811 - src.engine.game_engine - INFO - Display mode: Windowed (920x500)
+2025-07-16 21:42:48,670 - src.engine.game_engine - INFO - Display updated: 920x500 -> 1820x927
+2025-07-16 21:42:48,672 - src.engine.game_engine - INFO - Display mode: Windowed (1820x927)
+2025-07-16 21:42:53,208 - src.states.game_state - INFO - Debris collision detected in PlayingState
+2025-07-16 21:43:12,254 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-16 21:43:12,727 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-16 21:43:14,139 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED

@@ -826,8 +826,11 @@ class PausedState(State):
         # First render the game state in the background
         self.game.states[GameStates.PLAYING].render(screen)
         
-        # Draw pause overlay
-        s = pygame.Surface((800, 600))
+        # Get screen dimensions
+        width, height = screen.get_size()
+        
+        # Draw pause overlay (full screen)
+        s = pygame.Surface((width, height))
         s.set_alpha(128)
         s.fill((0, 0, 0))
         screen.blit(s, (0, 0))
@@ -835,16 +838,17 @@ class PausedState(State):
         # Title
         title_font = pygame.font.Font(None, 74)
         title_text = title_font.render("PAUSED", True, (255, 255, 255))
-        screen.blit(title_text, (400 - title_text.get_width() // 2, 200))
+        title_rect = title_text.get_rect(center=(width // 2, height // 4))
+        screen.blit(title_text, title_rect)
         
         # Menu options
         option_font = pygame.font.Font(None, 48)
-        y_offset = 300
+        y_offset = height // 2 - 50
         self.option_rects = []  # Reset rectangles
         for i, option in enumerate(self.pause_options):
             color = (255, 255, 0) if i == self.selected_option else (255, 255, 255)
             option_text = option_font.render(option, True, color)
-            option_rect = option_text.get_rect(center=(400, y_offset))
+            option_rect = option_text.get_rect(center=(width // 2, y_offset))
             screen.blit(option_text, option_rect)
             
             # Store expanded rectangle for mouse interaction
@@ -855,7 +859,7 @@ class PausedState(State):
         # Instructions
         instruction_font = pygame.font.Font(None, 24)
         instructions = instruction_font.render("Use UP/DOWN to navigate, ENTER to select, ESC to resume", True, (150, 150, 150))
-        instruction_rect = instructions.get_rect(center=(400, 550))
+        instruction_rect = instructions.get_rect(center=(width // 2, height - 100))
         screen.blit(instructions, instruction_rect)
 
     def handle_input(self, event):
