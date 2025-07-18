@@ -273,6 +273,15 @@ class DebrisFieldManager:
         
         return removed_count
     
+    def remove_debris(self, debris: Debris) -> bool:
+        """Remove a specific debris piece. Returns True if removed."""
+        if debris in self.debris_list:
+            self.debris_list.remove(debris)
+            self.stats['debris_removed'] += 1
+            self.stats['total_debris'] -= 1
+            return True
+        return False
+    
     def apply_force_at_position(self, position: Vector2, force: Vector2, radius: float = 100.0):
         """Apply force to debris within radius of a position."""
         nearby = self.get_debris_at_position(position, radius)

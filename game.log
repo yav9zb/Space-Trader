@@ -3962,3 +3962,5 @@
 2025-07-18 01:32:16,849 - src.states.game_state - INFO - Debris collision detected: metal
 2025-07-18 01:32:17,983 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
 2025-07-18 01:32:19,534 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-18 10:06:18,925 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-18 10:06:19,028 - src.main - INFO - Game terminated

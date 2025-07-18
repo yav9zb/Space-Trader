@@ -31,6 +31,7 @@ class CombatManager:
         # Combat statistics
         self.bandits_defeated = 0
         self.asteroids_destroyed = 0
+        self.debris_destroyed = 0
         self.damage_dealt = 0.0
         self.damage_taken = 0.0
         
@@ -221,6 +222,32 @@ class CombatManager:
                     # Trigger larger explosion
                     self._apply_explosion_damage(asteroid.position, asteroid.explosion_radius, 
                                                asteroid.explosion_damage, game_engine)
+        
+        # Check hits on debris
+        from ..systems.debris_field_manager import debris_field_manager
+        nearby_debris = debris_field_manager.get_debris_at_position(
+            game_engine.ship.position, 1000  # Check within 1000 units of ship
+        )
+        
+        hits = weapon_system.check_hits(nearby_debris)
+        for projectile, debris in hits:
+            damage = projectile.damage
+            destroyed = debris.take_damage(damage)
+            self.damage_dealt += damage
+            
+            if destroyed:
+                self.debris_destroyed += 1
+                # Create small explosion effect
+                self._create_explosion(debris.position, debris.size * 0.5)
+                
+                # Create fragments for larger debris
+                if debris.size > 15:
+                    fragments = debris.fragment(2)
+                    for fragment in fragments:
+                        debris_field_manager.add_debris(fragment)
+                
+                # Remove destroyed debris
+                debris_field_manager.remove_debris(debris)
     
     def _handle_bandit_destroyed(self, bandit: BanditShip, player_ship):
         """Handle when a bandit is destroyed."""
@@ -414,6 +441,7 @@ class CombatManager:
         return {
             "bandits_defeated": self.bandits_defeated,
             "asteroids_destroyed": self.asteroids_destroyed,
+            "debris_destroyed": self.debris_destroyed,
             "active_bandits": active_bandit_count,
             "active_asteroids": active_asteroid_count,
             "active_black_holes": len(self.active_black_holes),
@@ -432,6 +460,7 @@ class CombatManager:
         # Reset stats
         self.bandits_defeated = 0
         self.asteroids_destroyed = 0
+        self.debris_destroyed = 0
         self.damage_dealt = 0.0
         self.damage_taken = 0.0
 

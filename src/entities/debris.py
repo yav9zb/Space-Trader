@@ -338,6 +338,28 @@ class Debris:
         """Check if debris should be removed."""
         return self.age >= self.lifetime or self.size < 1
     
+    def take_damage(self, damage: float) -> bool:
+        """Apply damage to debris. Returns True if destroyed."""
+        # Calculate damage resistance based on debris type
+        if self.debris_type == DebrisType.METAL:
+            # Metal debris is harder to destroy
+            damage *= 0.7
+        elif self.debris_type == DebrisType.ICE:
+            # Ice debris is easier to destroy
+            damage *= 1.3
+        elif self.debris_type == DebrisType.ASTEROID_CHUNK:
+            # Asteroid chunks are very tough
+            damage *= 0.5
+        
+        # Apply damage to size (debris gets smaller when damaged)
+        self.size -= damage * 0.5
+        
+        # Check if debris is destroyed
+        if self.size <= 3:  # Minimum size before destruction
+            return True
+        
+        return False
+    
     def get_kinetic_energy(self) -> float:
         """Calculate kinetic energy for physics interactions."""
         return 0.5 * self.mass * (self.velocity.length() ** 2)
