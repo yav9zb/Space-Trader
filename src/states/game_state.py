@@ -710,6 +710,9 @@ class PlayingState(State):
         # Generate new chunks as ship moves
         self.game.universe.ensure_chunks_around_position(self.game.ship.position)
         
+        # Update universe (debris physics, etc.)
+        self.game.universe.update(delta_time)
+        
         # Update docking system
         self.game.docking_manager.update(
             self.game.ship, 

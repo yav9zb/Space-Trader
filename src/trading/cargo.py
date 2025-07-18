@@ -8,7 +8,7 @@ class CargoHold:
     """Ship's cargo hold for storing commodities."""
     capacity: int = 50  # Total cargo units
     items: Dict[str, int] = field(default_factory=dict)  # commodity_id -> quantity
-    mission_items: Dict[str, int] = field(default_factory=dict)  # mission commodity tracking
+    mission_items: Dict[str, Dict[str, int]] = field(default_factory=dict)  # mission_id -> {commodity_id -> quantity}
     
     def can_add(self, commodity_id: str, quantity: int) -> bool:
         """Check if we can add the specified quantity of a commodity."""
@@ -54,33 +54,53 @@ class CargoHold:
             
         return True
     
-    def add_mission_cargo(self, commodity_id: str, quantity: int) -> bool:
+    def add_mission_cargo(self, commodity_id: str, quantity: int, mission_id: str = None) -> bool:
         """Add mission-related cargo to the hold."""
         if self.add_cargo(commodity_id, quantity):
-            if commodity_id in self.mission_items:
-                self.mission_items[commodity_id] += quantity
-            else:
-                self.mission_items[commodity_id] = quantity
+            if mission_id:
+                if mission_id not in self.mission_items:
+                    self.mission_items[mission_id] = {}
+                if commodity_id in self.mission_items[mission_id]:
+                    self.mission_items[mission_id][commodity_id] += quantity
+                else:
+                    self.mission_items[mission_id][commodity_id] = quantity
             return True
         return False
     
-    def remove_mission_cargo(self, commodity_id: str, quantity: int) -> bool:
+    def remove_mission_cargo(self, commodity_id: str, quantity: int, mission_id: str = None) -> bool:
         """Remove mission-related cargo from the hold."""
         if self.remove_cargo(commodity_id, quantity):
-            if commodity_id in self.mission_items:
-                self.mission_items[commodity_id] -= quantity
-                if self.mission_items[commodity_id] <= 0:
-                    del self.mission_items[commodity_id]
+            if mission_id and mission_id in self.mission_items:
+                if commodity_id in self.mission_items[mission_id]:
+                    self.mission_items[mission_id][commodity_id] -= quantity
+                    if self.mission_items[mission_id][commodity_id] <= 0:
+                        del self.mission_items[mission_id][commodity_id]
+                    if not self.mission_items[mission_id]:
+                        del self.mission_items[mission_id]
             return True
         return False
     
-    def is_mission_cargo(self, commodity_id: str) -> bool:
+    def is_mission_cargo(self, commodity_id: str, mission_id: str = None) -> bool:
         """Check if a commodity is mission-related."""
-        return commodity_id in self.mission_items and self.mission_items[commodity_id] > 0
+        if mission_id:
+            return (mission_id in self.mission_items and 
+                   commodity_id in self.mission_items[mission_id] and 
+                   self.mission_items[mission_id][commodity_id] > 0)
+        # Check if any mission has this commodity
+        for mission_cargo in self.mission_items.values():
+            if commodity_id in mission_cargo and mission_cargo[commodity_id] > 0:
+                return True
+        return False
     
-    def get_mission_quantity(self, commodity_id: str) -> int:
+    def get_mission_quantity(self, commodity_id: str, mission_id: str = None) -> int:
         """Get the quantity of mission-related cargo."""
-        return self.mission_items.get(commodity_id, 0)
+        if mission_id:
+            return self.mission_items.get(mission_id, {}).get(commodity_id, 0)
+        # Get total mission cargo for this commodity across all missions
+        total = 0
+        for mission_cargo in self.mission_items.values():
+            total += mission_cargo.get(commodity_id, 0)
+        return total
     
     def get_quantity(self, commodity_id: str) -> int:
         """Get the quantity of a specific commodity."""

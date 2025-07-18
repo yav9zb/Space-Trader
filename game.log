@@ -3869,3 +3869,71 @@
 2025-07-17 23:18:19,992 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
 2025-07-17 23:18:21,519 - src.engine.game_engine - INFO - Cleaning up and shutting down
 2025-07-17 23:18:21,640 - src.main - INFO - Game terminated
+2025-07-17 23:53:10,382 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 23:53:10,383 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 23:53:10,890 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 23:53:10,899 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 23:53:10,911 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 23:53:10,915 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 23:53:10,915 - src.engine.game_engine - INFO - Starting game loop
+2025-07-17 23:53:11,657 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-17 23:53:11,657 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 23:53:11,657 - src.engine.game_engine - INFO - New universe created with seed: 675960718
+2025-07-17 23:53:11,657 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-17 23:53:11,688 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-17 23:53:12,888 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-17 23:53:16,626 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-17 23:53:17,687 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.SETTINGS
+2025-07-17 23:53:22,178 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.PAUSED
+2025-07-17 23:53:22,859 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-17 23:53:28,801 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 23:53:30,398 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-17 23:53:30,807 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.PLAYING
+2025-07-17 23:53:43,834 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:47,426 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:47,712 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:48,060 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:48,862 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:49,169 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:50,826 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:50,996 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:51,164 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:51,419 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:51,729 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:51,903 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:52,046 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:52,192 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:52,361 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:52,532 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-17 23:53:53,049 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED
+2025-07-17 23:53:54,445 - src.engine.game_engine - INFO - Changing game state from GameStates.PAUSED to GameStates.MAIN_MENU
+2025-07-17 23:56:23,798 - src.main - INFO - Starting Space Trading Simulator
+2025-07-17 23:56:23,798 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-17 23:56:24,291 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-17 23:56:24,296 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-17 23:56:24,305 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-17 23:56:24,308 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-17 23:56:24,308 - src.engine.game_engine - INFO - Starting game loop
+2025-07-18 00:00:02,808 - src.engine.game_engine - INFO - Cleaning up and shutting down
+2025-07-18 00:00:02,925 - src.main - INFO - Game terminated
+2025-07-18 00:00:06,166 - src.main - INFO - Starting Space Trading Simulator
+2025-07-18 00:00:06,166 - src.engine.game_engine - INFO - Initializing GameEngine
+2025-07-18 00:00:06,653 - src.engine.game_engine - INFO - Resources initialized successfully
+2025-07-18 00:00:06,662 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-18 00:00:06,676 - src.save_system - INFO - Save system initialized with directory: saves
+2025-07-18 00:00:06,679 - src.engine.game_engine - INFO - GameEngine initialization complete
+2025-07-18 00:00:06,679 - src.engine.game_engine - INFO - Starting game loop
+2025-07-18 00:00:08,307 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.SETTINGS
+2025-07-18 00:00:15,663 - src.engine.game_engine - INFO - Changing game state from GameStates.SETTINGS to GameStates.MAIN_MENU
+2025-07-18 00:00:18,380 - src.engine.game_engine - INFO - Creating new universe with seed: None
+2025-07-18 00:00:18,380 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-18 00:00:18,380 - src.engine.game_engine - INFO - New universe created with seed: 1771398354
+2025-07-18 00:00:18,380 - src.engine.game_engine - INFO - Changing game state from GameStates.MAIN_MENU to GameStates.PLAYING
+2025-07-18 00:00:18,411 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-18 00:00:20,324 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-18 00:00:36,098 - src.states.game_state - INFO - Debris collision detected: metal
+2025-07-18 00:00:55,134 - src.states.game_state - INFO - Legacy debris collision detected in PlayingState
+2025-07-18 00:01:03,992 - src.missions.mission_manager - INFO - Mission system initialized - missions will be generated on first station visit
+2025-07-18 00:01:04,009 - src.docking.docking_manager - INFO - Docking state changed: free_flight -> approaching
+2025-07-18 00:01:05,226 - src.docking.docking_manager - INFO - Docking state changed: approaching -> free_flight
+2025-07-18 00:01:05,635 - src.engine.game_engine - INFO - Changing game state from GameStates.PLAYING to GameStates.PAUSED

@@ -101,7 +101,7 @@ class DeliveryMission(Mission):
             if station_name == self.origin_station_id:
                 # Automatically provide cargo to player when docked at pickup station
                 if ship.cargo_hold.can_add(self.commodity_id, self.quantity):
-                    if ship.cargo_hold.add_mission_cargo(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.add_mission_cargo(self.commodity_id, self.quantity, self.id):
                         self.objectives[0].completed = True
                         self.pickup_completed = True
                         self.progress_description = f"Deliver {self.quantity} units to {self.destination_station_id}"
@@ -119,10 +119,10 @@ class DeliveryMission(Mission):
         if self.pickup_completed and current_station:
             station_name = getattr(current_station, 'name', str(current_station))
             if station_name == self.destination_station_id:
-                # Check if player still has the cargo to deliver
-                if ship.cargo_hold.get_quantity(self.commodity_id) >= self.quantity:
-                    # Remove cargo from player's hold and complete mission
-                    if ship.cargo_hold.remove_mission_cargo(self.commodity_id, self.quantity):
+                # Check if player still has the mission-specific cargo to deliver
+                if ship.cargo_hold.get_mission_quantity(self.commodity_id, self.id) >= self.quantity:
+                    # Remove mission cargo from player's hold and complete mission
+                    if ship.cargo_hold.remove_mission_cargo(self.commodity_id, self.quantity, self.id):
                         self.objectives[1].completed = True
                         self.complete()
                         return True
@@ -477,7 +477,7 @@ class EmergencyDeliveryMission(Mission):
             if station_name == self.origin_station_id:
                 # Automatically provide emergency cargo when docked at pickup station
                 if ship.cargo_hold.can_add(self.commodity_id, self.quantity):
-                    if ship.cargo_hold.add_mission_cargo(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.add_mission_cargo(self.commodity_id, self.quantity, self.id):
                         self.objectives[0].completed = True
                         self.pickup_completed = True
                         self.progress_description = f"URGENT: Deliver to {self.destination_station_id} NOW!"
@@ -492,9 +492,9 @@ class EmergencyDeliveryMission(Mission):
             station_name = getattr(current_station, 'name', str(current_station))
             if station_name == self.destination_station_id:
                 # Check if player still has the emergency cargo
-                if ship.cargo_hold.get_quantity(self.commodity_id) >= self.quantity:
+                if ship.cargo_hold.get_mission_quantity(self.commodity_id, self.id) >= self.quantity:
                     # Remove emergency cargo and complete mission
-                    if ship.cargo_hold.remove_mission_cargo(self.commodity_id, self.quantity):
+                    if ship.cargo_hold.remove_mission_cargo(self.commodity_id, self.quantity, self.id):
                         self.objectives[1].completed = True
                         self.complete()
                         return True
