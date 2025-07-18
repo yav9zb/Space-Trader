@@ -17,6 +17,7 @@ class ControlSchemeManager:
     def __init__(self):
         self.current_scheme = ControlScheme.LEFT_HANDED  # Default to current system
         self.schemes = self._initialize_schemes()
+        self.load_from_settings()
     
     def _initialize_schemes(self) -> Dict[ControlScheme, Dict[str, Any]]:
         """Initialize all available control schemes."""
@@ -105,6 +106,7 @@ class ControlSchemeManager:
         if scheme in self.schemes:
             self.current_scheme = scheme
             print(f"Control scheme changed to: {self.schemes[scheme]['name']}")
+            self.save_to_settings()
         else:
             print(f"Invalid control scheme: {scheme}")
     
@@ -217,6 +219,39 @@ class ControlSchemeManager:
                 result[section][key_name] = description
         
         return result
+    
+    def load_from_settings(self):
+        """Load control scheme from settings."""
+        try:
+            # Import here to avoid circular imports
+            try:
+                from ..settings import game_settings
+            except ImportError:
+                from settings import game_settings
+            
+            scheme_name = game_settings.control_scheme
+            scheme = ControlScheme(scheme_name)
+            if scheme in self.schemes:
+                self.current_scheme = scheme
+                print(f"Loaded control scheme: {self.schemes[scheme]['name']}")
+        except (ImportError, ValueError, AttributeError) as e:
+            print(f"Failed to load control scheme from settings: {e}")
+            # Keep default scheme
+    
+    def save_to_settings(self):
+        """Save current control scheme to settings."""
+        try:
+            # Import here to avoid circular imports
+            try:
+                from ..settings import game_settings
+            except ImportError:
+                from settings import game_settings
+            
+            game_settings.control_scheme = self.current_scheme.value
+            game_settings.save()
+            print(f"Saved control scheme: {self.schemes[self.current_scheme]['name']}")
+        except ImportError as e:
+            print(f"Failed to save control scheme to settings: {e}")
 
 
 # Global control scheme manager instance

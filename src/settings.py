@@ -84,9 +84,10 @@ class Settings:
         self.sfx_volume = 0.8
         self.music_volume = 0.6
         
-        # Control settings (for future use)
+        # Control settings
         self.invert_y = False
         self.mouse_sensitivity = 1.0
+        self.control_scheme = "left_handed"  # Default control scheme
         
         # Load settings from file if it exists
         self.load()
@@ -109,6 +110,7 @@ class Settings:
             "music_volume": self.music_volume,
             "invert_y": self.invert_y,
             "mouse_sensitivity": self.mouse_sensitivity,
+            "control_scheme": self.control_scheme,
             "dev_view_enabled": self.dev_view_enabled,
             "dev_show_fps": self.dev_show_fps,
             "dev_show_ship_pos": self.dev_show_ship_pos,
@@ -170,6 +172,7 @@ class Settings:
             # Load control settings
             self.invert_y = settings_dict.get("invert_y", False)
             self.mouse_sensitivity = settings_dict.get("mouse_sensitivity", 1.0)
+            self.control_scheme = settings_dict.get("control_scheme", "left_handed")
             
             # Load dev view settings
             self.dev_view_enabled = settings_dict.get("dev_view_enabled", False)
