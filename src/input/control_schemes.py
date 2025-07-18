@@ -45,6 +45,7 @@ class ControlSchemeManager:
                 "trading": pygame.K_t,
                 "upgrades": pygame.K_u,
                 "missions": pygame.K_m,
+                "base_construction": pygame.K_b,
                 
                 # Menu navigation
                 "pause": pygame.K_ESCAPE,
@@ -83,6 +84,7 @@ class ControlSchemeManager:
                 "trading": pygame.K_f,
                 "upgrades": pygame.K_g,
                 "missions": pygame.K_v,
+                "base_construction": pygame.K_b,
                 
                 # Menu navigation
                 "pause": pygame.K_ESCAPE,

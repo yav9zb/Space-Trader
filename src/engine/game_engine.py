@@ -107,6 +107,7 @@ class GameEngine:
 
         # Initialize states
         from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState, SaveGameState, LoadGameState, MissionBoardState
+        from src.states.base_construction_state import BaseConstructionState
         self.states = {
             GameStates.MAIN_MENU: MenuState(self),
             GameStates.PLAYING: PlayingState(self),
@@ -115,6 +116,7 @@ class GameEngine:
             GameStates.TRADING: None,  # Will be created dynamically with station parameter
             GameStates.UPGRADES: None,  # Will be created dynamically with station parameter
             GameStates.MISSIONS: None,  # Will be created dynamically with station parameter
+            GameStates.BASE_CONSTRUCTION: None,  # Will be created dynamically
             GameStates.SAVE_GAME: None,  # Will be created dynamically
             GameStates.LOAD_GAME: LoadGameState(self)
         }
@@ -422,6 +424,10 @@ class GameEngine:
             # Create settings state with previous state tracking
             from src.states.game_state import SettingsState
             self.states[GameStates.SETTINGS] = SettingsState(self, self.current_state)
+        elif new_state == GameStates.BASE_CONSTRUCTION:
+            # Create base construction state
+            from src.states.base_construction_state import BaseConstructionState
+            self.states[GameStates.BASE_CONSTRUCTION] = BaseConstructionState(self, previous_state=self.current_state)
         elif new_state == GameStates.PLAYING:
             # Resume game
             pass

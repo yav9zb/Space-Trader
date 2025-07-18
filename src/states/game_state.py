@@ -27,6 +27,7 @@ class GameStates(Enum):
     SETTINGS = auto()  # Added for settings menu
     SAVE_GAME = auto()  # Added for save menu
     LOAD_GAME = auto()  # Added for load menu
+    BASE_CONSTRUCTION = auto()  # Added for base building
     GAME_OVER = auto()
 
 class State:
@@ -1058,6 +1059,9 @@ class PlayingState(State):
                 else:
                     # Emergency repair when not docked
                     repair_system.handle_input(event, self.game.ship, None)
+            elif event.key == control_scheme_manager.get_key("base_construction"):
+                # Enter base construction mode
+                self.game.change_state(GameStates.BASE_CONSTRUCTION)
 
 class PausedState(State):
     def __init__(self, game):
