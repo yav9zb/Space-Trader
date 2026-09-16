@@ -47,30 +47,60 @@ class MenuState(State):
     def __init__(self, game):
         super().__init__(game)
         self.title = "Space Trading Simulator"
+        self.tagline = "Trade. Explore. Survive."
         self.menu_options = ["New Game", "Load Game", "Settings", "Exit"]
         self.selected_option = 0
         self.option_rects = []  # Store rectangles for mouse interaction
+        self.starfield = None
+        self.start_ticks = pygame.time.get_ticks()
 
     def render(self, screen):
-        # Clear screan first
-        screen.fill((0, 0, 20)) # Dark blue background
+        from pygame import Vector2
+        from ..entities.starfield import StarField
 
-        # Draw title
-        title_font = pygame.font.Font(None, 74)
-        title = title_font.render(self.title, True, (255, 255, 255))
-        title_rect = title.get_rect(center=(screen.get_width() // 2, 100))
+        # Clear screen first
+        screen.fill((2, 2, 16))  # Near-black space background
+
+        # Lazily build a starfield sized to the actual screen, and let it
+        # drift slowly over time for a subtle sense of motion.
+        if self.starfield is None or self.starfield.screen_width != screen.get_width():
+            self.starfield = StarField(160, screen.get_width(), screen.get_height())
+        drift = (pygame.time.get_ticks() - self.start_ticks) * 0.02
+        self.starfield.draw(screen, Vector2(drift, drift * 0.4))
+
+        # Title with a soft accent underline
+        title_font = pygame.font.Font(None, 84)
+        title = title_font.render(self.title, True, (235, 240, 255))
+        title_rect = title.get_rect(center=(screen.get_width() // 2, 130))
         screen.blit(title, title_rect)
+
+        pygame.draw.line(
+            screen, (80, 160, 255),
+            (title_rect.left, title_rect.bottom + 8),
+            (title_rect.right, title_rect.bottom + 8), 2
+        )
+
+        tagline_font = pygame.font.Font(None, 28)
+        tagline = tagline_font.render(self.tagline, True, (140, 170, 220))
+        tagline_rect = tagline.get_rect(center=(screen.get_width() // 2, title_rect.bottom + 30))
+        screen.blit(tagline, tagline_rect)
 
         # Draw menu options and store their rectangles
         option_font = pygame.font.Font(None, 48)  # Slightly larger font for options
         self.option_rects = []  # Reset rectangles
         for i, option in enumerate(self.menu_options):
-            color = (255, 255, 0) if i == self.selected_option else (255, 255, 255)
+            is_selected = i == self.selected_option
+            color = (255, 220, 80) if is_selected else (220, 225, 235)
             text = option_font.render(option, True, color)
             # Position each option, centered horizontally and spaced vertically
-            text_rect = text.get_rect(center=(screen.get_width() // 2, 300 + i * 60))
+            text_rect = text.get_rect(center=(screen.get_width() // 2, 340 + i * 60))
+
+            if is_selected:
+                marker = option_font.render(">", True, (255, 220, 80))
+                screen.blit(marker, (text_rect.left - 30, text_rect.top))
+
             screen.blit(text, text_rect)
-            
+
             # Store expanded rectangle for mouse interaction
             expanded_rect = text_rect.inflate(40, 20)
             self.option_rects.append(expanded_rect)
@@ -79,7 +109,7 @@ class MenuState(State):
         if hasattr(self.game, 'world_seed') and self.game.world_seed is not None:
             seed_font = pygame.font.Font(None, 24)
             seed_text = f"World Seed: {self.game.world_seed}"
-            seed_surface = seed_font.render(seed_text, True, (150, 150, 150))
+            seed_surface = seed_font.render(seed_text, True, (110, 120, 140))
             seed_rect = seed_surface.get_rect(bottomright=(screen.get_width() - 10, screen.get_height() - 10))
             screen.blit(seed_surface, seed_rect)
 
