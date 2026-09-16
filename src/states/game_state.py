@@ -1530,11 +1530,13 @@ class TradingState(State):
         cargo_header = header_font.render("YOUR CARGO", True, (200, 200, 200))
         screen.blit(cargo_header, (width//2 + 20, content_y))
         
-        # Market commodities list
-        self._render_market_list(screen, 20, content_y + 40, left_width, text_font, small_font)
-        
-        # Ship cargo list  
-        self._render_cargo_list(screen, width//2 + 20, content_y + 40, right_width, text_font, small_font)
+        # Market commodities list - clip to the space above the controls footer
+        list_top = content_y + 40
+        list_height = max(0, (height - 150) - list_top)
+        self._render_market_list(screen, 20, list_top, left_width, list_height, text_font, small_font)
+
+        # Ship cargo list
+        self._render_cargo_list(screen, width//2 + 20, list_top, right_width, list_height, text_font, small_font)
         
         # Controls and instructions
         self._render_controls(screen, height, small_font)
@@ -1545,60 +1547,82 @@ class TradingState(State):
             msg_rect = msg_surface.get_rect(centerx=width//2, y=height - 80)
             screen.blit(msg_surface, msg_rect)
     
-    def _render_market_list(self, screen, x, y, width, text_font, small_font):
-        """Render the station's market commodity list."""
+    def _get_scroll_window(self, total, selected_index, max_visible):
+        """Get (start, end) indices for a scroll window centered on the selection."""
+        if total <= max_visible:
+            return 0, total
+        start = min(max(0, selected_index - max_visible // 2), total - max_visible)
+        return start, start + max_visible
+
+    def _render_market_list(self, screen, x, y, width, height_limit, text_font, small_font):
+        """Render the station's market commodity list, scrolled to keep the selection visible."""
         if not self.market:
             return
-            
+
+        line_height = 40
+        max_visible = max(1, height_limit // line_height)
+        total = len(self.available_commodities)
+        start, end = self._get_scroll_window(total, self.selected_commodity_index, max_visible)
+
         current_y = y
-        line_height = 30
-        
-        for i, commodity in enumerate(self.available_commodities):
+        for i in range(start, end):
+            commodity = self.available_commodities[i]
+
             # Highlight selected item if viewing market
             if not self.viewing_cargo and i == self.selected_commodity_index:
-                pygame.draw.rect(screen, (50, 50, 100), (x-5, current_y-5, width, line_height))
-            
+                pygame.draw.rect(screen, (50, 50, 100), (x-5, current_y-5, width, 30))
+
             # Commodity name
             name_surface = text_font.render(commodity.name, True, (255, 255, 255))
             screen.blit(name_surface, (x, current_y))
-            
+
             # Prices
             buy_price = self.market.get_buy_price(commodity.id)
             sell_price = self.market.get_sell_price(commodity.id)
-            
+
             price_text = f"Buy: {buy_price}  Sell: {sell_price}"
             price_surface = small_font.render(price_text, True, (200, 200, 200))
             screen.blit(price_surface, (x + 20, current_y + 18))
-            
-            current_y += line_height + 10
-    
-    def _render_cargo_list(self, screen, x, y, width, text_font, small_font):
-        """Render the ship's cargo list."""
-        current_y = y
-        line_height = 30
-        
+
+            current_y += line_height
+
+        if total > max_visible:
+            scroll_text = f"{start + 1}-{end} of {total}"
+            scroll_surface = small_font.render(scroll_text, True, (150, 150, 150))
+            screen.blit(scroll_surface, (x, y + max_visible * line_height))
+
+    def _render_cargo_list(self, screen, x, y, width, height_limit, text_font, small_font):
+        """Render the ship's cargo list, scrolled to keep the selection visible."""
         cargo_items = self.ship.cargo_hold.get_cargo_items()
-        
+
         if not cargo_items:
             empty_surface = text_font.render("Cargo hold empty", True, (150, 150, 150))
-            screen.blit(empty_surface, (x, current_y))
+            screen.blit(empty_surface, (x, y))
             return
-        
-        for i, (commodity, quantity) in enumerate(cargo_items):
+
+        line_height = 40
+        max_visible = max(1, height_limit // line_height)
+        total = len(cargo_items)
+        start, end = self._get_scroll_window(total, self.selected_commodity_index, max_visible)
+
+        current_y = y
+        for i in range(start, end):
+            commodity, quantity = cargo_items[i]
+
             # Highlight selected item if viewing cargo
             if self.viewing_cargo and i == self.selected_commodity_index:
-                pygame.draw.rect(screen, (50, 100, 50), (x-5, current_y-5, width, line_height))
-            
+                pygame.draw.rect(screen, (50, 100, 50), (x-5, current_y-5, width, 30))
+
             # Commodity name and quantity
             name_text = f"{commodity.name}"
             quantity_text = f"x{quantity}"
-            
+
             name_surface = text_font.render(name_text, True, (255, 255, 255))
             quantity_surface = text_font.render(quantity_text, True, (200, 200, 200))
-            
+
             screen.blit(name_surface, (x, current_y))
             screen.blit(quantity_surface, (x + width - quantity_surface.get_width(), current_y))
-            
+
             # Value
             if self.market:
                 sell_price = self.market.get_sell_price(commodity.id)
@@ -1607,8 +1631,13 @@ class TradingState(State):
                     value_text = f"Value: {value}"
                     value_surface = small_font.render(value_text, True, (200, 200, 200))
                     screen.blit(value_surface, (x + 20, current_y + 18))
-            
-            current_y += line_height + 10
+
+            current_y += line_height
+
+        if total > max_visible:
+            scroll_text = f"{start + 1}-{end} of {total}"
+            scroll_surface = small_font.render(scroll_text, True, (150, 150, 150))
+            screen.blit(scroll_surface, (x, y + max_visible * line_height))
     
     def _render_controls(self, screen, height, font):
         """Render control instructions."""
