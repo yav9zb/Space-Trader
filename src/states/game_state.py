@@ -1876,74 +1876,78 @@ class UpgradeState(State):
                 self.upgrades_by_category[category] = category_upgrades
         
         self.categories = list(self.upgrades_by_category.keys())
-        
+
+        from ..ui.menu_style import MenuBackground
+        self.background = MenuBackground()
+
     def update(self, delta_time):
         # Update message timer
         if self.message_timer > 0:
             self.message_timer -= delta_time
             if self.message_timer <= 0:
                 self.message = ""
-    
+
     def render(self, screen):
-        # Clear screen with dark background
-        screen.fill((20, 30, 20))
-        
+        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+
+        self.background.draw(screen)
+
         # Fonts
-        title_font = pygame.font.Font(None, 48)
-        header_font = pygame.font.Font(None, 36)
+        header_font = pygame.font.Font(None, 32)
         text_font = pygame.font.Font(None, 24)
         small_font = pygame.font.Font(None, 20)
-        
+
         # Screen dimensions
         width, height = screen.get_size()
-        
+
         # Title
         station_name = self.station.name if self.station else "Unknown Station"
         station_type = self.station.station_type.value if self.station else "Unknown"
-        title_text = f"SHIP UPGRADES - {station_name} ({station_type})"
-        title_surface = title_font.render(title_text, True, (255, 255, 255))
-        title_rect = title_surface.get_rect(centerx=width//2, y=20)
-        screen.blit(title_surface, title_rect)
-        
+        title_bottom = draw_title(screen, "SHIP UPGRADES", subtitle=f"{station_name} - {station_type}", y=50)
+
         # Credits and ship info
         ship_info = self.ship.get_ship_info()
         credits_text = f"Credits: {ship_info['credits']:,}"
         ship_text = f"Ship: Modified Trader (Upgrades: {ship_info['total_upgrade_value']:,} cr)"
-        
-        credits_surface = text_font.render(credits_text, True, (255, 255, 0))
-        ship_surface = text_font.render(ship_text, True, (200, 200, 200))
-        
-        screen.blit(credits_surface, (20, 80))
-        screen.blit(ship_surface, (width - ship_surface.get_width() - 20, 80))
-        
-        # Divider line
-        pygame.draw.line(screen, (100, 100, 100), (0, 120), (width, 120), 2)
-        
+
+        credits_surface = text_font.render(credits_text, True, ACCENT_GOLD)
+        ship_surface = text_font.render(ship_text, True, TEXT_DIM)
+
+        info_y = title_bottom + 14
+        screen.blit(credits_surface, (20, info_y))
+        screen.blit(ship_surface, (width - ship_surface.get_width() - 20, info_y))
+
         # Split screen layout
-        left_width = width // 2 - 10
-        right_width = width // 2 - 10
-        content_y = 140
-        
+        left_width = width // 2 - 30
+        right_width = width // 2 - 30
+        content_y = info_y + 34
+        panel_bottom = height - 140
+
+        stats_panel = pygame.Rect(20, content_y, left_width, panel_bottom - content_y)
+        upgrades_panel = pygame.Rect(width // 2 + 10, content_y, right_width, panel_bottom - content_y)
+        draw_panel(screen, stats_panel)
+        draw_panel(screen, upgrades_panel, border_color=ACCENT_BLUE if not self.viewing_categories else (70, 80, 100))
+
         # Left panel - Current Ship Stats
-        stats_header = header_font.render("CURRENT SHIP STATS", True, (200, 200, 200))
-        screen.blit(stats_header, (20, content_y))
-        
+        stats_header = header_font.render("CURRENT SHIP STATS", True, TEXT_PRIMARY)
+        screen.blit(stats_header, (stats_panel.x + 16, content_y + 12))
+
         # Right panel - Available Upgrades
-        upgrades_header = header_font.render("AVAILABLE UPGRADES", True, (200, 200, 200))
-        screen.blit(upgrades_header, (width//2 + 20, content_y))
-        
+        upgrades_header = header_font.render("AVAILABLE UPGRADES", True, TEXT_PRIMARY)
+        screen.blit(upgrades_header, (upgrades_panel.x + 16, content_y + 12))
+
         # Ship stats list
-        self._render_ship_stats(screen, 20, content_y + 40, left_width, text_font, small_font)
-        
+        self._render_ship_stats(screen, stats_panel.x + 16, content_y + 48, left_width - 32, text_font, small_font)
+
         # Upgrades list
-        self._render_upgrades_list(screen, width//2 + 20, content_y + 40, right_width, text_font, small_font)
-        
+        self._render_upgrades_list(screen, upgrades_panel.x + 16, content_y + 48, right_width - 32, text_font, small_font)
+
         # Controls and instructions
         self._render_controls(screen, height, small_font)
-        
+
         # Transaction message
         if self.message:
-            msg_surface = text_font.render(self.message, True, (255, 255, 0))
+            msg_surface = text_font.render(self.message, True, ACCENT_GOLD)
             msg_rect = msg_surface.get_rect(centerx=width//2, y=height - 80)
             screen.blit(msg_surface, msg_rect)
     
@@ -1998,59 +2002,67 @@ class UpgradeState(State):
     
     def _render_upgrades_list(self, screen, x, y, width, text_font, small_font):
         """Render available upgrades list."""
+        from ..ui.menu_style import ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+
         if not self.categories:
-            no_upgrades_surface = text_font.render("No upgrades available", True, (150, 150, 150))
+            no_upgrades_surface = text_font.render("No upgrades available", True, TEXT_DIM)
             screen.blit(no_upgrades_surface, (x, y))
             return
-        
+
         current_y = y
         line_height = 35
-        
+
         if self.viewing_categories:
             # Show categories
             for i, category in enumerate(self.categories):
+                is_selected = i == self.selected_category_index
                 # Highlight selected category
-                if i == self.selected_category_index:
-                    pygame.draw.rect(screen, (50, 100, 50), (x-5, current_y-5, width, line_height))
-                
+                if is_selected:
+                    highlight_rect = pygame.Rect(x - 8, current_y - 5, width, line_height)
+                    pygame.draw.rect(screen, (40, 65, 45), highlight_rect, border_radius=6)
+                    pygame.draw.rect(screen, ACCENT_BLUE, highlight_rect, 2, border_radius=6)
+
                 # Category name
-                category_text = f"► {category.value}"
-                category_surface = text_font.render(category_text, True, (255, 255, 255))
+                category_text = f"> {category.value}" if is_selected else category.value
+                category_surface = text_font.render(category_text, True, ACCENT_GOLD if is_selected else TEXT_PRIMARY)
                 screen.blit(category_surface, (x, current_y))
-                
+
                 # Number of upgrades in category
                 upgrade_count = len(self.upgrades_by_category[category])
                 count_text = f"({upgrade_count} upgrades)"
-                count_surface = small_font.render(count_text, True, (200, 200, 200))
+                count_surface = small_font.render(count_text, True, TEXT_DIM)
                 screen.blit(count_surface, (x + 20, current_y + 18))
-                
+
                 current_y += line_height + 10
         else:
             # Show upgrades in selected category
             if self.selected_category_index < len(self.categories):
                 selected_category = self.categories[self.selected_category_index]
                 category_upgrades = self.upgrades_by_category[selected_category]
-                
+
                 for i, upgrade in enumerate(category_upgrades):
+                    is_selected = i == self.selected_upgrade_index
                     # Highlight selected upgrade
-                    if i == self.selected_upgrade_index:
-                        pygame.draw.rect(screen, (100, 50, 50), (x-5, current_y-5, width, line_height))
-                    
+                    if is_selected:
+                        highlight_rect = pygame.Rect(x - 8, current_y - 5, width, line_height)
+                        pygame.draw.rect(screen, (65, 45, 40), highlight_rect, border_radius=6)
+                        pygame.draw.rect(screen, ACCENT_BLUE, highlight_rect, 2, border_radius=6)
+
                     # Upgrade name
-                    name_surface = text_font.render(upgrade.name, True, (255, 255, 255))
+                    name_surface = text_font.render(upgrade.name, True, ACCENT_GOLD if is_selected else TEXT_PRIMARY)
                     screen.blit(name_surface, (x, current_y))
-                    
+
                     # Price and details
                     station_type = self.station.station_type.value if self.station else "Shipyard"
                     discounted_price = self.upgrade_system.get_discounted_price(upgrade, station_type)
-                    
+
                     price_text = f"{discounted_price:,} credits"
                     if discounted_price < upgrade.cost:
                         price_text += f" (was {upgrade.cost:,})"
-                    
-                    price_surface = small_font.render(price_text, True, (255, 255, 0))
+
+                    price_surface = small_font.render(price_text, True, ACCENT_GOLD)
                     screen.blit(price_surface, (x + 20, current_y + 18))
-                    
+
                     current_y += line_height + 5
     
     def _render_controls(self, screen, height, font):

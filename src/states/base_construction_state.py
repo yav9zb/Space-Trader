@@ -377,7 +377,7 @@ class BaseConstructionState(State):
                 if len(suggestion) > 45:
                     suggestion = suggestion[:42] + "..."
                 
-                sugg_text = font.render(f"• {suggestion}", True, (200, 200, 200))
+                sugg_text = font.render(f"- {suggestion}", True, (200, 200, 200))
                 screen.blit(sugg_text, (panel_x + 15, y_offset))
                 y_offset += 15
         else:
@@ -485,7 +485,7 @@ class BaseConstructionState(State):
                 if y_offset >= overlay_y + overlay_height - 40:
                     break
                 
-                item_text = small_font.render(f"  • {item}", True, (200, 200, 200))
+                item_text = small_font.render(f"  - {item}", True, (200, 200, 200))
                 screen.blit(item_text, (overlay_x + 30, y_offset))
                 y_offset += 18
             

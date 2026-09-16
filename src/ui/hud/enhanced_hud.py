@@ -431,7 +431,7 @@ class EnhancedHUD:
             
             # Destination info if available
             if hasattr(mission, 'destination_station_id') and mission.destination_station_id:
-                dest_text = f"→ {mission.destination_station_id}"
+                dest_text = f"-> {mission.destination_station_id}"
                 dest_surface = self.font_small.render(dest_text, True, (150, 200, 255))
                 surface.blit(dest_surface, (panel_x + self.ui_layout.padding, y_offset + 15))
                 progress_y_offset = self.ui_layout.get_responsive_spacing(30)
