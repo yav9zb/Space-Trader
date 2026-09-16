@@ -89,17 +89,21 @@ class UILayout:
         
         return x + offset_x, y + offset_y
     
-    def get_panel_size(self, base_width: int, base_height: int, 
+    def get_panel_size(self, base_width: int, base_height: int,
                       max_width_percent: float = 0.4, max_height_percent: float = 0.6) -> Tuple[int, int]:
         """Get responsive panel size based on screen dimensions."""
-        # Calculate scaled dimensions
-        scaled_width = int(base_width * self.font_scale)
-        scaled_height = int(base_height * self.font_scale)
-        
+        # Calculate scaled dimensions - never shrink below the base size, since
+        # get_responsive_spacing() never shrinks content spacing below its base
+        # value either. Letting only the panel shrink (while content doesn't)
+        # causes text to overflow the panel background on screens smaller than
+        # the 1920x1080 baseline, which is the common case.
+        scaled_width = max(base_width, int(base_width * self.font_scale))
+        scaled_height = max(base_height, int(base_height * self.font_scale))
+
         # Apply maximum percentage constraints
         max_width = int(self.screen_width * max_width_percent)
         max_height = int(self.screen_height * max_height_percent)
-        
+
         # Clamp to maximum values
         width = min(scaled_width, max_width)
         height = min(scaled_height, max_height)
