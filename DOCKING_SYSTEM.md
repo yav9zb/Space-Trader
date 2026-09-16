@@ -1,5 +1,15 @@
 # Docking System Technical Documentation
 
+> **Note:** the system is fully implemented (see "Implementation Status"
+> near the end of this document for the real, current file layout). The
+> "Phase 1-4" plan and code samples below are the *original* design
+> notes written before implementation - some file paths and class names
+> (e.g. a standalone `DockingUI` or `DockedState` class) don't match
+> where things actually ended up (docking visuals and the docked-station
+> interfaces live in `src/states/game_state.py` alongside every other
+> game state, not in separate per-feature files). Left as historical
+> design context rather than rewritten line-by-line.
+
 ## Overview
 
 The docking system provides seamless interaction between ships and stations in the Space Trader game. This document outlines the technical implementation, design decisions, and integration points for the docking system.
@@ -13,15 +23,16 @@ The docking system provides seamless interaction between ships and stations in t
    - Manages docking state transitions
    - Handles docking validation and requirements
 
-2. **Docking Interface** (`src/states/docking_state.py`)
-   - Game state for docked interactions
-   - Trading interface and station services
-   - Undocking procedures
+2. **Docking States** (`src/docking/docking_state.py`)
+   - `DockingState`/`DockingResult` enums used by the manager above
+   - Actual docked interactions (trading, upgrades, missions) are separate
+     game states (`TradingState`, `UpgradeState`, `MissionBoardState`) in
+     `src/states/game_state.py`, entered once `DockingManager.is_docked()`
 
-3. **Docking Visual System** (`src/ui/docking_ui.py`)
-   - Visual feedback for docking approach
-   - Range indicators and status displays
-   - Animation system for docking sequences
+3. **Docking Visual Feedback**
+   - Approach/docking zone indicators, range circles, and status text are
+     drawn in `PlayingState._draw_docking_feedback()` in
+     `src/states/game_state.py`, not a separate UI module
 
 ### State Machine
 
@@ -255,26 +266,8 @@ class DockedState(State):
 - **Mission System**: Docking requirements for mission completion
 - **Multiplayer**: Synchronized docking states between clients
 
-## Implementation Timeline
+## Implementation Status
 
-### Week 1: Core System
-- [ ] Create docking manager and state machine
-- [ ] Implement basic proximity detection
-- [ ] Add docking validation logic
-
-### Week 2: Visual Feedback
-- [ ] Implement docking zone indicators
-- [ ] Add approach guidance UI
-- [ ] Create status message system
-
-### Week 3: Game Integration
-- [ ] Integrate with game states
-- [ ] Add manual docking controls
-- [ ] Implement state transitions
-
-### Week 4: Docked Interface
-- [ ] Create docked game state
-- [ ] Build station interface UI
-- [ ] Add undocking procedures
+Fully implemented - docking manager and state machine, proximity detection and validation, zone indicators and approach guidance UI, manual dock/undock controls, and the docked station interface (trading, upgrades, missions) are all live. See `src/docking/docking_manager.py` and `src/docking/docking_state.py`.
 
 This technical documentation provides the roadmap for implementing a robust, user-friendly docking system that enhances the Space Trader gameplay experience while maintaining code quality and performance standards.

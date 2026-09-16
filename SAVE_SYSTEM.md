@@ -151,14 +151,10 @@ All save/load operations are logged to `game.log` with timestamps and error deta
 
 ## Testing
 
-Run the test suite with:
+Run the full test suite with:
 ```bash
-python3 test_save_system.py
+python -m pytest tests/ -v
 ```
 
-The save system has been thoroughly tested for:
-- Save file creation and deletion
-- Metadata handling
-- Serialization accuracy
-- Error recovery
+There is no dedicated save-system test file yet (`test_save_system.py`, previously referenced here, doesn't exist) - save/load is currently exercised indirectly through manual testing rather than automated coverage. This is a real gap worth closing.
 - Integration with game states

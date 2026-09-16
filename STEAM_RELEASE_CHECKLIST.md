@@ -4,6 +4,11 @@ What's been prepared in the codebase, and what only you can do (account
 creation, payment, legal/tax forms, and store submission are things an
 AI assistant can't and shouldn't do on your behalf).
 
+> **Sequencing:** the plan is a GitHub beta first, Steam after - see
+> [GITHUB_RELEASE_CHECKLIST.md](GITHUB_RELEASE_CHECKLIST.md) for that
+> nearer-term step. Nothing here blocks the GitHub beta; this document
+> only matters once you're ready to move toward Steam.
+
 ## Done in the codebase
 
 - **Packaged build**: `spacetrader.spec` produces a standalone build via
@@ -16,9 +21,10 @@ AI assistant can't and shouldn't do on your behalf).
 - **CI build workflow**: `.github/workflows/build.yml` runs the test
   suite and, on a version tag push, builds all three platforms
   (macOS/Windows/Linux) via a GitHub Actions matrix and uploads each as
-  a build artifact. This hasn't been validated against real CI yet
-  since the repo has no GitHub remote configured - push it and check
-  the Actions tab once one exists.
+  a build artifact. The repo now has a GitHub remote
+  ([yav9zb/Space-Trader](https://github.com/yav9zb/Space-Trader)) but
+  this workflow still hasn't been validated against a real CI run -
+  push a tag and check the Actions tab.
 - **Steamworks scaffolding**: `src/steam/steam_manager.py` looks for a
   native Steamworks library (`steam_api64.dll` / `libsteam_api.dylib` /
   `libsteam_api.so`) next to the executable and calls

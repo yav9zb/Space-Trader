@@ -23,7 +23,7 @@ The trading system provides the core economic gameplay loop, allowing players to
    - Dynamic pricing based on station type
    - Buy/sell transaction handling
 
-4. **Trading Interface** (`src/states/trading_state.py`)
+4. **Trading Interface** (`TradingState` in `src/states/game_state.py`)
    - UI for commodity trading
    - Transaction confirmation
    - Market information display
