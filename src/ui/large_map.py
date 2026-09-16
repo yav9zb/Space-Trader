@@ -266,6 +266,8 @@ class LargeMap:
     
     def _draw_stations(self, surface, stations, center_pos):
         """Draw stations on the large map."""
+        placed_label_rects = []  # Avoid overlapping labels when stations cluster
+
         for station in stations:
             # Only draw stations within reasonable distance
             distance = (station.position - center_pos).length()
@@ -273,17 +275,24 @@ class LargeMap:
                 map_pos = self.world_to_map_coords(station.position, center_pos)
                 if self._is_visible(map_pos):
                     size = max(3, int(5 * self.zoom_level))
-                    pygame.draw.circle(surface, (200, 200, 200), 
+                    pygame.draw.circle(surface, (200, 200, 200),
                                      (int(map_pos.x), int(map_pos.y)), size)
-                    pygame.draw.circle(surface, (255, 255, 255), 
+                    pygame.draw.circle(surface, (255, 255, 255),
                                      (int(map_pos.x), int(map_pos.y)), size, 1)
-                    
-                    # Draw station name
+
+                    # Draw station name, nudged down past any label already
+                    # placed nearby so clustered stations stay readable
                     if hasattr(station, 'name'):
                         name_surface = self.font_small.render(station.name, True, (255, 255, 255))
-                        text_pos = (int(map_pos.x - name_surface.get_width() // 2),
-                                  int(map_pos.y + size + 2))
-                        surface.blit(name_surface, text_pos)
+                        label_x = int(map_pos.x - name_surface.get_width() // 2)
+                        label_y = int(map_pos.y + size + 2)
+                        label_rect = name_surface.get_rect(topleft=(label_x, label_y))
+
+                        while any(label_rect.colliderect(r) for r in placed_label_rects):
+                            label_rect.y += label_rect.height + 2
+
+                        surface.blit(name_surface, label_rect.topleft)
+                        placed_label_rects.append(label_rect)
     
     def _draw_ship(self, surface, ship, center_pos):
         """Draw the player ship on the large map."""
