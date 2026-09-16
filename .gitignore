@@ -4,4 +4,11 @@ __pycache__/
 *.so
 .env
 .venv
-game.log
+venv/
+pygame-env/
+*.log
+.DS_Store
+.pytest_cache/
+node_modules/
+settings.json
+saves/
