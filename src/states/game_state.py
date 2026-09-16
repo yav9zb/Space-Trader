@@ -119,27 +119,113 @@ class MenuState(State):
         elif self.selected_option == 3:  # Exit
             self.game.running = False
 
+class GameOverState(State):
+    """Permadeath end screen, shown when the ship is destroyed on Extreme difficulty."""
+    def __init__(self, game):
+        super().__init__(game)
+        self.title = "GAME OVER"
+        self.menu_options = ["Return to Main Menu", "Exit"]
+        self.selected_option = 0
+        self.option_rects = []
+
+    def render(self, screen):
+        screen.fill((20, 0, 0))  # Dark red background
+
+        title_font = pygame.font.Font(None, 96)
+        title = title_font.render(self.title, True, (220, 40, 40))
+        title_rect = title.get_rect(center=(screen.get_width() // 2, 160))
+        screen.blit(title, title_rect)
+
+        subtitle_font = pygame.font.Font(None, 32)
+        subtitle = subtitle_font.render(
+            "Your ship was destroyed. Extreme difficulty offers no second chances.",
+            True, (200, 150, 150)
+        )
+        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 230))
+        screen.blit(subtitle, subtitle_rect)
+
+        # Run stats
+        stats_font = pygame.font.Font(None, 28)
+        credits = self.game.ship.credits if getattr(self.game, 'ship', None) else 0
+        play_time = getattr(self.game, 'play_time', 0.0)
+        minutes, seconds = divmod(int(play_time), 60)
+        stats_lines = [
+            f"Final Credits: {credits}",
+            f"Time Survived: {minutes}m {seconds}s",
+        ]
+        y = 300
+        for line in stats_lines:
+            text = stats_font.render(line, True, (220, 220, 220))
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y))
+            screen.blit(text, text_rect)
+            y += 32
+
+        option_font = pygame.font.Font(None, 48)
+        self.option_rects = []
+        for i, option in enumerate(self.menu_options):
+            color = (255, 220, 0) if i == self.selected_option else (255, 255, 255)
+            text = option_font.render(option, True, color)
+            text_rect = text.get_rect(center=(screen.get_width() // 2, 420 + i * 60))
+            screen.blit(text, text_rect)
+            self.option_rects.append(text_rect.inflate(40, 20))
+
+    def handle_input(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.selected_option = (self.selected_option - 1) % len(self.menu_options)
+            elif event.key == pygame.K_DOWN:
+                self.selected_option = (self.selected_option + 1) % len(self.menu_options)
+            elif event.key == pygame.K_RETURN:
+                self._select_option()
+        elif event.type == pygame.MOUSEMOTION:
+            mouse_pos = pygame.mouse.get_pos()
+            for i, rect in enumerate(self.option_rects):
+                if rect.collidepoint(mouse_pos):
+                    self.selected_option = i
+                    break
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                mouse_pos = pygame.mouse.get_pos()
+                for i, rect in enumerate(self.option_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_option = i
+                        self._select_option()
+                        break
+
+    def _select_option(self):
+        if self.selected_option == 0:  # Return to Main Menu
+            self.game.change_state(GameStates.MAIN_MENU)
+        elif self.selected_option == 1:  # Exit
+            self.game.running = False
+
+
 class SettingsState(State):
     def __init__(self, game, previous_state=None):
         super().__init__(game)
         from ..settings import game_settings, CameraMode
         self.settings = game_settings
         self.title = "Settings"
-        self.categories = ["Camera", "Display", "Controls", "Dev View", "Help", "Back"]
+        self.categories = ["Camera", "Display", "Controls", "Difficulty", "Dev View", "Help", "Back"]
         self.selected_category = 0
-        
+
         # Track where settings was accessed from to return properly
         self.previous_state = previous_state or GameStates.MAIN_MENU
-        
+
         # Camera settings options
         self.camera_options = ["Camera Mode", "Smoothing", "Deadzone", "Back"]
         self.selected_camera_option = 0
         self.viewing_camera = False
-        
+
         # Control scheme settings options
         self.control_options = ["Control Scheme", "Show Controls", "Back"]
         self.selected_control_option = 0
         self.viewing_controls = False
+
+        # Difficulty settings options
+        self.difficulty_options = ["Difficulty Level", "Back"]
+        self.selected_difficulty_option = 0
+        self.viewing_difficulty = False
+        self.difficulty_rects = []
         
         # Dev view settings options
         self.dev_options = ["Enable Dev View", "Show FPS", "Show Ship Pos", "Show Docking", "Show Stations", "Show Camera", "Back"]
@@ -167,12 +253,14 @@ class SettingsState(State):
         title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
         screen.blit(title, title_rect)
         
-        if not self.viewing_camera and not self.viewing_dev and not self.viewing_controls and not self.viewing_help:
+        if not self.viewing_camera and not self.viewing_dev and not self.viewing_controls and not self.viewing_help and not self.viewing_difficulty:
             self._render_main_categories(screen)
         elif self.viewing_camera:
             self._render_camera_settings(screen)
         elif self.viewing_controls:
             self._render_control_settings(screen)
+        elif self.viewing_difficulty:
+            self._render_difficulty_settings(screen)
         elif self.viewing_dev:
             self._render_dev_settings(screen)
         elif self.viewing_help:
@@ -331,18 +419,22 @@ class SettingsState(State):
                     self.viewing_camera = False
                 elif self.viewing_controls:
                     self.viewing_controls = False
+                elif self.viewing_difficulty:
+                    self.viewing_difficulty = False
                 elif self.viewing_dev:
                     self.viewing_dev = False
                 elif self.viewing_help:
                     self.viewing_help = False
                 else:
                     self.game.change_state(self.previous_state)
-            elif not self.viewing_camera and not self.viewing_controls and not self.viewing_dev and not self.viewing_help:
+            elif not self.viewing_camera and not self.viewing_controls and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
                 self._handle_main_input(event)
             elif self.viewing_camera:
                 self._handle_camera_input(event)
             elif self.viewing_controls:
                 self._handle_control_input(event)
+            elif self.viewing_difficulty:
+                self._handle_difficulty_input(event)
             elif self.viewing_dev:
                 self._handle_dev_input(event)
             elif self.viewing_help:
@@ -350,7 +442,7 @@ class SettingsState(State):
         elif event.type == pygame.MOUSEMOTION:
             # Check for mouse hover on options
             mouse_pos = pygame.mouse.get_pos()
-            if not self.viewing_camera and not self.viewing_controls and not self.viewing_dev and not self.viewing_help:
+            if not self.viewing_camera and not self.viewing_controls and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
                 for i, rect in enumerate(self.category_rects):
                     if rect.collidepoint(mouse_pos):
                         self.selected_category = i
@@ -360,6 +452,11 @@ class SettingsState(State):
                     if rect.collidepoint(mouse_pos):
                         self.selected_control_option = i
                         break
+            elif self.viewing_difficulty:
+                for i, rect in enumerate(self.difficulty_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_difficulty_option = i
+                        break
             elif self.viewing_help:
                 for i, rect in enumerate(self.help_rects):
                     if rect.collidepoint(mouse_pos):
@@ -368,7 +465,7 @@ class SettingsState(State):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left click
                 mouse_pos = pygame.mouse.get_pos()
-                if not self.viewing_camera and not self.viewing_controls and not self.viewing_dev and not self.viewing_help:
+                if not self.viewing_camera and not self.viewing_controls and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
                     for i, rect in enumerate(self.category_rects):
                         if rect.collidepoint(mouse_pos):
                             self.selected_category = i
@@ -379,6 +476,12 @@ class SettingsState(State):
                         if rect.collidepoint(mouse_pos):
                             self.selected_control_option = i
                             self._select_control_option()
+                            break
+                elif self.viewing_difficulty:
+                    for i, rect in enumerate(self.difficulty_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.selected_difficulty_option = i
+                            self._select_difficulty_option()
                             break
                 elif self.viewing_help:
                     for i, rect in enumerate(self.help_rects):
@@ -398,21 +501,25 @@ class SettingsState(State):
     
     def _select_main_option(self):
         """Handle main option selection"""
-        if self.selected_category == 0:  # Camera
+        category = self.categories[self.selected_category]
+        if category == "Camera":
             self.viewing_camera = True
             self.selected_camera_option = 0
-        elif self.selected_category == 1:  # Display (future feature)
+        elif category == "Display":
             pass  # TODO: Implement display settings
-        elif self.selected_category == 2:  # Controls
+        elif category == "Controls":
             self.viewing_controls = True
             self.selected_control_option = 0
-        elif self.selected_category == 3:  # Dev View
+        elif category == "Difficulty":
+            self.viewing_difficulty = True
+            self.selected_difficulty_option = 0
+        elif category == "Dev View":
             self.viewing_dev = True
             self.selected_dev_option = 0
-        elif self.selected_category == 4:  # Help
+        elif category == "Help":
             self.viewing_help = True
             self.selected_help_option = 0
-        elif self.selected_category == 5:  # Back
+        elif category == "Back":
             self.game.change_state(self.previous_state)
     
     def _handle_camera_input(self, event):
@@ -542,9 +649,90 @@ class SettingsState(State):
         # Cycle to next scheme
         next_index = (current_index + 1) % len(all_schemes)
         next_scheme = all_schemes[next_index]
-        
+
         control_scheme_manager.set_scheme(next_scheme)
-    
+
+    def _render_difficulty_settings(self, screen):
+        """Render difficulty settings submenu"""
+        from ..difficulty.difficulty_manager import difficulty_manager
+
+        option_font = pygame.font.Font(None, 40)
+        small_font = pygame.font.Font(None, 26)
+
+        subtitle = option_font.render("Difficulty Settings", True, (200, 200, 255))
+        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 150))
+        screen.blit(subtitle, subtitle_rect)
+
+        difficulty_descriptions = {
+            "peaceful": "No enemies, reduced hazards - explore and trade in safety",
+            "easy": "Fewer enemies, lighter damage - a gentler galaxy",
+            "normal": "The intended balance",
+            "hard": "More frequent, tougher enemies and higher damage",
+            "extreme": "Maximum danger - ship destruction ends the game permanently",
+        }
+
+        y_offset = 220
+        self.difficulty_rects = []
+
+        for i, option in enumerate(self.difficulty_options):
+            color = (255, 255, 0) if i == self.selected_difficulty_option else (255, 255, 255)
+
+            if option == "Difficulty Level":
+                level_name = difficulty_manager.current_difficulty.value.upper()
+                level_color = (255, 80, 80) if difficulty_manager.current_difficulty.value == "extreme" else color
+                level_text = f"Difficulty: {level_name}"
+                text = option_font.render(level_text, True, level_color)
+
+                desc = small_font.render(
+                    difficulty_descriptions.get(difficulty_manager.current_difficulty.value, ""),
+                    True, (170, 170, 170)
+                )
+                desc_rect = desc.get_rect(center=(screen.get_width() // 2, y_offset + 28))
+                screen.blit(desc, desc_rect)
+                y_offset += 28
+            else:  # Back
+                text = option_font.render(option, True, color)
+
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(text, text_rect)
+            self.difficulty_rects.append(text_rect.inflate(40, 20))
+            y_offset += 60
+
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = "Use LEFT/RIGHT to change difficulty, ENTER to select, ESC to go back"
+        instr_text = instruction_font.render(instructions, True, (150, 150, 150))
+        instr_rect = instr_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 40))
+        screen.blit(instr_text, instr_rect)
+
+    def _handle_difficulty_input(self, event):
+        """Handle input for difficulty settings"""
+        if event.key == pygame.K_UP:
+            self.selected_difficulty_option = (self.selected_difficulty_option - 1) % len(self.difficulty_options)
+        elif event.key == pygame.K_DOWN:
+            self.selected_difficulty_option = (self.selected_difficulty_option + 1) % len(self.difficulty_options)
+        elif event.key == pygame.K_LEFT:
+            self._change_difficulty(-1)
+        elif event.key == pygame.K_RIGHT:
+            self._change_difficulty(1)
+        elif event.key == pygame.K_RETURN:
+            self._select_difficulty_option()
+
+    def _select_difficulty_option(self):
+        """Handle difficulty option selection"""
+        if self.difficulty_options[self.selected_difficulty_option] == "Back":
+            self.viewing_difficulty = False
+        elif self.difficulty_options[self.selected_difficulty_option] == "Difficulty Level":
+            self._change_difficulty(1)
+
+    def _change_difficulty(self, direction):
+        """Cycle through available difficulty levels"""
+        from ..difficulty.difficulty_manager import difficulty_manager, DifficultyLevel
+
+        all_levels = list(DifficultyLevel)
+        current_index = all_levels.index(difficulty_manager.current_difficulty)
+        next_index = (current_index + direction) % len(all_levels)
+        difficulty_manager.set_difficulty(all_levels[next_index])
+
     def _handle_dev_input(self, event):
         """Handle input for dev view settings"""
         if event.key == pygame.K_UP:

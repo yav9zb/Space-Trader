@@ -61,8 +61,8 @@ def test_settings_back_selection():
 
     settings_state = SettingsState(game, GameStates.PAUSED)
 
-    # Simulate selecting "Back" option (index 5)
-    settings_state.selected_category = 5
+    # Simulate selecting "Back" option
+    settings_state.selected_category = settings_state.categories.index("Back")
     settings_state._select_main_option()
 
     assert game.current_state == GameStates.PAUSED

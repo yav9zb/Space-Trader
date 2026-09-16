@@ -1,6 +1,7 @@
 from typing import Optional, Tuple, List
 from .upgrade_definitions import UpgradeDefinition, UpgradeCategory, upgrade_registry
 from .ship_upgrades import ShipUpgrades, ShipStats
+from ..difficulty.difficulty_manager import difficulty_manager
 
 
 class UpgradeResult:
@@ -31,11 +32,12 @@ class UpgradeSystem:
         except KeyError:
             return UpgradeResult(False, f"Unknown upgrade: {upgrade_id}"), current_credits
         
-        # Check if player has enough credits
-        if current_credits < upgrade.cost:
+        # Check if player has enough credits (cost scaled by current difficulty)
+        effective_cost = difficulty_manager.apply_upgrade_cost_multiplier(upgrade.cost)
+        if current_credits < effective_cost:
             return UpgradeResult(
-                False, 
-                f"Insufficient credits. Need {upgrade.cost}, have {current_credits}"
+                False,
+                f"Insufficient credits. Need {effective_cost}, have {current_credits}"
             ), current_credits
         
         # Check if upgrade can be installed
@@ -66,7 +68,7 @@ class UpgradeSystem:
         
         # Install the upgrade
         if ship_upgrades.install_upgrade(upgrade_id):
-            remaining_credits = current_credits - upgrade.cost
+            remaining_credits = current_credits - effective_cost
             return UpgradeResult(
                 True,
                 f"Successfully installed {upgrade.name}",

@@ -10,6 +10,7 @@ from .entities.black_hole import create_black_hole_field
 from .combat.combat_manager import combat_manager
 from .systems.debris_field_manager import debris_field_manager
 from .universe_generation import universe_generator, UniverseType
+from .difficulty.difficulty_manager import difficulty_manager
 
 class Universe:
     def __init__(self, width=10000, height=10000, seed=None):
@@ -204,7 +205,8 @@ class Universe:
         # Generate asteroid fields using layer 3 seed
         asteroid_seed = self._get_chunk_seed(chunk_x, chunk_y, 3)
         random.seed(asteroid_seed)
-        if random.random() < 0.3:  # 30% chance of asteroid field
+        hazard_chance = 0.3 * difficulty_manager.get_settings().hazard_frequency_multiplier
+        if random.random() < hazard_chance:  # base 30% chance of asteroid field
             field_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=200)
             if field_pos:
                 asteroids = create_asteroid_field(field_pos, 150, random.randint(3, 8), special_chance=0.25)
@@ -217,7 +219,8 @@ class Universe:
         random.seed(bandit_seed)
         # Less frequent bandit encounters, avoid starting area
         start_distance = ((chunk_x * self.sector_size) ** 2 + (chunk_y * self.sector_size) ** 2) ** 0.5
-        if start_distance > 1500 and random.random() < 0.15:  # 15% chance away from spawn
+        encounter_chance = 0.15 * difficulty_manager.get_settings().enemy_spawn_multiplier
+        if start_distance > 1500 and random.random() < encounter_chance:  # base 15% chance away from spawn
             encounter_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=300)
             if encounter_pos:
                 encounter_types = ["scout_patrol", "fighter_squad"]
@@ -236,7 +239,8 @@ class Universe:
         black_hole_seed = self._get_chunk_seed(chunk_x, chunk_y, 5)
         random.seed(black_hole_seed)
         # Black holes are very rare and only in deep space
-        if start_distance > 2000 and random.random() < 0.05:  # 5% chance far from spawn
+        black_hole_chance = 0.05 * difficulty_manager.get_settings().hazard_frequency_multiplier
+        if start_distance > 2000 and random.random() < black_hole_chance:  # base 5% chance far from spawn
             hole_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=400)
             if hole_pos:
                 # Usually single black holes, occasionally pairs

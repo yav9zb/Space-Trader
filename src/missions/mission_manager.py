@@ -404,9 +404,10 @@ class MissionManager:
             self.active_missions.remove(mission)
         
         self.completed_missions.append(mission)
-        
-        # Apply rewards
-        ship.credits += mission.reward.credits
+
+        # Apply rewards, scaled by the current difficulty
+        from ..difficulty.difficulty_manager import difficulty_manager
+        ship.credits += difficulty_manager.apply_mission_reward_multiplier(mission.reward.credits)
         
         # Add bonus items to cargo
         for commodity_id, quantity in mission.reward.bonus_items.items():

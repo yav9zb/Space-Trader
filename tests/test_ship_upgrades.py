@@ -1,12 +1,6 @@
-import sys
-import os
-
-# Add src to Python path so we can import our modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from upgrades.upgrade_definitions import UpgradeDefinition, UpgradeCategory, upgrade_registry
-from upgrades.ship_upgrades import ShipUpgrades, ShipStats
-from upgrades.upgrade_system import UpgradeSystem, upgrade_system
+from src.upgrades.upgrade_definitions import UpgradeDefinition, UpgradeCategory, upgrade_registry
+from src.upgrades.ship_upgrades import ShipUpgrades, ShipStats
+from src.upgrades.upgrade_system import UpgradeSystem, upgrade_system
 
 
 def test_upgrade_definitions():
@@ -188,22 +182,3 @@ def test_integration():
     assert "Tier 1" in summary["Engine"]
     
     print("✓ Integration test passed")
-
-
-if __name__ == "__main__":
-    print("Running ship upgrade system tests...\n")
-    
-    try:
-        test_upgrade_definitions()
-        test_ship_upgrades()
-        test_upgrade_system()
-        test_station_availability()
-        test_discounts()
-        test_integration()
-        
-        print("\n🎉 All tests passed! Upgrade system is working correctly.")
-        
-    except Exception as e:
-        print(f"\n❌ Test failed: {e}")
-        import traceback
-        traceback.print_exc()

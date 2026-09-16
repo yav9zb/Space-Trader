@@ -425,10 +425,12 @@ class Ship:
         }
     
     def take_damage(self, damage: float):
-        """Apply damage to the ship, considering hull upgrades."""
+        """Apply damage to the ship, considering hull upgrades and difficulty."""
+        from ..difficulty.difficulty_manager import difficulty_manager
+
         effective_stats = self.get_effective_stats()
         damage_multiplier = effective_stats.get_collision_damage_multiplier()
-        actual_damage = damage * damage_multiplier
+        actual_damage = difficulty_manager.apply_damage_multiplier(damage * damage_multiplier)
         
         self.current_hull = max(0, self.current_hull - actual_damage)
         

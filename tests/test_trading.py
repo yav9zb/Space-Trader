@@ -1,14 +1,9 @@
 import pytest
-import sys
-import os
 
-# Add src to Python path so we can import our modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from trading.commodity import Commodity, CommodityCategory, commodity_registry
-from trading.cargo import CargoHold
-from trading.market import StationMarket, StationType
-from entities.station import Station
+from src.trading.commodity import Commodity, CommodityCategory, commodity_registry
+from src.trading.cargo import CargoHold
+from src.trading.market import StationMarket, StationType
+from src.entities.station import Station
 
 
 class TestCommoditySystem:

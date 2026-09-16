@@ -91,7 +91,10 @@ class Settings:
         
         # Universe generation settings
         self.universe_type = "realistic"  # Default universe type
-        
+
+        # Difficulty settings
+        self.difficulty = "normal"  # Default difficulty level
+
         # Load settings from file if it exists
         self.load()
     
@@ -115,6 +118,7 @@ class Settings:
             "mouse_sensitivity": self.mouse_sensitivity,
             "control_scheme": self.control_scheme,
             "universe_type": self.universe_type,
+            "difficulty": self.difficulty,
             "dev_view_enabled": self.dev_view_enabled,
             "dev_show_fps": self.dev_show_fps,
             "dev_show_ship_pos": self.dev_show_ship_pos,
@@ -180,7 +184,10 @@ class Settings:
             
             # Load universe settings
             self.universe_type = settings_dict.get("universe_type", "realistic")
-            
+
+            # Load difficulty settings
+            self.difficulty = settings_dict.get("difficulty", "normal")
+
             # Load dev view settings
             self.dev_view_enabled = settings_dict.get("dev_view_enabled", False)
             self.dev_show_fps = settings_dict.get("dev_show_fps", True)
