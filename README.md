@@ -228,17 +228,9 @@ space_trader/
 - Higher tier upgrades require previous tiers
 - Specialized stations offer discounts on certain upgrade types
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
-
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+All rights reserved. This is a commercial project in development; source code is not licensed for reuse or redistribution.
 
 ## Acknowledgments
 
