@@ -1033,10 +1033,15 @@ class PlayingState(State):
         # Initialize enhanced HUD
         from ..ui.hud.enhanced_hud import EnhancedHUD
         from ..ui.large_map import LargeMap
+        from ..ui.onboarding_hints import onboarding_hints
         self.enhanced_hud = EnhancedHUD(game.WINDOW_SIZE[0], game.WINDOW_SIZE[1])
         self.large_map = LargeMap(game.WINDOW_SIZE[0], game.WINDOW_SIZE[1])
+        self.onboarding_hints = onboarding_hints
+        self.onboarding_hints.trigger("flight_controls")
 
     def update(self, delta_time):
+        self.onboarding_hints.update(delta_time)
+
         # Handle ship movement only if not docked
         if not self.game.docking_manager.is_docked():
             self.game.ship.handle_input(delta_time)
@@ -1288,7 +1293,10 @@ class PlayingState(State):
         if self.game.docking_manager.is_docked():
             station = self.game.docking_manager.get_target_station()
             repair_system.draw_repair_ui(screen, self.game.ship, station)
-        
+
+        # Draw onboarding hints last, on top of everything
+        self.onboarding_hints.render(screen)
+
 
     def _draw_debug_info(self, screen, camera_offset):
         """Draw debug information for object positions"""
@@ -1354,6 +1362,8 @@ class PlayingState(State):
             return
             
         if event.type == pygame.KEYDOWN:
+            self.onboarding_hints.dismiss()
+
             if event.key == control_scheme_manager.get_key("pause"):
                 self.game.change_state(GameStates.PAUSED)
             elif event.key == control_scheme_manager.get_key("toggle_map"):

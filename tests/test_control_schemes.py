@@ -173,7 +173,7 @@ def test_key_display_names():
     assert manager.get_key_name("afterburner") == "Left Shift"
 
     manager.set_scheme(ControlScheme.LEFT_HANDED)
-    assert manager.get_key_name("thrust") == "↑"
+    assert manager.get_key_name("thrust") == "Up"
     assert manager.get_key_name("fire_weapons") == "Right Ctrl"
     assert manager.get_key_name("afterburner") == "Right Shift"
 

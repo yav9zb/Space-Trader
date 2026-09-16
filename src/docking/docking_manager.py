@@ -220,6 +220,9 @@ class DockingManager:
         from ..audio.sound_manager import sound_manager
         sound_manager.play("dock")
 
+        from ..ui.onboarding_hints import onboarding_hints
+        onboarding_hints.trigger("station_services")
+
     def _initiate_undocking(self, ship):
         """Begin the undocking sequence."""
         self.docking_state = DockingState.UNDOCKING
