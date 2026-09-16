@@ -36,7 +36,7 @@ def test_ship_characteristics():
     ship = Ship(0, 0)
     assert ship.size == 15
     assert ship.mass == 1.0
-    assert len(ship.points) == 3  # Triangle shape
+    assert len(ship.points) == 4  # Dart shape (nose, wingtips, stern notch)
 
 def test_ship_rotation():
     ship = Ship(0, 0)

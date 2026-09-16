@@ -49,12 +49,14 @@ class Ship:
         self.emergency_fuel_speed_multiplier = 0.25  # 25% speed
         
         # Ship characteristics
-        # Create a simple triangle shape for the ship
         self.size = 15 # slightly smaller collision radius
         self.mass = 1.0 # kg
-        self.points = [Vector2(0, -self.size), 
-                      Vector2(-self.size/2, self.size/2),
-                      Vector2(self.size/2, self.size/2)]
+        # Sleek dart silhouette (nose, wingtips, concave stern notch) -
+        # matches the app icon's ship shape for visual consistency
+        self.points = [Vector2(0, -self.size),
+                      Vector2(-self.size * 0.55, self.size * 0.65),
+                      Vector2(0, self.size * 0.38),
+                      Vector2(self.size * 0.55, self.size * 0.65)]
         
         # Trading system
         self.cargo_hold = CargoHold(capacity=20)  # Starting ship has 20 cargo units
@@ -230,13 +232,21 @@ class Ship:
 
         # Get cloaking alpha
         ship_alpha = cloaking_system.get_ship_alpha(effective_stats)
-        
+
+        # Draw thrust flame first, so it sits behind the hull
+        if self.thrusting:
+            self._draw_flame(screen, screen_pos, ship_alpha)
+
+        HULL_FILL = (230, 238, 255)
+        HULL_OUTLINE = (140, 190, 255)
+        COCKPIT = (90, 140, 220)
+
         # Draw the ship with appropriate alpha
         if ship_alpha < 255:
             # Create surface with alpha for cloaked ship
             ship_surface = pygame.Surface((self.size * 4, self.size * 4), pygame.SRCALPHA)
             ship_surface.set_alpha(ship_alpha)
-            
+
             # Adjust points for surface coordinates
             surface_center = Vector2(self.size * 2, self.size * 2)
             surface_points = []
@@ -244,67 +254,51 @@ class Ship:
                 rotated_point = point.rotate(self.rotation)
                 surface_point = (rotated_point + surface_center)
                 surface_points.append(surface_point)
-            
-            pygame.draw.polygon(ship_surface, (255, 255, 255), surface_points)
+
+            pygame.draw.polygon(ship_surface, HULL_FILL, surface_points)
+            pygame.draw.polygon(ship_surface, HULL_OUTLINE, surface_points, 2)
             screen.blit(ship_surface, (screen_pos.x - self.size * 2, screen_pos.y - self.size * 2))
         else:
             # Normal drawing
-            pygame.draw.polygon(screen, (255, 255, 255), transformed_points)
-        
-        # Draw thrust flame when accelerating
-        if self.thrusting:
-            # Enhanced flame for afterburner
-            if self.afterburner_active and not self.emergency_fuel_active:
-                flame_points = [
-                    Vector2(0, self.size/2),
-                    Vector2(-self.size/2, self.size * 1.5),
-                    Vector2(self.size/2, self.size * 1.5)
-                ]
-                flame_color = (0, 150, 255)  # Blue flame for afterburner
-            # Emergency fuel flame
-            elif self.emergency_fuel_active:
-                flame_points = [
-                    Vector2(0, self.size/2),
-                    Vector2(-self.size/4, self.size * 0.8),
-                    Vector2(self.size/4, self.size * 0.8)
-                ]
-                flame_color = (255, 50, 50)  # Red flame for emergency fuel
-            else:
-                flame_points = [
-                    Vector2(0, self.size/2),
-                    Vector2(-self.size/3, self.size),
-                    Vector2(self.size/3, self.size)
-                ]
-                flame_color = (255, 165, 0)  # Normal orange flame
-            
-            flame_transformed = []
-            for point in flame_points:
-                rotated_point = point.rotate(self.rotation)
-                transformed_point = (rotated_point + screen_pos)
-                flame_transformed.append(transformed_point)
-                
-            pygame.draw.polygon(screen, flame_color, flame_transformed)
+            pygame.draw.polygon(screen, HULL_FILL, transformed_points)
+            pygame.draw.polygon(screen, HULL_OUTLINE, transformed_points, 2)
 
-        # Draw direction indicator (debug)
-        direction_end = screen_pos + self.heading * 30
-        pygame.draw.line(screen, (0, 255, 0), 
-                         screen_pos, 
-                         direction_end, 
-                         2)
-        
-        # Debug: Draw collision circle
-        if hasattr(self, 'in_collision'):
-            color = (255, 0, 0) if self.in_collision else (0, 255, 0)
-            pygame.draw.circle(screen, color, 
-                             (int(screen_pos.x), int(screen_pos.y)), 
-                             int(self.size), 
-                             1)  # Draw ship's collision radius
-        
+            # Cockpit accent, a little forward of center
+            cockpit_local = Vector2(0, -self.size * 0.15).rotate(self.rotation)
+            cockpit_pos = cockpit_local + screen_pos
+            pygame.draw.circle(screen, COCKPIT, (int(cockpit_pos.x), int(cockpit_pos.y)), max(2, int(self.size * 0.16)))
+
         # Draw weapon projectiles
         self.weapon_system.draw(screen, camera_offset)
-        
+
         # Draw cloaking effects
         cloaking_system.draw_cloak_effects(screen, self.position, camera_offset)
+
+    def _draw_flame(self, screen, screen_pos, ship_alpha):
+        """Draw a layered engine flame (dim outer + bright core), both solid
+        polygons - no per-frame full-screen alpha surface, which would be
+        wasteful allocated every frame while thrusting."""
+        if self.afterburner_active and not self.emergency_fuel_active:
+            outer_color, inner_color = (30, 90, 190), (170, 220, 255)
+            length_mult, width_mult = 1.9, 0.65
+        elif self.emergency_fuel_active:
+            outer_color, inner_color = (150, 25, 25), (255, 140, 120)
+            length_mult, width_mult = 1.0, 0.4
+        else:
+            outer_color, inner_color = (200, 90, 15), (255, 220, 140)
+            length_mult, width_mult = 1.25, 0.5
+
+        def flame_polygon(length_scale, width_scale):
+            local_points = [
+                Vector2(0, self.size * 0.5),
+                Vector2(-self.size * width_scale, self.size * (0.5 + length_scale)),
+                Vector2(0, self.size * (0.5 + length_scale * 1.3)),
+                Vector2(self.size * width_scale, self.size * (0.5 + length_scale)),
+            ]
+            return [point.rotate(self.rotation) + screen_pos for point in local_points]
+
+        pygame.draw.polygon(screen, outer_color, flame_polygon(length_mult, width_mult))
+        pygame.draw.polygon(screen, inner_color, flame_polygon(length_mult * 0.55, width_mult * 0.5))
 
     def check_collision_detailed(self, other_object):
         """Enhanced collision detection with visual debugging"""
