@@ -42,6 +42,8 @@ def test_planet_rotation():
     assert 0 <= planet.rotation <= 360
 
 def test_terrestrial_planet_features():
+    # Seed for deterministic continent count/size
+    random.seed(42)
     # Force a terrestrial planet by setting the type
     planet = Planet(0, 0)
     planet.planet_type = PlanetType.TERRESTRIAL

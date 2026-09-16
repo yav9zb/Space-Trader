@@ -22,7 +22,7 @@ def test_universe_custom_size():
     assert universe.height == 8000
 
 def test_chunk_generation():
-    universe = Universe()
+    universe = Universe(seed=42)  # fixed seed for deterministic content
     position = Vector2(500, 500)
     
     # Generate chunk
