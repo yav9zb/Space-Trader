@@ -306,16 +306,12 @@ class SettingsState(State):
         y_offset = 220
         for i, option in enumerate(self.camera_options):
             color = (255, 255, 0) if i == self.selected_camera_option else (255, 255, 255)
-            
+            extra_spacing = 0
+
             if option == "Camera Mode":
                 mode_text = f"Camera Mode: {self.settings.camera_mode.value}"
                 text = option_font.render(mode_text, True, color)
-                # Add description
-                desc = small_font.render(self.settings.get_camera_description(), True, (150, 150, 150))
-                desc_rect = desc.get_rect(center=(screen.get_width() // 2, y_offset + 25))
-                screen.blit(desc, desc_rect)
-                y_offset += 25
-                
+
             elif option == "Smoothing":
                 if self.settings.camera_mode.name == "SMOOTH":
                     smooth_text = f"Smoothing: {self.settings.camera_smoothing:.2f}"
@@ -324,7 +320,7 @@ class SettingsState(State):
                     smooth_text = f"Smoothing: {self.settings.camera_smoothing:.2f} (N/A)"
                     color = (100, 100, 100)
                 text = option_font.render(smooth_text, True, color)
-                
+
             elif option == "Deadzone":
                 if self.settings.camera_mode.name == "DEADZONE":
                     deadzone_text = f"Deadzone: {self.settings.camera_deadzone_radius}px"
@@ -333,13 +329,21 @@ class SettingsState(State):
                     deadzone_text = f"Deadzone: {self.settings.camera_deadzone_radius}px (N/A)"
                     color = (100, 100, 100)
                 text = option_font.render(deadzone_text, True, color)
-                
+
             else:  # Back
                 text = option_font.render(option, True, color)
-            
+
             text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
             screen.blit(text, text_rect)
-            y_offset += 60
+
+            if option == "Camera Mode":
+                # Add description below the option, without overlapping the next one
+                desc = small_font.render(self.settings.get_camera_description(), True, (150, 150, 150))
+                desc_rect = desc.get_rect(center=(screen.get_width() // 2, y_offset + 25))
+                screen.blit(desc, desc_rect)
+                extra_spacing = 25
+
+            y_offset += 60 + extra_spacing
         
         # Instructions
         instruction_font = pygame.font.Font(None, 24)
@@ -363,30 +367,33 @@ class SettingsState(State):
         
         for i, option in enumerate(self.control_options):
             color = (255, 255, 0) if i == self.selected_control_option else (255, 255, 255)
-            
+            extra_spacing = 0
+
             if option == "Control Scheme":
                 scheme_info = control_scheme_manager.get_scheme_info()
                 scheme_text = f"Control Scheme: {scheme_info['name']}"
                 text = option_font.render(scheme_text, True, color)
-                # Add description
+
+            elif option == "Show Controls":
+                text = option_font.render("Show Current Controls", True, color)
+
+            else:  # Back
+                text = option_font.render(option, True, color)
+
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(text, text_rect)
+
+            if option == "Control Scheme":
+                # Add description below the option, without overlapping the next one
                 desc = small_font.render(scheme_info['description'], True, (150, 150, 150))
                 desc_rect = desc.get_rect(center=(screen.get_width() // 2, y_offset + 25))
                 screen.blit(desc, desc_rect)
-                y_offset += 25
-                
-            elif option == "Show Controls":
-                text = option_font.render("Show Current Controls", True, color)
-                
-            else:  # Back
-                text = option_font.render(option, True, color)
-            
-            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
-            screen.blit(text, text_rect)
-            
+                extra_spacing = 25
+
             # Store expanded rectangle for mouse interaction
             expanded_rect = text_rect.inflate(40, 20)
             self.control_rects.append(expanded_rect)
-            y_offset += 60
+            y_offset += 60 + extra_spacing
         
         # Show current control scheme bindings
         if self.control_options[self.selected_control_option] == "Show Controls":
@@ -707,27 +714,31 @@ class SettingsState(State):
 
         for i, option in enumerate(self.difficulty_options):
             color = (255, 255, 0) if i == self.selected_difficulty_option else (255, 255, 255)
+            extra_spacing = 0
 
             if option == "Difficulty Level":
                 level_name = difficulty_manager.current_difficulty.value.upper()
                 level_color = (255, 80, 80) if difficulty_manager.current_difficulty.value == "extreme" else color
                 level_text = f"Difficulty: {level_name}"
                 text = option_font.render(level_text, True, level_color)
-
-                desc = small_font.render(
-                    difficulty_descriptions.get(difficulty_manager.current_difficulty.value, ""),
-                    True, (170, 170, 170)
-                )
-                desc_rect = desc.get_rect(center=(screen.get_width() // 2, y_offset + 28))
-                screen.blit(desc, desc_rect)
-                y_offset += 28
             else:  # Back
                 text = option_font.render(option, True, color)
 
             text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
             screen.blit(text, text_rect)
             self.difficulty_rects.append(text_rect.inflate(40, 20))
-            y_offset += 60
+
+            if option == "Difficulty Level":
+                # Add description below the option, without overlapping the next one
+                desc = small_font.render(
+                    difficulty_descriptions.get(difficulty_manager.current_difficulty.value, ""),
+                    True, (170, 170, 170)
+                )
+                desc_rect = desc.get_rect(center=(screen.get_width() // 2, y_offset + 28))
+                screen.blit(desc, desc_rect)
+                extra_spacing = 28
+
+            y_offset += 60 + extra_spacing
 
         instruction_font = pygame.font.Font(None, 24)
         instructions = "Use LEFT/RIGHT to change difficulty, ENTER to select, ESC to go back"
