@@ -84,12 +84,16 @@ class MenuState(State):
             screen.blit(seed_surface, seed_rect)
 
     def handle_input(self, event):
+        from ..audio.sound_manager import sound_manager
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 self.selected_option = (self.selected_option - 1) % len(self.menu_options)
+                sound_manager.play("ui_navigate")
             elif event.key == pygame.K_DOWN:
                 self.selected_option = (self.selected_option + 1) % len(self.menu_options)
+                sound_manager.play("ui_navigate")
             elif event.key == pygame.K_RETURN:
+                sound_manager.play("ui_confirm")
                 self._select_option()
         elif event.type == pygame.MOUSEMOTION:
             # Check if mouse is over any option
@@ -104,9 +108,10 @@ class MenuState(State):
                 for i, rect in enumerate(self.option_rects):
                     if rect.collidepoint(mouse_pos):
                         self.selected_option = i
+                        sound_manager.play("ui_confirm")
                         self._select_option()
                         break
-    
+
     def _select_option(self):
         """Handle option selection"""
         if self.selected_option == 0:  # New Game
@@ -205,7 +210,7 @@ class SettingsState(State):
         from ..settings import game_settings, CameraMode
         self.settings = game_settings
         self.title = "Settings"
-        self.categories = ["Camera", "Display", "Controls", "Difficulty", "Dev View", "Help", "Back"]
+        self.categories = ["Camera", "Display", "Controls", "Audio", "Difficulty", "Dev View", "Help", "Back"]
         self.selected_category = 0
 
         # Track where settings was accessed from to return properly
@@ -226,6 +231,12 @@ class SettingsState(State):
         self.selected_difficulty_option = 0
         self.viewing_difficulty = False
         self.difficulty_rects = []
+
+        # Audio settings options
+        self.audio_options = ["Master Volume", "SFX Volume", "Music Volume", "Back"]
+        self.selected_audio_option = 0
+        self.viewing_audio = False
+        self.audio_rects = []
         
         # Dev view settings options
         self.dev_options = ["Enable Dev View", "Show FPS", "Show Ship Pos", "Show Docking", "Show Stations", "Show Camera", "Back"]
@@ -253,12 +264,14 @@ class SettingsState(State):
         title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
         screen.blit(title, title_rect)
         
-        if not self.viewing_camera and not self.viewing_dev and not self.viewing_controls and not self.viewing_help and not self.viewing_difficulty:
+        if not self.viewing_camera and not self.viewing_dev and not self.viewing_controls and not self.viewing_help and not self.viewing_difficulty and not self.viewing_audio:
             self._render_main_categories(screen)
         elif self.viewing_camera:
             self._render_camera_settings(screen)
         elif self.viewing_controls:
             self._render_control_settings(screen)
+        elif self.viewing_audio:
+            self._render_audio_settings(screen)
         elif self.viewing_difficulty:
             self._render_difficulty_settings(screen)
         elif self.viewing_dev:
@@ -419,6 +432,8 @@ class SettingsState(State):
                     self.viewing_camera = False
                 elif self.viewing_controls:
                     self.viewing_controls = False
+                elif self.viewing_audio:
+                    self.viewing_audio = False
                 elif self.viewing_difficulty:
                     self.viewing_difficulty = False
                 elif self.viewing_dev:
@@ -427,12 +442,14 @@ class SettingsState(State):
                     self.viewing_help = False
                 else:
                     self.game.change_state(self.previous_state)
-            elif not self.viewing_camera and not self.viewing_controls and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
+            elif not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
                 self._handle_main_input(event)
             elif self.viewing_camera:
                 self._handle_camera_input(event)
             elif self.viewing_controls:
                 self._handle_control_input(event)
+            elif self.viewing_audio:
+                self._handle_audio_input(event)
             elif self.viewing_difficulty:
                 self._handle_difficulty_input(event)
             elif self.viewing_dev:
@@ -442,7 +459,7 @@ class SettingsState(State):
         elif event.type == pygame.MOUSEMOTION:
             # Check for mouse hover on options
             mouse_pos = pygame.mouse.get_pos()
-            if not self.viewing_camera and not self.viewing_controls and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
+            if not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
                 for i, rect in enumerate(self.category_rects):
                     if rect.collidepoint(mouse_pos):
                         self.selected_category = i
@@ -451,6 +468,11 @@ class SettingsState(State):
                 for i, rect in enumerate(self.control_rects):
                     if rect.collidepoint(mouse_pos):
                         self.selected_control_option = i
+                        break
+            elif self.viewing_audio:
+                for i, rect in enumerate(self.audio_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_audio_option = i
                         break
             elif self.viewing_difficulty:
                 for i, rect in enumerate(self.difficulty_rects):
@@ -465,7 +487,7 @@ class SettingsState(State):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left click
                 mouse_pos = pygame.mouse.get_pos()
-                if not self.viewing_camera and not self.viewing_controls and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
+                if not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
                     for i, rect in enumerate(self.category_rects):
                         if rect.collidepoint(mouse_pos):
                             self.selected_category = i
@@ -476,6 +498,12 @@ class SettingsState(State):
                         if rect.collidepoint(mouse_pos):
                             self.selected_control_option = i
                             self._select_control_option()
+                            break
+                elif self.viewing_audio:
+                    for i, rect in enumerate(self.audio_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.selected_audio_option = i
+                            self._select_audio_option()
                             break
                 elif self.viewing_difficulty:
                     for i, rect in enumerate(self.difficulty_rects):
@@ -510,6 +538,9 @@ class SettingsState(State):
         elif category == "Controls":
             self.viewing_controls = True
             self.selected_control_option = 0
+        elif category == "Audio":
+            self.viewing_audio = True
+            self.selected_audio_option = 0
         elif category == "Difficulty":
             self.viewing_difficulty = True
             self.selected_difficulty_option = 0
@@ -732,6 +763,84 @@ class SettingsState(State):
         current_index = all_levels.index(difficulty_manager.current_difficulty)
         next_index = (current_index + direction) % len(all_levels)
         difficulty_manager.set_difficulty(all_levels[next_index])
+
+    def _render_audio_settings(self, screen):
+        """Render audio settings submenu"""
+        option_font = pygame.font.Font(None, 40)
+
+        subtitle = option_font.render("Audio Settings", True, (200, 200, 255))
+        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 150))
+        screen.blit(subtitle, subtitle_rect)
+
+        volume_attrs = {
+            "Master Volume": "master_volume",
+            "SFX Volume": "sfx_volume",
+            "Music Volume": "music_volume",
+        }
+
+        y_offset = 220
+        self.audio_rects = []
+
+        for i, option in enumerate(self.audio_options):
+            color = (255, 255, 0) if i == self.selected_audio_option else (255, 255, 255)
+
+            if option in volume_attrs:
+                value = getattr(self.settings, volume_attrs[option])
+                text = option_font.render(f"{option}: {int(value * 100)}%", True, color)
+
+                # Draw a simple volume bar
+                bar_x = screen.get_width() // 2 - 100
+                bar_y = y_offset + 30
+                pygame.draw.rect(screen, (60, 60, 80), (bar_x, bar_y, 200, 10))
+                pygame.draw.rect(screen, (100, 200, 255), (bar_x, bar_y, int(200 * value), 10))
+                y_offset += 20
+            else:  # Back
+                text = option_font.render(option, True, color)
+
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(text, text_rect)
+            self.audio_rects.append(text_rect.inflate(40, 20))
+            y_offset += 60
+
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = "Use LEFT/RIGHT to adjust volume, ENTER to select, ESC to go back"
+        instr_text = instruction_font.render(instructions, True, (150, 150, 150))
+        instr_rect = instr_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 40))
+        screen.blit(instr_text, instr_rect)
+
+    def _handle_audio_input(self, event):
+        """Handle input for audio settings"""
+        if event.key == pygame.K_UP:
+            self.selected_audio_option = (self.selected_audio_option - 1) % len(self.audio_options)
+        elif event.key == pygame.K_DOWN:
+            self.selected_audio_option = (self.selected_audio_option + 1) % len(self.audio_options)
+        elif event.key == pygame.K_LEFT:
+            self._adjust_audio_setting(-1)
+        elif event.key == pygame.K_RIGHT:
+            self._adjust_audio_setting(1)
+        elif event.key == pygame.K_RETURN:
+            self._select_audio_option()
+
+    def _select_audio_option(self):
+        """Handle audio option selection"""
+        if self.audio_options[self.selected_audio_option] == "Back":
+            self.viewing_audio = False
+
+    def _adjust_audio_setting(self, direction):
+        """Adjust the selected volume slider"""
+        from ..audio.sound_manager import sound_manager
+
+        volume_attrs = ["master_volume", "sfx_volume", "music_volume"]
+        if self.selected_audio_option >= len(volume_attrs):
+            return
+
+        attr = volume_attrs[self.selected_audio_option]
+        new_value = max(0.0, min(1.0, getattr(self.settings, attr) + direction * 0.05))
+        setattr(self.settings, attr, round(new_value, 2))
+        self.settings.save()
+        sound_manager.apply_volumes()
+        if attr != "music_volume":
+            sound_manager.play("ui_navigate")
 
     def _handle_dev_input(self, event):
         """Handle input for dev view settings"""

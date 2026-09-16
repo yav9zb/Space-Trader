@@ -79,7 +79,7 @@ class Settings:
         # Available resolutions for settings menu
         self.available_resolutions = get_available_resolutions()
         
-        # Audio settings (for future use)
+        # Audio settings
         self.master_volume = 0.8
         self.sfx_volume = 0.8
         self.music_volume = 0.6

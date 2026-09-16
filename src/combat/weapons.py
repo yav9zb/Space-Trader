@@ -124,11 +124,20 @@ class Weapon:
         # Create projectile
         velocity = direction.normalize() * self.stats.projectile_speed
         projectile = Projectile(position, velocity, self.stats.damage, owner, self.weapon_type)
-        
+
         # Update weapon state
         self.last_fire_time = current_time
         self.energy -= self.stats.energy_cost
-        
+
+        from ..audio.sound_manager import sound_manager
+        fire_sounds = {
+            WeaponType.LASER: "laser_fire",
+            WeaponType.PLASMA: "plasma_fire",
+            WeaponType.MISSILE: "missile_launch",
+            WeaponType.RAILGUN: "railgun_fire",
+        }
+        sound_manager.play(fire_sounds.get(self.weapon_type, "laser_fire"))
+
         return projectile
     
     def update(self, delta_time: float):

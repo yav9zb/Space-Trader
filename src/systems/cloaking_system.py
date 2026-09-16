@@ -33,7 +33,10 @@ class CloakingSystem:
         self.cloak_time_remaining = ship_stats.cloak_duration
         self.cloak_activation_time = pygame.time.get_ticks() / 1000.0
         self.shimmer_timer = 0.0
-        
+
+        from ..audio.sound_manager import sound_manager
+        sound_manager.play("cloak")
+
         print(f"Cloaking activated! Duration: {ship_stats.cloak_duration:.1f}s")
         return True
     

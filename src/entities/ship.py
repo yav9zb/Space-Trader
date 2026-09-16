@@ -201,6 +201,18 @@ class Ship:
         # Update fuel consumption
         self._update_fuel_consumption(delta_time)
 
+        # Update engine/afterburner loop sounds
+        from ..audio.sound_manager import sound_manager
+        if self.afterburner_active and not self.emergency_fuel_active:
+            sound_manager.stop_loop("thrust")
+            sound_manager.play_loop("afterburner")
+        elif self.thrusting:
+            sound_manager.stop_loop("afterburner")
+            sound_manager.play_loop("thrust")
+        else:
+            sound_manager.stop_loop("thrust")
+            sound_manager.stop_loop("afterburner")
+
     def draw(self, screen, camera_offset):
         # Check if ship should be drawn (cloaking)
         effective_stats = self.get_effective_stats()
@@ -431,9 +443,18 @@ class Ship:
         effective_stats = self.get_effective_stats()
         damage_multiplier = effective_stats.get_collision_damage_multiplier()
         actual_damage = difficulty_manager.apply_damage_multiplier(damage * damage_multiplier)
-        
+
+        max_hull = effective_stats.get_effective_hull_points()
+        hull_before = self.current_hull
         self.current_hull = max(0, self.current_hull - actual_damage)
-        
+
+        # Play a low-hull alert once when crossing below 25% integrity
+        if max_hull > 0:
+            low_hull_threshold = max_hull * 0.25
+            if hull_before > low_hull_threshold >= self.current_hull > 0:
+                from ..audio.sound_manager import sound_manager
+                sound_manager.play("alert")
+
         # Taking damage can break cloak
         cloaking_system.break_cloak_from_action(effective_stats, "taking_damage")
         

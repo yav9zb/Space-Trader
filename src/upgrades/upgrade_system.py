@@ -35,6 +35,8 @@ class UpgradeSystem:
         # Check if player has enough credits (cost scaled by current difficulty)
         effective_cost = difficulty_manager.apply_upgrade_cost_multiplier(upgrade.cost)
         if current_credits < effective_cost:
+            from ..audio.sound_manager import sound_manager
+            sound_manager.play("ui_error")
             return UpgradeResult(
                 False,
                 f"Insufficient credits. Need {effective_cost}, have {current_credits}"

@@ -216,13 +216,19 @@ class DockingManager:
         
         self.last_status_message = f"Docked at {self.target_station.name}"
         logger.info(f"Successfully docked at {self.target_station.name}")
-        
+
+        from ..audio.sound_manager import sound_manager
+        sound_manager.play("dock")
+
     def _initiate_undocking(self, ship):
         """Begin the undocking sequence."""
         self.docking_state = DockingState.UNDOCKING
         self.docking_timer = 0.0
         self.last_status_message = f"Undocking from {self.target_station.name}..."
         logger.info(f"Initiating undocking from {self.target_station.name}")
+
+        from ..audio.sound_manager import sound_manager
+        sound_manager.play("undock")
         
     def _get_dock_position(self, station):
         """Calculate the docking position for a station."""
