@@ -1,3 +1,4 @@
+import os
 import pygame
 import logging
 from pygame.locals import *
@@ -7,7 +8,7 @@ from src.universe import Universe
 from src.docking.docking_manager import DockingManager
 from src.settings import DisplayMode
 from src.combat.combat_manager import combat_manager
-from src.paths import get_user_data_path
+from src.paths import get_user_data_path, get_resource_path
 
 from ..states.game_state import GameStates
 from ..entities.ship import Ship
@@ -45,6 +46,12 @@ class GameEngine:
         self.screen = self.settings.apply_display_settings(None)
         self.WINDOW_SIZE = self.screen.get_size()
         pygame.display.set_caption('Space Trading Simulator')
+
+        try:
+            icon_path = get_resource_path(os.path.join('assets', 'icon', 'icon_64.png'))
+            pygame.display.set_icon(pygame.image.load(icon_path))
+        except (pygame.error, FileNotFoundError) as e:
+            logger.warning(f"Failed to load window icon: {e}")
         
         # Game timing
         self.clock = pygame.time.Clock()
