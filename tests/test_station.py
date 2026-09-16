@@ -40,12 +40,14 @@ def test_station_shape_generation():
     assert len(station.shape_points) > 0
     
     # Test specific shapes for different types
-    if station.station_type == StationType.TRADING:
-        assert len(station.shape_points) == 8  # Octagon
-    elif station.station_type == StationType.MILITARY:
-        assert len(station.shape_points) == 3  # Triangle
-    else:
-        assert len(station.shape_points) == 4  # Rectangle
+    expected_point_counts = {
+        StationType.TRADING: 8,    # Octagon
+        StationType.MILITARY: 3,   # Triangle
+        StationType.MINING: 6,     # Hexagon
+        StationType.RESEARCH: 12,  # Four-armed cross
+        StationType.SHIPYARD: 8,   # Elongated hangar octagon
+    }
+    assert len(station.shape_points) == expected_point_counts[station.station_type]
 
 def test_station_rotation():
     station = Station(0, 0)
