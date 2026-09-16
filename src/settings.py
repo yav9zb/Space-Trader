@@ -95,6 +95,9 @@ class Settings:
         # Difficulty settings
         self.difficulty = "normal"  # Default difficulty level
 
+        # Onboarding hints already shown (so they only appear once ever)
+        self.hints_seen = []
+
         # Load settings from file if it exists
         self.load()
     
@@ -122,6 +125,7 @@ class Settings:
             "control_scheme": self.control_scheme,
             "universe_type": self.universe_type,
             "difficulty": self.difficulty,
+            "hints_seen": self.hints_seen,
             "dev_view_enabled": self.dev_view_enabled,
             "dev_show_fps": self.dev_show_fps,
             "dev_show_ship_pos": self.dev_show_ship_pos,
@@ -194,6 +198,9 @@ class Settings:
 
             # Load difficulty settings
             self.difficulty = settings_dict.get("difficulty", "normal")
+
+            # Load onboarding hints already shown
+            self.hints_seen = settings_dict.get("hints_seen", [])
 
             # Load dev view settings
             self.dev_view_enabled = settings_dict.get("dev_view_enabled", False)
