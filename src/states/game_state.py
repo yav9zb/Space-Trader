@@ -1507,13 +1507,16 @@ class TradingState(State):
         self.transaction_quantity = 1
         self.message = ""
         self.message_timer = 0
-        
+
         # Get ship and market references
         self.ship = game.ship
         self.market = station.market if station else None
-        
+
         # Get available commodities
         self.available_commodities = self.market.get_available_commodities() if self.market else []
+
+        from ..ui.menu_style import MenuBackground
+        self.background = MenuBackground()
         
     def update(self, delta_time):
         # Update message timer
@@ -1523,67 +1526,68 @@ class TradingState(State):
                 self.message = ""
         
     def render(self, screen):
-        # Clear screen with dark background
-        screen.fill((20, 20, 30))
-        
+        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+
+        self.background.draw(screen)
+
         # Fonts
-        title_font = pygame.font.Font(None, 48)
-        header_font = pygame.font.Font(None, 36)
+        header_font = pygame.font.Font(None, 32)
         text_font = pygame.font.Font(None, 24)
         small_font = pygame.font.Font(None, 20)
-        
+
         # Screen dimensions
         width, height = screen.get_size()
-        
+
         # Title
         station_name = self.station.name if self.station else "Unknown Station"
         station_type = self.station.station_type.value if self.station else "Unknown"
-        title_text = f"TRADING - {station_name} ({station_type})"
-        title_surface = title_font.render(title_text, True, (255, 255, 255))
-        title_rect = title_surface.get_rect(centerx=width//2, y=20)
-        screen.blit(title_surface, title_rect)
-        
+        title_bottom = draw_title(screen, "TRADING", subtitle=f"{station_name} - {station_type}", y=50)
+
         # Credits and cargo info
         credits_text = f"Credits: {self.ship.credits:,}"
         cargo_summary = self.ship.cargo_hold.get_cargo_summary()
         cargo_text = f"Cargo: {cargo_summary}"
-        
-        credits_surface = text_font.render(credits_text, True, (255, 255, 0))
-        cargo_surface = text_font.render(cargo_text, True, (255, 255, 0))
-        
-        screen.blit(credits_surface, (20, 80))
-        screen.blit(cargo_surface, (width - cargo_surface.get_width() - 20, 80))
-        
-        # Divider line
-        pygame.draw.line(screen, (100, 100, 100), (0, 120), (width, 120), 2)
-        
+
+        credits_surface = text_font.render(credits_text, True, ACCENT_GOLD)
+        cargo_surface = text_font.render(cargo_text, True, ACCENT_GOLD)
+
+        info_y = title_bottom + 14
+        screen.blit(credits_surface, (20, info_y))
+        screen.blit(cargo_surface, (width - cargo_surface.get_width() - 20, info_y))
+
         # Split screen layout
-        left_width = width // 2 - 10
-        right_width = width // 2 - 10
-        content_y = 140
-        
+        left_width = width // 2 - 30
+        right_width = width // 2 - 30
+        content_y = info_y + 34
+
+        panel_bottom = height - 150  # leave room for the controls footer below
+        market_panel = pygame.Rect(20, content_y, left_width, panel_bottom - content_y)
+        cargo_panel = pygame.Rect(width // 2 + 10, content_y, right_width, panel_bottom - content_y)
+        draw_panel(screen, market_panel, border_color=ACCENT_BLUE if not self.viewing_cargo else (70, 80, 100))
+        draw_panel(screen, cargo_panel, border_color=ACCENT_BLUE if self.viewing_cargo else (70, 80, 100))
+
         # Left panel - Station Market
-        market_header = header_font.render("STATION MARKET", True, (200, 200, 200))
-        screen.blit(market_header, (20, content_y))
-        
+        market_header = header_font.render("STATION MARKET", True, TEXT_PRIMARY)
+        screen.blit(market_header, (market_panel.x + 16, content_y + 12))
+
         # Right panel - Ship Cargo
-        cargo_header = header_font.render("YOUR CARGO", True, (200, 200, 200))
-        screen.blit(cargo_header, (width//2 + 20, content_y))
-        
-        # Market commodities list - clip to the space above the controls footer
-        list_top = content_y + 40
-        list_height = max(0, (height - 150) - list_top)
-        self._render_market_list(screen, 20, list_top, left_width, list_height, text_font, small_font)
+        cargo_header = header_font.render("YOUR CARGO", True, TEXT_PRIMARY)
+        screen.blit(cargo_header, (cargo_panel.x + 16, content_y + 12))
+
+        # Market commodities list - clip to the space inside its panel
+        list_top = content_y + 48
+        list_height = max(0, panel_bottom - 16 - list_top)
+        self._render_market_list(screen, market_panel.x + 16, list_top, left_width - 32, list_height, text_font, small_font)
 
         # Ship cargo list
-        self._render_cargo_list(screen, width//2 + 20, list_top, right_width, list_height, text_font, small_font)
-        
+        self._render_cargo_list(screen, cargo_panel.x + 16, list_top, right_width - 32, list_height, text_font, small_font)
+
         # Controls and instructions
         self._render_controls(screen, height, small_font)
-        
+
         # Transaction message
         if self.message:
-            msg_surface = text_font.render(self.message, True, (255, 255, 0))
+            msg_surface = text_font.render(self.message, True, ACCENT_GOLD)
             msg_rect = msg_surface.get_rect(centerx=width//2, y=height - 80)
             screen.blit(msg_surface, msg_rect)
     
