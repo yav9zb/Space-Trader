@@ -77,6 +77,46 @@ class Planet:
                     'width': random.uniform(0.1, 0.3)
                 })
 
+        elif self.planet_type == PlanetType.ICE_WORLD:
+            # Precompute crack lines once - these used to be regenerated with
+            # fresh random values on every single draw() call, which made
+            # them flicker/jitter every frame instead of looking like a
+            # stable surface
+            for _ in range(3):
+                angle = random.uniform(0, 360)
+                length = random.uniform(0.3, 0.7)
+                self.features.append({
+                    'type': 'crack',
+                    'angle': angle,
+                    'length': length
+                })
+
+        elif self.planet_type == PlanetType.LAVA_WORLD:
+            # Precompute flows and pools once, same reasoning as ice cracks
+            for _ in range(4):
+                self.features.append({
+                    'type': 'flow',
+                    'start': (random.uniform(-0.7, 0.7), random.uniform(-0.7, 0.7)),
+                    'length': random.uniform(0.2, 0.4),
+                    'angle': random.uniform(0, 360)
+                })
+            for _ in range(5):
+                self.features.append({
+                    'type': 'pool',
+                    'pos': (random.uniform(-0.6, 0.6), random.uniform(-0.6, 0.6)),
+                    'size': random.uniform(0.1, 0.2)
+                })
+
+        elif self.planet_type == PlanetType.DESERT_WORLD:
+            # Dune bands, similar treatment to gas giant cloud bands
+            num_dunes = random.randint(4, 7)
+            for i in range(num_dunes):
+                self.features.append({
+                    'type': 'dune',
+                    'pos': (random.uniform(-0.7, 0.7), random.uniform(-0.7, 0.7)),
+                    'size': random.uniform(0.15, 0.3)
+                })
+
     def draw(self, screen, camera_offset):
         """Draw the planet with its features"""
         screen_pos = self.position - camera_offset
@@ -96,7 +136,9 @@ class Planet:
             self._draw_ice_features(screen, screen_pos)
         elif self.planet_type == PlanetType.LAVA_WORLD:
             self._draw_lava_features(screen, screen_pos)
-        
+        elif self.planet_type == PlanetType.DESERT_WORLD:
+            self._draw_desert_features(screen, screen_pos)
+
         # Draw atmosphere effect
         self._draw_atmosphere(screen, screen_pos)
 
@@ -126,39 +168,46 @@ class Planet:
                           (int(pos.x), int(pos.y - self.size * 0.6)), int(cap_size))
         pygame.draw.circle(screen, (220, 220, 255),
                           (int(pos.x), int(pos.y + self.size * 0.6)), int(cap_size))
-    
-        # Draw cracks in the ice
-        for _ in range(3):
-            start_angle = random.uniform(0, 360)
-            length = random.uniform(0.3, 0.7) * self.size
-            end_x = pos.x + length * math.cos(math.radians(start_angle))
-            end_y = pos.y + length * math.sin(math.radians(start_angle))
-            pygame.draw.line(screen, (200, 200, 255),
-                            (int(pos.x), int(pos.y)),
-                            (int(end_x), int(end_y)), 2)
+
+        # Draw cracks in the ice (precomputed in _generate_features, stable
+        # across frames instead of re-randomized every draw call)
+        for feature in self.features:
+            if feature['type'] == 'crack':
+                length = feature['length'] * self.size
+                end_x = pos.x + length * math.cos(math.radians(feature['angle']))
+                end_y = pos.y + length * math.sin(math.radians(feature['angle']))
+                pygame.draw.line(screen, (200, 200, 255),
+                                (int(pos.x), int(pos.y)),
+                                (int(end_x), int(end_y)), 2)
 
     def _draw_lava_features(self, screen, pos):
         """Draw features for lava worlds"""
-        # Draw lava flows
-        for _ in range(4):
-            start_x = pos.x + random.uniform(-0.7, 0.7) * self.size
-            start_y = pos.y + random.uniform(-0.7, 0.7) * self.size
-            length = random.uniform(0.2, 0.4) * self.size
-            angle = random.uniform(0, 360)
-            end_x = start_x + length * math.cos(math.radians(angle))
-            end_y = start_y + length * math.sin(math.radians(angle))
-        
-            pygame.draw.line(screen, (255, 165, 0),
-                            (int(start_x), int(start_y)),
-                            (int(end_x), int(end_y)), 3)
-    
-        # Draw bright spots (lava pools)
-        for _ in range(5):
-            x = pos.x + random.uniform(-0.6, 0.6) * self.size
-            y = pos.y + random.uniform(-0.6, 0.6) * self.size
-            radius = random.uniform(0.1, 0.2) * self.size
-            pygame.draw.circle(screen, (255, 200, 0),
-                             (int(x), int(y)), int(radius))
+        # Draw lava flows and glowing pools (precomputed in _generate_features,
+        # stable across frames instead of re-randomized every draw call)
+        for feature in self.features:
+            if feature['type'] == 'flow':
+                start_x = pos.x + feature['start'][0] * self.size
+                start_y = pos.y + feature['start'][1] * self.size
+                length = feature['length'] * self.size
+                end_x = start_x + length * math.cos(math.radians(feature['angle']))
+                end_y = start_y + length * math.sin(math.radians(feature['angle']))
+                pygame.draw.line(screen, (255, 165, 0),
+                                (int(start_x), int(start_y)),
+                                (int(end_x), int(end_y)), 3)
+            elif feature['type'] == 'pool':
+                x = pos.x + feature['pos'][0] * self.size
+                y = pos.y + feature['pos'][1] * self.size
+                radius = feature['size'] * self.size
+                pygame.draw.circle(screen, (255, 200, 0), (int(x), int(y)), int(radius))
+
+    def _draw_desert_features(self, screen, pos):
+        """Draw dune features for desert worlds"""
+        for feature in self.features:
+            if feature['type'] == 'dune':
+                x = pos.x + feature['pos'][0] * self.size
+                y = pos.y + feature['pos'][1] * self.size
+                radius = int(self.size * feature['size'])
+                pygame.draw.circle(screen, (180, 140, 90), (int(x), int(y)), radius)
 
     def _draw_atmosphere(self, screen, pos):
         """Draw atmospheric glow effect"""
