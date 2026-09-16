@@ -247,10 +247,14 @@ class Debris:
         
         return True
     
+    MAX_COLLISION_SPARKS = 20  # Cap so debris stuck in continuous contact can't
+                                # accumulate an ever-growing, ever more expensive
+                                # spark list (each spark is updated every frame)
+
     def _create_collision_sparks(self, other: 'Debris'):
         """Create spark effects at collision point."""
         collision_point = (self.position + other.position) / 2
-        
+
         # Create several sparks
         for _ in range(random.randint(3, 8)):
             spark = {
@@ -264,6 +268,10 @@ class Debris:
                 'color': (255, 200, 100)
             }
             self.collision_sparks.append(spark)
+
+        # Trim oldest sparks if over the cap
+        if len(self.collision_sparks) > self.MAX_COLLISION_SPARKS:
+            self.collision_sparks = self.collision_sparks[-self.MAX_COLLISION_SPARKS:]
     
     def draw(self, screen, camera_offset):
         """Draw debris with enhanced visuals."""
