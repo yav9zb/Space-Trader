@@ -33,20 +33,22 @@ class RepairSystem:
         return True
     
     def get_repair_cost(self, ship, repair_type: str = "full") -> int:
-        """Calculate repair cost."""
+        """Calculate repair cost, scaled by the current difficulty."""
+        from ..difficulty.difficulty_manager import difficulty_manager
+
         effective_stats = ship.get_effective_stats()
         max_hull = effective_stats.get_effective_hull_points()
         damage = max_hull - ship.current_hull
-        
+
         if damage <= 0:
             return 0
-            
+
         base_cost = int(damage * self.repair_cost_per_hull)
-        
+
         if repair_type == "emergency":
-            return int(base_cost * self.emergency_repair_multiplier)
-        else:
-            return base_cost
+            base_cost = int(base_cost * self.emergency_repair_multiplier)
+
+        return difficulty_manager.apply_repair_cost_multiplier(base_cost)
     
     def can_afford_repair(self, ship, repair_type: str = "full") -> bool:
         """Check if player can afford repair."""
@@ -122,17 +124,20 @@ class RepairSystem:
     
     def emergency_repair_kit(self, ship) -> bool:
         """Use emergency repair kit (partial repair, expensive)."""
+        from ..difficulty.difficulty_manager import difficulty_manager
+
         effective_stats = ship.get_effective_stats()
         max_hull = effective_stats.get_effective_hull_points()
-        
+
         # Repair 50% of missing hull
         damage = max_hull - ship.current_hull
         if damage <= 0:
             print("Ship doesn't need repair!")
             return False
-        
+
         repair_amount = damage * 0.5
-        cost = int(repair_amount * self.repair_cost_per_hull * self.emergency_repair_multiplier)
+        base_cost = int(repair_amount * self.repair_cost_per_hull * self.emergency_repair_multiplier)
+        cost = difficulty_manager.apply_repair_cost_multiplier(base_cost)
         
         if ship.credits < cost:
             print(f"Cannot afford emergency repair: {cost} credits required")

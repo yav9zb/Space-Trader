@@ -156,10 +156,11 @@ class Mission:
         
         self.status = MissionStatus.ACCEPTED
         self.accepted_at = time.time()
-        
-        # Set time limit if specified
+
+        # Set time limit if specified, scaled by the current difficulty
         if self.time_limit:
-            self.expires_at = self.accepted_at + self.time_limit
+            from ..difficulty.difficulty_manager import difficulty_manager
+            self.expires_at = self.accepted_at + difficulty_manager.apply_mission_time_multiplier(self.time_limit)
         
         self.progress_description = "Mission accepted"
         return True

@@ -106,7 +106,7 @@ class GameEngine:
         self.mission_manager.initialize_missions(self)
 
         # Initialize states
-        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState, SaveGameState, LoadGameState, MissionBoardState
+        from src.states.game_state import MenuState, PlayingState, PausedState, SettingsState, TradingState, UpgradeState, SaveGameState, LoadGameState, MissionBoardState, GameOverState
         from src.states.base_construction_state import BaseConstructionState
         self.states = {
             GameStates.MAIN_MENU: MenuState(self),
@@ -118,7 +118,8 @@ class GameEngine:
             GameStates.MISSIONS: None,  # Will be created dynamically with station parameter
             GameStates.BASE_CONSTRUCTION: None,  # Will be created dynamically
             GameStates.SAVE_GAME: None,  # Will be created dynamically
-            GameStates.LOAD_GAME: LoadGameState(self)
+            GameStates.LOAD_GAME: LoadGameState(self),
+            GameStates.GAME_OVER: GameOverState(self)
         }
         
         logger.info("GameEngine initialization complete")

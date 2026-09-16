@@ -23,7 +23,15 @@ class RespawnSystem:
         """Handle when ship hull reaches 0."""
         if self.respawn_in_progress:
             return
-            
+
+        from ..difficulty.difficulty_manager import difficulty_manager
+        if difficulty_manager.is_permadeath():
+            from ..states.game_state import GameStates
+            print("Ship destroyed! Extreme difficulty - no respawn.")
+            self._create_destruction_effects(game_engine.ship.position)
+            game_engine.change_state(GameStates.GAME_OVER)
+            return
+
         print("Ship destroyed! Respawning...")
         self.respawn_in_progress = True
         self.respawn_timer = 0.0
