@@ -2484,15 +2484,15 @@ class MissionBoardState(State):
         
         # Tab navigation
         tab_y = 80
-        tab_width = 150
+        tab_spacing = 30
         available_color = (255, 255, 0) if self.current_tab == "available" else (200, 200, 200)
         active_color = (255, 255, 0) if self.current_tab == "active" else (200, 200, 200)
-        
+
         available_tab = tab_font.render("Available", True, available_color)
         active_tab = tab_font.render("Active", True, active_color)
-        
+
         screen.blit(available_tab, (50, tab_y))
-        screen.blit(active_tab, (50 + tab_width, tab_y))
+        screen.blit(active_tab, (50 + available_tab.get_width() + tab_spacing, tab_y))
         
         # Mission count
         if self.current_tab == "available":
@@ -2508,13 +2508,14 @@ class MissionBoardState(State):
         # Divider line
         pygame.draw.line(screen, (100, 100, 100), (0, 140), (width, 140), 2)
         
-        if not self.viewing_details:
-            self._render_mission_list(screen, missions_to_show, text_font, small_font)
-        else:
-            self._render_mission_details(screen, missions_to_show, header_font, text_font, small_font)
-        
         # Instructions
         instruction_y = height - 80
+
+        if not self.viewing_details:
+            self._render_mission_list(screen, missions_to_show, text_font, small_font, instruction_y)
+        else:
+            self._render_mission_details(screen, missions_to_show, header_font, text_font, small_font)
+
         if not self.viewing_details:
             instructions = [
                 "TAB: Switch tabs | UP/DOWN: Navigate | ENTER: View details",
@@ -2539,19 +2540,23 @@ class MissionBoardState(State):
             pygame.draw.rect(screen, (0, 0, 0), msg_rect.inflate(20, 10))
             screen.blit(msg_text, msg_rect)
     
-    def _render_mission_list(self, screen, missions, text_font, small_font):
+    def _render_mission_list(self, screen, missions, text_font, small_font, instruction_y=None):
         """Render the list of missions."""
         if not missions:
             no_missions_text = text_font.render("No missions available", True, (150, 150, 150))
             screen.blit(no_missions_text, (50, 200))
             return
-        
+
         start_y = 160
         mission_height = 100
-        
-        # Show up to 5 missions at a time
-        start_index = max(0, self.selected_mission_index - 2)
-        end_index = min(len(missions), start_index + 5)
+
+        # Show as many missions as fit above the instructions footer
+        available_height = (instruction_y - 20 - start_y) if instruction_y else 500
+        max_visible = max(1, available_height // mission_height)
+
+        start_index = max(0, self.selected_mission_index - max_visible // 2)
+        start_index = min(start_index, max(0, len(missions) - max_visible))
+        end_index = min(len(missions), start_index + max_visible)
         
         for i in range(start_index, end_index):
             mission = missions[i]
