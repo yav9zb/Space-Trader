@@ -1,5 +1,7 @@
 # Space Trader
 
+**🚧 Beta** - this is a pre-release build. Core gameplay is complete and stable (146 automated tests, full manual playthrough verification), but expect rough edges. See [Known Issues / Beta Notes](#known-issues--beta-notes) below, and please [open an issue](https://github.com/yav9zb/Space-Trader/issues) for anything you run into.
+
 A 2D space trading simulation game built with Python and Pygame. Navigate through a procedurally generated universe, dock with stations, trade commodities, complete missions, and survive in a hostile galaxy filled with hazards and enemies.
 
 ## Features
@@ -77,38 +79,45 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 
 ## Controls
 
-### Gameplay
-- **Arrow Keys**: Ship movement (Left/Right to rotate, Up to thrust, Down to brake)
-- **SPACE**: Fire weapons
-- **D**: Manual docking when near a station
-- **X**: Undock from current station
-- **T**: Trading interface (when docked)
-- **U**: Upgrades interface (when docked at compatible stations)
-- **M**: Mission board (when docked)
-- **C**: Toggle cloaking device (if installed)
-- **R**: Repair ship (station repair when docked, emergency repair in space)
-- **TAB**: Toggle large map
-- **ESC**: Pause game
-- **F3**: Toggle debug mode
+Two control schemes are available (Settings > Controls) - the exact bindings for whichever scheme you're using are always visible there under "Show Controls". Defaults:
+
+| Action | Right-Handed (WASD) | Left-Handed (Arrows) |
+|---|---|---|
+| Thrust / Rotate / Brake | W / A+D / S | Up / Left+Right / Down |
+| Fire weapons | Space | Right Ctrl |
+| Afterburner (hold) | Left Shift | Right Shift |
+| Dock / Undock | X / Z | F / G |
+| Trading / Upgrades / Missions (when docked) | T / U / M | F / G / V |
+| Cloak / Repair | C / R | E / Q |
+| Base construction | B | B |
+| Toggle large map | Tab | Tab |
+| Pause | Esc | Esc |
+
+**F4** toggles the developer view overlay (FPS, ship position, docking/camera debug info) regardless of control scheme.
 
 ### Menus
 - **UP/DOWN**: Navigate options
 - **LEFT/RIGHT**: Adjust values (in settings)
 - **ENTER**: Select/confirm
 - **ESC**: Go back
-- **A**: Accept mission/purchase (context-dependent)
 
 ## Getting Started
 
-### Prerequisites
-- Python 3.8+
-- Pygame 2.0+
+### Option A: Download a build (recommended for players)
 
-### Installation
+Grab the latest packaged build for your OS from the [Releases page](https://github.com/yav9zb/Space-Trader/releases) - no Python installation required. Extract and run.
+
+### Option B: Run from source
+
+#### Prerequisites
+- Python 3.13 (developed and tested against this version; earlier 3.x versions likely work but aren't verified)
+- pip
+
+#### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/space_trader.git
-   cd space_trader
+   git clone https://github.com/yav9zb/Space-Trader.git
+   cd Space-Trader
    ```
 
 2. Create a virtual environment:
@@ -126,6 +135,15 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
    ```bash
    python launcher.py
    ```
+
+### Building a standalone executable
+
+```bash
+pip install -r requirements-build.txt
+pyinstaller spacetrader.spec
+```
+
+Produces a standalone build in `dist/` (`Space Trader.app` on macOS, an exe + folder on Windows/Linux). See `spacetrader.spec` for details.
 
 ## Architecture
 
@@ -169,13 +187,23 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Enhanced HUD** (`src/ui/hud/enhanced_hud.py`): Multi-panel status display
 - **Large Map** (`src/ui/large_map.py`): Universe overview interface
 - **Minimap** (`src/ui/minimap.py`): Real-time local area display
+- **Menu Style** (`src/ui/menu_style.py`): Shared starfield-background/panel styling used across every menu screen (main menu, trading, missions, upgrades, save/load, settings)
+
+### Audio & Difficulty
+- **Sound Manager** (`src/audio/sound_manager.py`): Loads and plays sfx/music, applies volume settings
+- **Difficulty Manager** (`src/difficulty/difficulty_manager.py`): The 5 difficulty levels and their gameplay multipliers
+
+### Platform / Packaging
+- **Paths** (`src/paths.py`): Resolves settings/saves/logs/assets correctly whether running from source or as a packaged build
+- **Steam** (`src/steam/steam_manager.py`): Optional Steamworks scaffolding, safe no-op without the real SDK - see [STEAM_RELEASE_CHECKLIST.md](STEAM_RELEASE_CHECKLIST.md)
 
 ## Development
 
 ### Running Tests
 ```bash
 source venv/bin/activate
-python -m pytest tests/ -v
+pip install -r requirements-dev.txt  # pytest isn't in the base requirements.txt
+python -m pytest -v
 ```
 
 ### Project Structure
@@ -192,28 +220,39 @@ space_trader/
 │   ├── upgrades/        # Ship upgrade system
 │   ├── systems/         # Ship systems (cloak, repair, etc.)
 │   ├── docking/         # Docking mechanics
+│   ├── audio/           # Sound effects and music
+│   ├── difficulty/      # Difficulty levels
+│   ├── steam/           # Optional Steamworks scaffolding
 │   ├── camera.py        # Camera system
 │   ├── settings.py      # Configuration management
+│   ├── paths.py         # Settings/saves/logs/assets path resolution
 │   └── universe.py      # Universe generation
-├── saves/               # Save game files
-├── tests/               # Unit tests
-├── settings.json        # Game configuration
-└── requirements.txt     # Dependencies
+├── assets/              # Audio, icons (bundled into packaged builds)
+├── tests/               # Unit tests (pytest)
+├── scripts/             # Dev tooling (e.g. icon generation)
+├── spacetrader.spec     # PyInstaller build spec
+├── requirements.txt        # Runtime dependencies
+├── requirements-dev.txt    # + test dependencies
+└── requirements-build.txt  # + packaging dependencies (PyInstaller)
 ```
+
+`saves/` and `settings.json` are created at runtime (gitignored - they're
+per-player state, not project source; see `src/paths.py` for where they
+land in a packaged build).
 
 ## Gameplay Guide
 
 ### Getting Started
 1. Launch the game and create a new game or load an existing save
-2. Use arrow keys to pilot your ship through space
-3. Approach stations (blue circles) and dock with 'D' when close and moving slowly
-4. Trade commodities for profit using the 'T' key when docked
-5. Accept missions from the mission board ('M' key) for additional income
-6. Upgrade your ship at shipyards and research stations ('U' key)
+2. Pilot your ship through space (see Controls above for your scheme's keys)
+3. Each of the 5 station types has a distinct shape and color - approach one and dock when close and moving slowly
+4. Trade commodities for profit at the market when docked
+5. Accept missions from the mission board when docked for additional income
+6. Upgrade your ship at shipyards, research stations, and military bases when docked
 
 ### Combat
-- Enemy bandit ships will attack on sight
-- Use SPACE to fire weapons
+- Enemy bandit ships (4 types: Scout, Fighter, Heavy, Boss) will attack on sight
+- Fire weapons to fight back or clear hazardous asteroids
 - Different weapon types have varying damage, range, and energy costs
 - Avoid or destroy hazardous asteroids
 - Stay away from black holes - they're extremely dangerous
@@ -234,12 +273,21 @@ space_trader/
 - Higher tier upgrades require previous tiers
 - Specialized stations offer discounts on certain upgrade types
 
+## Known Issues / Beta Notes
+
+- **No dedicated save-system test coverage** yet - save/load is stable in manual testing but not covered by the automated suite. See [SAVE_SYSTEM.md](SAVE_SYSTEM.md).
+- **Display settings aren't configurable in-game** - the "Display" category in Settings is a placeholder; changing resolution/fullscreen currently requires editing `settings.json` directly.
+- **No auto-dock** - docking is fully manual (approach at a safe speed, press the dock key).
+- **Steam integration is unverified scaffolding**, not a tested integration - irrelevant unless you're building toward the Steam release; see [STEAM_RELEASE_CHECKLIST.md](STEAM_RELEASE_CHECKLIST.md).
+- **Windows/Linux builds haven't been produced yet** - only verified on macOS so far; the GitHub Actions workflow (`.github/workflows/build.yml`) should produce them on a tag push, but hasn't been validated against real CI yet.
+- Found something else? [Open an issue](https://github.com/yav9zb/Space-Trader/issues) - beta feedback is genuinely useful right now.
+
 ## License
 
-All rights reserved. This is a commercial project in development; source code is not licensed for reuse or redistribution.
+All rights reserved. This is a commercial project in development; source code is not licensed for reuse or redistribution. Bug reports and feedback during the beta are welcome via GitHub Issues - this isn't an open-source contribution model (no PRs), just a request for testing help.
 
 ## Acknowledgments
 
 - Built with [Pygame](https://www.pygame.org/)
 - Inspired by classic space trading games like Elite and Escape Velocity
-- Community feedback and contributions welcome!
+- Sound effects and music: [Kenney.nl](https://kenney.nl/) (CC0 / public domain) - Sci-Fi Sounds, Interface Sounds, and Music Jingles packs

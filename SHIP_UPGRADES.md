@@ -18,7 +18,7 @@ The ship upgrade system allows players to spend credits earned from trading to i
    - Calculate effective stats from upgrades
    - Track installed upgrades
 
-3. **Upgrade Shop** (`src/states/upgrade_state.py`)
+3. **Upgrade Shop** (`UpgradeState` in `src/states/game_state.py`)
    - UI for browsing and purchasing upgrades
    - Display current ship stats vs upgraded stats
    - Purchase confirmation and validation
