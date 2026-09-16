@@ -32,7 +32,11 @@ class GameEngine:
         
         # Initialize Pygame
         pygame.init()
-        
+
+        # Initialize Steamworks if running under Steam - safe no-op otherwise
+        from src.steam.steam_manager import steam_manager
+        self.steam_manager = steam_manager
+
         # Load settings and apply display configuration
         from src.settings import game_settings
         self.settings = game_settings
@@ -334,7 +338,8 @@ class GameEngine:
         self.universe = None
         self.ship = None
         self.camera = None
-        
+
+        self.steam_manager.shutdown()
         pygame.quit()
 
     def toggle_fullscreen(self):
