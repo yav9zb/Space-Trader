@@ -7,6 +7,7 @@ from src.universe import Universe
 from src.docking.docking_manager import DockingManager
 from src.settings import DisplayMode
 from src.combat.combat_manager import combat_manager
+from src.paths import get_user_data_path
 
 from ..states.game_state import GameStates
 from ..entities.ship import Ship
@@ -19,7 +20,7 @@ from ..entities.starfield import StarField
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='game.log'
+    filename=get_user_data_path('game.log')
 )
 logger = logging.getLogger(__name__)
 
