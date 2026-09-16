@@ -2119,18 +2119,6 @@ class UpgradeState(State):
         self.message_timer = 3.0  # Show for 3 seconds
 
 
-class GameOverState(State):
-    def __init__(self, game):
-        super().__init__(game)
-        
-    def render(self, screen):
-        # Render game over screen
-        pass
-        
-    def handle_input(self, event):
-        pass
-
-
 class SaveGameState(State):
     def __init__(self, game):
         super().__init__(game)
