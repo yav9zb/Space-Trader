@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y xvfb libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0
+          pip install -r requirements-dev.txt
+      - name: Run tests
+        run: xvfb-run -a python -m pytest -v
+
+  build:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            artifact: Space Trader.app
+          - os: windows-latest
+            artifact: Space Trader
+          - os: ubuntu-latest
+            artifact: Space Trader
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Linux SDL dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0
+      - name: Install dependencies
+        run: pip install -r requirements-build.txt
+      - name: Build
+        run: pyinstaller spacetrader.spec --noconfirm
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpaceTrader-${{ matrix.os }}
+          path: dist/${{ matrix.artifact }}
