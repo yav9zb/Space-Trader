@@ -42,31 +42,37 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 
 #### Ship Systems
 - **Upgrade System**: 5 upgrade categories (Cargo, Engine, Hull, Scanner, Stealth) with 4 tiers each
+- **Afterburner**: Temporary speed boost with fuel cost, cooldown, and an emergency-fuel fallback mode
 - **Cloaking System**: Stealth mechanics with effectiveness, duration, and cooldown
 - **Repair System**: Station repairs, emergency kits, and auto-repair when docked
 - **Enhanced HUD**: Comprehensive status display, navigation info, and system indicators
+
+#### Base Building
+- **Player Bases**: Construct and manage stations with 14 module types
+- **Power & Resources**: Power generation/consumption, resource storage, and production chains
+
+#### Difficulty & Accessibility
+- **5 Difficulty Levels**: Peaceful, Easy, Normal, Hard, and Extreme, scaling hazard frequency, enemy spawns, damage, mission time/rewards, and repair/upgrade costs
+- **Permadeath Mode**: Extreme difficulty ends the run permanently on ship destruction instead of respawning
+- **Two Control Schemes**: Right-handed (WASD) and left-handed (arrow keys), switchable anytime in Settings
+
+#### Audio
+- **Sound Effects**: Weapon fire per weapon type, explosions, docking/undocking, engine thrust and afterburner loops, cloak activation, low-hull alerts, and UI feedback
+- **Music Stingers**: Mission-complete and game-over cues
+- **Volume Controls**: Master/SFX/Music sliders in Settings
 
 #### User Interface
 - **Minimap**: Real-time minimap showing nearby objects and ship position
 - **Large Map**: Detailed universe overview with station locations
 - **Enhanced HUD**: Multi-panel interface with ship stats, navigation, and mission info
-- **Multiple Screens**: Trading, upgrades, missions, settings, save/load interfaces
+- **Multiple Screens**: Trading, upgrades, missions, base construction, settings, save/load interfaces
 
 ### Planned Features 📋
 
-#### Near Future (Next Release)
-- **Afterburners**: Boost system for enhanced speed and maneuverability
-- **WASD Controls**: Alternative control scheme for improved accessibility
-- **Difficulty Levels**: Configurable challenge affecting hazard frequency, damage, and enemy strength
-- **Enhanced Debris Physics**: Debris affected by gravitational pull from planets and black holes
-
-#### Future Development
 - **Advanced AI**: Improved enemy tactics and faction-based behaviors
-- **Base Building**: Construct and manage your own stations
 - **Multiplayer**: Cooperative and competitive multiplayer modes
 - **Faction System**: Reputation and relationships with different groups
 - **Story Mode**: Narrative campaign with scripted events
-- **Audio System**: Sound effects and ambient music
 - **Visual Effects**: Enhanced explosions, particle systems, and environmental effects
 
 ## Controls

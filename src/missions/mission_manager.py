@@ -408,6 +408,9 @@ class MissionManager:
         # Apply rewards, scaled by the current difficulty
         from ..difficulty.difficulty_manager import difficulty_manager
         ship.credits += difficulty_manager.apply_mission_reward_multiplier(mission.reward.credits)
+
+        from ..audio.sound_manager import sound_manager
+        sound_manager.play_music("mission_complete")
         
         # Add bonus items to cargo
         for commodity_id, quantity in mission.reward.bonus_items.items():

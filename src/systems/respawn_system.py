@@ -27,8 +27,10 @@ class RespawnSystem:
         from ..difficulty.difficulty_manager import difficulty_manager
         if difficulty_manager.is_permadeath():
             from ..states.game_state import GameStates
+            from ..audio.sound_manager import sound_manager
             print("Ship destroyed! Extreme difficulty - no respawn.")
             self._create_destruction_effects(game_engine.ship.position)
+            sound_manager.play_music("game_over")
             game_engine.change_state(GameStates.GAME_OVER)
             return
 

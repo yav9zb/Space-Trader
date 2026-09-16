@@ -200,7 +200,11 @@ class CombatManager:
             damage = projectile.damage
             destroyed = bandit.take_damage(damage)
             self.damage_dealt += damage
-            
+
+            if not destroyed:
+                from ..audio.sound_manager import sound_manager
+                sound_manager.play("impact")
+
             if destroyed:
                 self._handle_bandit_destroyed(bandit, game_engine.ship)
         
@@ -273,6 +277,9 @@ class CombatManager:
             "color": (255, 150, 0)
         }
         self.explosions.append(explosion)
+
+        from ..audio.sound_manager import sound_manager
+        sound_manager.play("explosion")
     
     def _apply_explosion_damage(self, explosion_pos: Vector2, explosion_radius: float, 
                                base_damage: float, game_engine):
