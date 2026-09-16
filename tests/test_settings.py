@@ -1,7 +1,7 @@
 import pytest
 import os
 import tempfile
-from src.settings import Settings, CameraMode, game_settings
+from src.settings import Settings, CameraMode, DisplayMode, game_settings
 
 def test_settings_initialization():
     settings = Settings()
@@ -11,7 +11,7 @@ def test_settings_initialization():
     assert 10 <= settings.camera_deadzone_radius <= 200
     assert settings.window_width > 0
     assert settings.window_height > 0
-    assert isinstance(settings.fullscreen, bool)
+    assert isinstance(settings.display_mode, DisplayMode)
 
 def test_camera_mode_enum():
     assert CameraMode.CENTERED.value == "Centered"
