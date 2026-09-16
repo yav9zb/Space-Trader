@@ -363,14 +363,21 @@ class CombatManager:
                 # Draw explosion with fading effect
                 age_factor = explosion["age"] / explosion["duration"]
                 alpha = int(255 * (1.0 - age_factor))
-                
-                # Create explosion surface with alpha
+
+                # Layered flash: dim outer ring (base color) + bright white-hot
+                # core that shrinks faster than the outer ring, for more of an
+                # energetic "flash" read than a single flat-color circle
                 explosion_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-                color = (*explosion["color"], alpha)
-                pygame.draw.circle(explosion_surface, color, (radius, radius), radius)
-                
+                outer_color = (*explosion["color"], alpha)
+                pygame.draw.circle(explosion_surface, outer_color, (radius, radius), radius)
+
+                core_radius = int(radius * max(0, 0.6 - age_factor * 0.6))
+                if core_radius > 0:
+                    core_color = (255, 255, 220, alpha)
+                    pygame.draw.circle(explosion_surface, core_color, (radius, radius), core_radius)
+
                 # Blit to screen
-                screen.blit(explosion_surface, 
+                screen.blit(explosion_surface,
                           (screen_pos.x - radius, screen_pos.y - radius))
         
         # Draw respawn effects
