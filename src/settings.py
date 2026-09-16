@@ -89,6 +89,9 @@ class Settings:
         self.mouse_sensitivity = 1.0
         self.control_scheme = "left_handed"  # Default control scheme
         
+        # Universe generation settings
+        self.universe_type = "realistic"  # Default universe type
+        
         # Load settings from file if it exists
         self.load()
     
@@ -111,6 +114,7 @@ class Settings:
             "invert_y": self.invert_y,
             "mouse_sensitivity": self.mouse_sensitivity,
             "control_scheme": self.control_scheme,
+            "universe_type": self.universe_type,
             "dev_view_enabled": self.dev_view_enabled,
             "dev_show_fps": self.dev_show_fps,
             "dev_show_ship_pos": self.dev_show_ship_pos,
@@ -173,6 +177,9 @@ class Settings:
             self.invert_y = settings_dict.get("invert_y", False)
             self.mouse_sensitivity = settings_dict.get("mouse_sensitivity", 1.0)
             self.control_scheme = settings_dict.get("control_scheme", "left_handed")
+            
+            # Load universe settings
+            self.universe_type = settings_dict.get("universe_type", "realistic")
             
             # Load dev view settings
             self.dev_view_enabled = settings_dict.get("dev_view_enabled", False)

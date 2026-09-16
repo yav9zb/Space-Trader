@@ -8,6 +8,7 @@ from .entities.bandit import create_bandit_encounter
 from .entities.black_hole import create_black_hole_field
 from .combat.combat_manager import combat_manager
 from .systems.debris_field_manager import debris_field_manager
+from .universe_generation import universe_generator, UniverseType
 
 class Universe:
     def __init__(self, width=10000, height=10000, seed=None):
@@ -27,6 +28,20 @@ class Universe:
         self.planets = []
         self.debris = []
         
+        # Initialize universe generator
+        self.setup_universe_generator()
+        
+    def setup_universe_generator(self):
+        """Setup universe generator based on settings."""
+        try:
+            from .settings import game_settings
+            universe_type_str = game_settings.universe_type
+            universe_type = UniverseType(universe_type_str)
+            universe_generator.set_universe_type(universe_type)
+        except (ImportError, ValueError):
+            # Default to realistic if settings unavailable
+            universe_generator.set_universe_type(UniverseType.REALISTIC)
+    
     def generate_universe(self):
         """Generate initial universe content - kept for backward compatibility"""
         # Generate initial area around spawn point
@@ -53,30 +68,78 @@ class Universe:
         chunk_start_x = chunk_x * self.sector_size
         chunk_start_y = chunk_y * self.sector_size
         
+        # Calculate distance from origin (0,0) for generation rules
+        distance_from_origin = ((chunk_x * self.sector_size) ** 2 + (chunk_y * self.sector_size) ** 2) ** 0.5
+        
+        # Check if this chunk should have content
+        if not universe_generator.should_generate_chunk(chunk_x, chunk_y, distance_from_origin):
+            return  # Skip this chunk - it's empty space
+        
         # Keep track of placed objects to avoid overlapping
         placed_objects = []
-        
-        # Generate stations using layer 0 seed
-        station_seed = self._get_chunk_seed(chunk_x, chunk_y, 0)
-        random.seed(station_seed)
-        num_stations = random.randint(1, 2)
-        for _ in range(num_stations):
+        stations_before = len(self.stations)
+
+        # Check if this chunk should have a star system
+        if universe_generator.should_generate_star_system(chunk_x, chunk_y):
+            # Generate a complete star system
+            station_positions, planet_positions = universe_generator.generate_star_system(
+                chunk_start_x, chunk_start_y, self.sector_size
+            )
+            
+            # Create stations
+            for pos in station_positions:
+                station = Station(pos.x, pos.y)
+                self.stations.append(station)
+                placed_objects.append((pos, station.size))
+            
+            # Create planets
+            for pos in planet_positions:
+                planet = Planet(pos.x, pos.y)
+                self.planets.append(planet)
+                placed_objects.append((pos, planet.size))
+        else:
+            # Generate stations using layer 0 seed
+            station_seed = self._get_chunk_seed(chunk_x, chunk_y, 0)
+            random.seed(station_seed)
+            
+            min_stations, max_stations, station_prob = universe_generator.get_station_generation_params(
+                chunk_x, chunk_y, distance_from_origin
+            )
+            
+            if random.random() < station_prob:
+                num_stations = random.randint(min_stations, max_stations)
+                for _ in range(num_stations):
+                    pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=100)
+                    if pos:
+                        station = Station(pos.x, pos.y)
+                        self.stations.append(station)
+                        placed_objects.append((pos, station.size))
+            
+            # Generate planets using layer 1 seed
+            planet_seed = self._get_chunk_seed(chunk_x, chunk_y, 1)
+            random.seed(planet_seed)
+            
+            min_planets, max_planets, planet_prob = universe_generator.get_planet_generation_params(
+                chunk_x, chunk_y, distance_from_origin
+            )
+            
+            if random.random() < planet_prob:
+                num_planets = random.randint(min_planets, max_planets)
+                for _ in range(num_planets):
+                    pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=150)
+                    if pos:
+                        planet = Planet(pos.x, pos.y)
+                        self.planets.append(planet)
+                        placed_objects.append((pos, planet.size))
+
+        # Guarantee the spawn chunk always has at least one station, regardless
+        # of universe type odds, so new games never start in the middle of nothing
+        if chunk_x == 0 and chunk_y == 0 and len(self.stations) == stations_before:
             pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=100)
             if pos:
                 station = Station(pos.x, pos.y)
                 self.stations.append(station)
                 placed_objects.append((pos, station.size))
-            
-        # Generate planets using layer 1 seed
-        planet_seed = self._get_chunk_seed(chunk_x, chunk_y, 1)
-        random.seed(planet_seed)
-        num_planets = random.randint(0, 1)
-        for _ in range(num_planets):
-            pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=150)
-            if pos:
-                planet = Planet(pos.x, pos.y)
-                self.planets.append(planet)
-                placed_objects.append((pos, planet.size))
 
         # Generate enhanced debris using layer 2 seed
         debris_seed = self._get_chunk_seed(chunk_x, chunk_y, 2)
