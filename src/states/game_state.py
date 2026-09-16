@@ -2216,71 +2216,78 @@ class SaveGameState(State):
         self.message_timer = 0.0
         self.existing_saves = self.save_system.get_save_list()
         self.selected_save_index = 0
-        
+
+        from ..ui.menu_style import MenuBackground
+        self.background = MenuBackground()
+
     def update(self, delta_time):
         if self.message_timer > 0:
             self.message_timer -= delta_time
             if self.message_timer <= 0:
                 self.message = ""
-    
+
     def render(self, screen):
-        screen.fill((0, 0, 20))  # Dark blue background
-        
-        # Draw title
-        title_font = pygame.font.Font(None, 64)
-        title = title_font.render(self.title, True, (255, 255, 255))
-        title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
-        screen.blit(title, title_rect)
-        
+        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+
+        self.background.draw(screen)
+        title_bottom = draw_title(screen, "SAVE GAME", y=70)
+
         # Draw input field
-        input_font = pygame.font.Font(None, 36)
-        name_label = input_font.render("Save Name:", True, (200, 200, 200))
-        screen.blit(name_label, (50, 150))
-        
+        input_font = pygame.font.Font(None, 32)
+        name_label = input_font.render("Save Name:", True, TEXT_PRIMARY)
+        screen.blit(name_label, (50, title_bottom + 20))
+
         # Input box
-        input_box = pygame.Rect(50, 180, 400, 40)
-        input_color = (255, 255, 255) if self.editing_name else (150, 150, 150)
-        pygame.draw.rect(screen, input_color, input_box, 2)
-        
+        input_box = pygame.Rect(50, title_bottom + 50, 400, 40)
+        input_color = ACCENT_GOLD if self.editing_name else (100, 110, 130)
+        draw_panel(screen, input_box, border_color=input_color, bg_alpha=150)
+
         # Current save name text
-        name_text = input_font.render(self.save_name, True, (255, 255, 255))
-        screen.blit(name_text, (input_box.x + 5, input_box.y + 8))
-        
+        name_text = input_font.render(self.save_name, True, TEXT_PRIMARY)
+        screen.blit(name_text, (input_box.x + 10, input_box.y + 8))
+
         # Draw existing saves
-        saves_label = input_font.render("Existing Saves:", True, (200, 200, 200))
-        screen.blit(saves_label, (50, 250))
-        
-        save_font = pygame.font.Font(None, 28)
-        y_offset = 280
+        saves_label_y = input_box.bottom + 30
+        saves_label = input_font.render("Existing Saves:", True, TEXT_PRIMARY)
+        screen.blit(saves_label, (50, saves_label_y))
+
+        list_top = saves_label_y + 34
+        list_bottom = screen.get_height() - 140
+        list_panel = pygame.Rect(50, list_top, screen.get_width() - 100, max(40, list_bottom - list_top))
+        draw_panel(screen, list_panel)
+
+        save_font = pygame.font.Font(None, 26)
+        y_offset = list_panel.y + 12
         for i, save_meta in enumerate(self.existing_saves[:8]):  # Show up to 8 saves
-            color = (255, 255, 0) if i == self.selected_save_index and not self.editing_name else (255, 255, 255)
+            is_selected = i == self.selected_save_index and not self.editing_name
+            color = ACCENT_GOLD if is_selected else TEXT_PRIMARY
             save_text = f"{save_meta.save_name} - {save_meta.credits} credits - {save_meta.location}"
             text = save_font.render(save_text, True, color)
-            screen.blit(text, (70, y_offset))
+            screen.blit(text, (list_panel.x + 20, y_offset))
             y_offset += 30
-        
+
         # Draw instructions
-        instruction_font = pygame.font.Font(None, 24)
+        instruction_font = pygame.font.Font(None, 22)
         instructions = [
             "Type save name and press ENTER to save",
             "Use UP/DOWN to select existing save to overwrite",
             "Press TAB to switch between input and save list",
             "Press ESC to go back"
         ]
-        
+
         y_offset = screen.get_height() - 120
         for instruction in instructions:
-            instr_text = instruction_font.render(instruction, True, (150, 150, 150))
+            instr_text = instruction_font.render(instruction, True, TEXT_DIM)
             screen.blit(instr_text, (50, y_offset))
             y_offset += 25
-        
+
         # Draw message if any
         if self.message:
             message_font = pygame.font.Font(None, 36)
-            msg_color = (0, 255, 0) if "success" in self.message.lower() else (255, 100, 100)
+            msg_color = ACCENT_GOLD if "success" in self.message.lower() else (255, 120, 120)
             msg_text = message_font.render(self.message, True, msg_color)
             msg_rect = msg_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
-            pygame.draw.rect(screen, (0, 0, 0), msg_rect.inflate(20, 10))
+            draw_panel(screen, msg_rect.inflate(30, 16), border_color=msg_color)
             screen.blit(msg_text, msg_rect)
     
     def handle_input(self, event):
@@ -2346,43 +2353,60 @@ class LoadGameState(State):
         self.selected_save_index = 0
         self.message = ""
         self.message_timer = 0.0
-        
+
+        from ..ui.menu_style import MenuBackground
+        self.background = MenuBackground()
+
     def update(self, delta_time):
         if self.message_timer > 0:
             self.message_timer -= delta_time
             if self.message_timer <= 0:
                 self.message = ""
-    
+
     def render(self, screen):
-        screen.fill((0, 0, 20))  # Dark blue background
-        
-        # Draw title
-        title_font = pygame.font.Font(None, 64)
-        title = title_font.render(self.title, True, (255, 255, 255))
-        title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
-        screen.blit(title, title_rect)
-        
+        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+
+        self.background.draw(screen)
+        title_bottom = draw_title(screen, "LOAD GAME", y=70)
+
+        instruction_y = screen.get_height() - 120
+        panel_rect = pygame.Rect(50, title_bottom + 20, screen.get_width() - 100, instruction_y - 20 - (title_bottom + 20))
+        draw_panel(screen, panel_rect)
+
         if not self.existing_saves:
             # No saves found
-            no_saves_font = pygame.font.Font(None, 48)
-            no_saves_text = no_saves_font.render("No saved games found", True, (200, 200, 200))
-            no_saves_rect = no_saves_text.get_rect(center=(screen.get_width() // 2, 300))
+            no_saves_font = pygame.font.Font(None, 40)
+            no_saves_text = no_saves_font.render("No saved games found", True, TEXT_DIM)
+            no_saves_rect = no_saves_text.get_rect(center=panel_rect.center)
             screen.blit(no_saves_text, no_saves_rect)
         else:
-            # Draw save list with details
-            save_font = pygame.font.Font(None, 32)
-            detail_font = pygame.font.Font(None, 24)
-            
-            y_offset = 150
-            for i, save_meta in enumerate(self.existing_saves):
+            # Draw save list with details, scrolled to keep the selection visible
+            save_font = pygame.font.Font(None, 30)
+            detail_font = pygame.font.Font(None, 22)
+            row_height = 70
+
+            max_visible = max(1, (panel_rect.height - 20) // row_height)
+            start_index = min(max(0, self.selected_save_index - max_visible // 2),
+                             max(0, len(self.existing_saves) - max_visible))
+            end_index = min(len(self.existing_saves), start_index + max_visible)
+
+            y_offset = panel_rect.y + 12
+            for i in range(start_index, end_index):
+                save_meta = self.existing_saves[i]
                 is_selected = i == self.selected_save_index
-                color = (255, 255, 0) if is_selected else (255, 255, 255)
-                detail_color = (200, 200, 0) if is_selected else (150, 150, 150)
-                
+                color = ACCENT_GOLD if is_selected else TEXT_PRIMARY
+                detail_color = ACCENT_GOLD if is_selected else TEXT_DIM
+
+                # Selection highlight
+                if is_selected:
+                    highlight_rect = pygame.Rect(panel_rect.x + 10, y_offset - 5, panel_rect.width - 20, row_height - 15)
+                    pygame.draw.rect(screen, (40, 45, 70), highlight_rect, border_radius=6)
+                    pygame.draw.rect(screen, ACCENT_BLUE, highlight_rect, 2, border_radius=6)
+
                 # Save name
                 name_text = save_font.render(save_meta.save_name, True, color)
-                screen.blit(name_text, (50, y_offset))
-                
+                screen.blit(name_text, (panel_rect.x + 20, y_offset))
+
                 # Save details
                 from datetime import datetime
                 try:
@@ -2390,40 +2414,40 @@ class LoadGameState(State):
                     date_str = save_date.strftime("%Y-%m-%d %H:%M")
                 except:
                     date_str = save_meta.save_date
-                
+
                 details = f"Credits: {save_meta.credits} | Location: {save_meta.location} | Date: {date_str}"
                 detail_text = detail_font.render(details, True, detail_color)
-                screen.blit(detail_text, (70, y_offset + 25))
-                
-                # Selection highlight
-                if is_selected:
-                    pygame.draw.rect(screen, (50, 50, 100), 
-                                   pygame.Rect(40, y_offset - 5, screen.get_width() - 80, 50), 2)
-                
-                y_offset += 70
-        
+                screen.blit(detail_text, (panel_rect.x + 40, y_offset + 25))
+
+                y_offset += row_height
+
+            if len(self.existing_saves) > max_visible:
+                scroll_text = f"{start_index + 1}-{end_index} of {len(self.existing_saves)}"
+                scroll_surface = detail_font.render(scroll_text, True, TEXT_DIM)
+                screen.blit(scroll_surface, (panel_rect.x + 20, panel_rect.bottom - 24))
+
         # Draw instructions
-        instruction_font = pygame.font.Font(None, 24)
+        instruction_font = pygame.font.Font(None, 22)
         instructions = [
             "Use UP/DOWN to select save",
             "Press ENTER to load selected save",
             "Press DELETE to delete selected save",
             "Press ESC to go back"
         ]
-        
-        y_offset = screen.get_height() - 120
+
+        y_offset = instruction_y
         for instruction in instructions:
-            instr_text = instruction_font.render(instruction, True, (150, 150, 150))
+            instr_text = instruction_font.render(instruction, True, TEXT_DIM)
             screen.blit(instr_text, (50, y_offset))
             y_offset += 25
-        
+
         # Draw message if any
         if self.message:
             message_font = pygame.font.Font(None, 36)
-            msg_color = (0, 255, 0) if "success" in self.message.lower() else (255, 100, 100)
+            msg_color = ACCENT_GOLD if "success" in self.message.lower() else (255, 120, 120)
             msg_text = message_font.render(self.message, True, msg_color)
             msg_rect = msg_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
-            pygame.draw.rect(screen, (0, 0, 0), msg_rect.inflate(20, 10))
+            draw_panel(screen, msg_rect.inflate(30, 16), border_color=msg_color)
             screen.blit(msg_text, msg_rect)
     
     def handle_input(self, event):
