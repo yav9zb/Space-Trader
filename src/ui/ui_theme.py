@@ -203,29 +203,32 @@ class UITheme:
             'alpha': style['alpha']
         }
     
-    def draw_border(self, surface: pygame.Surface, rect: pygame.Rect, 
+    PANEL_RADIUS = 8  # Rounded corners, matching the settings/onboarding panels
+
+    def draw_border(self, surface: pygame.Surface, rect: pygame.Rect,
                    element_type: UIElementType, state: UIState = UIState.NORMAL):
         """Draw a border around a rectangle with theme styling."""
         style = self.get_border_style(element_type, state)
-        
+
         # Create a surface for the border if alpha is needed
         if style['alpha'] < 255 and self.alpha_enabled:
             border_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-            pygame.draw.rect(border_surface, (*style['color'], style['alpha']), 
-                           (0, 0, rect.width, rect.height), style['thickness'])
+            pygame.draw.rect(border_surface, (*style['color'], style['alpha']),
+                           (0, 0, rect.width, rect.height), style['thickness'], border_radius=self.PANEL_RADIUS)
             surface.blit(border_surface, rect.topleft)
         else:
-            pygame.draw.rect(surface, style['color'], rect, style['thickness'])
-    
-    def draw_panel_background(self, surface: pygame.Surface, rect: pygame.Rect, 
+            pygame.draw.rect(surface, style['color'], rect, style['thickness'], border_radius=self.PANEL_RADIUS)
+
+    def draw_panel_background(self, surface: pygame.Surface, rect: pygame.Rect,
                             alpha: int = 180):
         """Draw a standard panel background."""
         if alpha < 255 and self.alpha_enabled:
             panel_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-            panel_surface.fill((*self.colors['panel_bg'], alpha))
+            pygame.draw.rect(panel_surface, (*self.colors['panel_bg'], alpha),
+                            (0, 0, rect.width, rect.height), border_radius=self.PANEL_RADIUS)
             surface.blit(panel_surface, rect.topleft)
         else:
-            pygame.draw.rect(surface, self.colors['panel_bg'], rect)
+            pygame.draw.rect(surface, self.colors['panel_bg'], rect, border_radius=self.PANEL_RADIUS)
     
     def get_text_color(self, element_type: UIElementType, state: UIState = UIState.NORMAL) -> Tuple[int, int, int]:
         """Get appropriate text color for a UI element."""
