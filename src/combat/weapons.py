@@ -53,23 +53,31 @@ class Projectile:
     def draw(self, screen: pygame.Surface, camera_offset: Vector2):
         """Draw the projectile."""
         screen_pos = self.position - camera_offset
-        
+        heading = self.velocity.normalize() if self.velocity.length() > 0 else Vector2(0, -1)
+
         if self.weapon_type == WeaponType.LASER:
-            # Draw laser beam
-            pygame.draw.circle(screen, (255, 100, 100), (int(screen_pos.x), int(screen_pos.y)), 2)
+            # Short bright bolt: dim outer line + bright core, along travel direction
+            tail = screen_pos - heading * 10
+            pygame.draw.line(screen, (150, 30, 30), tail, screen_pos, 3)
+            pygame.draw.line(screen, (255, 120, 100), tail, screen_pos, 1)
         elif self.weapon_type == WeaponType.PLASMA:
-            # Draw plasma bolt
-            pygame.draw.circle(screen, (100, 255, 100), (int(screen_pos.x), int(screen_pos.y)), 3)
+            # Glowing energy orb: dim outer ring + bright core
+            pos = (int(screen_pos.x), int(screen_pos.y))
+            pygame.draw.circle(screen, (40, 130, 60), pos, 6)
+            pygame.draw.circle(screen, (150, 255, 170), pos, 3)
         elif self.weapon_type == WeaponType.MISSILE:
-            # Draw missile with trail
-            pygame.draw.circle(screen, (255, 255, 100), (int(screen_pos.x), int(screen_pos.y)), 4)
-            # Draw exhaust trail
-            trail_end = self.position - self.velocity.normalize() * 10 if self.velocity.length() > 0 else self.position
-            trail_screen = trail_end - camera_offset
-            pygame.draw.line(screen, (255, 150, 0), screen_pos, trail_screen, 2)
+            # Small elongated body along travel direction, plus exhaust flame
+            nose = screen_pos + heading * 5
+            tail = screen_pos - heading * 5
+            side = Vector2(-heading.y, heading.x) * 2
+            pygame.draw.polygon(screen, (230, 230, 210), [nose, tail + side, tail - side])
+            flame_tip = tail - heading * 8
+            pygame.draw.line(screen, (255, 140, 0), tail, flame_tip, 3)
         elif self.weapon_type == WeaponType.RAILGUN:
-            # Draw railgun slug
-            pygame.draw.circle(screen, (150, 150, 255), (int(screen_pos.x), int(screen_pos.y)), 1)
+            # Hypervelocity tracer: a bright, thin streak rather than a near-invisible dot
+            tail = screen_pos - heading * 18
+            pygame.draw.line(screen, (100, 160, 255), tail, screen_pos, 2)
+            pygame.draw.circle(screen, (220, 235, 255), (int(screen_pos.x), int(screen_pos.y)), 2)
     
     def check_collision(self, target) -> bool:
         """Check if projectile hits a target."""
