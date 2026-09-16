@@ -398,8 +398,9 @@ class BanditShip:
         else:
             color = self.color
         
+        outline_color = (80, 20, 20) if self.state == BanditState.DISABLED else (255, 210, 130)
         pygame.draw.polygon(screen, color, transformed_points)
-        pygame.draw.polygon(screen, (200, 200, 200), transformed_points, 2)
+        pygame.draw.polygon(screen, outline_color, transformed_points, 2)
         
         # Draw hull bar above ship
         if self.current_hull < self.max_hull and self.state != BanditState.DISABLED:
