@@ -107,8 +107,38 @@ class Station:
                 Vector2(-self.size, self.size),
                 Vector2(self.size, self.size)
             ]
+        elif self.station_type == StationType.MINING:
+            # Hexagon - industrial/drilling silhouette
+            points = []
+            for i in range(6):
+                angle = math.radians(i * (360 / 6))
+                points.append(Vector2(self.size * math.cos(angle), self.size * math.sin(angle)))
+            return points
+        elif self.station_type == StationType.RESEARCH:
+            # Four-armed cross - sensor/instrument array
+            arm = self.size * 0.4
+            return [
+                Vector2(-arm, -self.size), Vector2(arm, -self.size),
+                Vector2(arm, -arm), Vector2(self.size, -arm),
+                Vector2(self.size, arm), Vector2(arm, arm),
+                Vector2(arm, self.size), Vector2(-arm, self.size),
+                Vector2(-arm, arm), Vector2(-self.size, arm),
+                Vector2(-self.size, -arm), Vector2(-arm, -arm),
+            ]
+        elif self.station_type == StationType.SHIPYARD:
+            # Elongated hangar shape with angled ends
+            return [
+                Vector2(-self.size * 1.3, -self.size * 0.5),
+                Vector2(-self.size * 0.8, -self.size),
+                Vector2(self.size * 0.8, -self.size),
+                Vector2(self.size * 1.3, -self.size * 0.5),
+                Vector2(self.size * 1.3, self.size * 0.5),
+                Vector2(self.size * 0.8, self.size),
+                Vector2(-self.size * 0.8, self.size),
+                Vector2(-self.size * 1.3, self.size * 0.5),
+            ]
         else:
-            # Default rectangle shape
+            # Default rectangle shape (fallback)
             return [
                 Vector2(-self.size, -self.size),
                 Vector2(self.size, -self.size),
@@ -128,9 +158,19 @@ class Station:
             final_pos = rotated + screen_pos
             rotated_points.append(final_pos)
 
-        # Draw main structure
+        # Draw main structure - the type-specific silhouette (octagon/
+        # triangle/rectangle from _generate_shape) was previously drawn
+        # here and then immediately painted over by a same-size filled
+        # circle further down, so every station rendered as a plain
+        # circle regardless of type. Removed that circle; the polygon
+        # (with a lighter tint of its own color as the outline, instead
+        # of flat white) is the station now.
+        outline_color = tuple(min(255, c + 90) for c in self.color)
         pygame.draw.polygon(screen, self.color, rotated_points)
-        pygame.draw.polygon(screen, (255, 255, 255), rotated_points, 2)
+        pygame.draw.polygon(screen, outline_color, rotated_points, 2)
+
+        # Small powered core light at the center
+        pygame.draw.circle(screen, outline_color, (int(screen_pos.x), int(screen_pos.y)), max(2, self.size // 8))
 
         # Draw docking port indicator
         dock_pos = Vector2(0, -self.size - 10).rotate(self.rotation) + screen_pos
@@ -143,18 +183,11 @@ class Station:
             self._draw_mining_features(screen, screen_pos)
         # Add more specific features for other types...
 
-        # Draw the station
-        pygame.draw.circle(screen, self.color, 
-                         (int(screen_pos.x), int(screen_pos.y)), 
-                         self.size)
-        
         # Draw docking zone (slightly larger than station)
-        pygame.draw.circle(screen, (100, 100, 100), 
-                           (int(screen_pos.x), int(screen_pos.y)), 
+        pygame.draw.circle(screen, (100, 100, 100),
+                           (int(screen_pos.x), int(screen_pos.y)),
                            self.size + 10,
                            1)
-        
-        # Collision boundary visualization removed for cleaner visuals
         
     def _draw_military_features(self, screen, pos):
         """Draw military-specific features"""
