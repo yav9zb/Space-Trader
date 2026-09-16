@@ -12,3 +12,5 @@ pygame-env/
 node_modules/
 settings.json
 saves/
+build/
+dist/
