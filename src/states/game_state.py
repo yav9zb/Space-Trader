@@ -284,16 +284,16 @@ class SettingsState(State):
         self.control_rects = []
         self.dev_rects = []
         self.help_rects = []
-        
+
+        from ..ui.menu_style import MenuBackground
+        self.background = MenuBackground()
+
     def render(self, screen):
-        screen.fill((0, 0, 20))  # Dark blue background
-        
-        # Draw title
-        title_font = pygame.font.Font(None, 64)
-        title = title_font.render(self.title, True, (255, 255, 255))
-        title_rect = title.get_rect(center=(screen.get_width() // 2, 80))
-        screen.blit(title, title_rect)
-        
+        from ..ui.menu_style import draw_title
+
+        self.background.draw(screen)
+        draw_title(screen, self.title.upper(), y=70)
+
         if not self.viewing_camera and not self.viewing_dev and not self.viewing_controls and not self.viewing_help and not self.viewing_difficulty and not self.viewing_audio:
             self._render_main_categories(screen)
         elif self.viewing_camera:
