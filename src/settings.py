@@ -98,8 +98,11 @@ class Settings:
         # Load settings from file if it exists
         self.load()
     
-    def save(self, filename="settings.json"):
+    def save(self, filename=None):
         """Save settings to a JSON file"""
+        if filename is None:
+            from .paths import get_user_data_path
+            filename = get_user_data_path("settings.json")
         settings_dict = {
             "camera_mode": self.camera_mode.name,
             "camera_smoothing": self.camera_smoothing,
@@ -133,8 +136,12 @@ class Settings:
         except Exception as e:
             print(f"Failed to save settings: {e}")
     
-    def load(self, filename="settings.json"):
+    def load(self, filename=None):
         """Load settings from a JSON file"""
+        if filename is None:
+            from .paths import get_user_data_path
+            filename = get_user_data_path("settings.json")
+
         if not os.path.exists(filename):
             return  # Use defaults if file doesn't exist
             

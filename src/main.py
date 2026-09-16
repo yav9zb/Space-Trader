@@ -1,11 +1,12 @@
 import logging
+from .paths import get_user_data_path
 from .engine.game_engine import GameEngine
 
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='game.log'
+    filename=get_user_data_path('game.log')
 )
 logger = logging.getLogger(__name__)
 

@@ -24,7 +24,10 @@ class SaveMetadata:
 class SaveSystem:
     """Handles saving and loading game state."""
     
-    def __init__(self, save_directory: str = "saves"):
+    def __init__(self, save_directory: str = None):
+        if save_directory is None:
+            from .paths import get_user_data_path
+            save_directory = get_user_data_path("saves")
         self.save_directory = Path(save_directory)
         self.save_directory.mkdir(exist_ok=True)
         

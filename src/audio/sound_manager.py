@@ -4,9 +4,10 @@ import os
 import glob
 import pygame
 
+from ..paths import get_resource_path
 
-SFX_DIR = os.path.join("assets", "audio", "sfx")
-MUSIC_DIR = os.path.join("assets", "audio", "music")
+SFX_DIR = get_resource_path(os.path.join("assets", "audio", "sfx"))
+MUSIC_DIR = get_resource_path(os.path.join("assets", "audio", "music"))
 
 
 class SoundManager:
