@@ -76,6 +76,29 @@ class Planet:
                     'pos': -0.8 + (i * 1.6 / num_bands),
                     'width': random.uniform(0.1, 0.3)
                 })
+            # Signature storm, Great-Red-Spot style
+            self.features.append({
+                'type': 'storm',
+                'pos': (random.uniform(-0.5, 0.1), random.uniform(0.1, 0.5)),
+                'size': random.uniform(0.16, 0.24),
+                'color': (
+                    random.randint(180, 220),
+                    random.randint(50, 90),
+                    random.randint(30, 60),
+                ),
+            })
+            # Some gas giants have a ring system (2D ellipse illusion)
+            self.has_rings = random.random() < 0.5
+            if self.has_rings:
+                self.ring_rx = self.size * random.uniform(1.5, 1.9)
+                self.ring_ry = self.ring_rx * random.uniform(0.22, 0.32)
+                self.ring_thickness = max(2, int(self.size * 0.09))
+                tint = random.uniform(0.85, 1.15)
+                self.ring_color = tuple(min(255, int(c * tint)) for c in (200, 190, 170))
+
+            # Bands/storm are precomputed and static, so build the composed,
+            # circle-clipped overlay once here rather than every draw() call
+            self._build_gas_giant_overlay()
 
         elif self.planet_type == PlanetType.ICE_WORLD:
             # Precompute crack lines once - these used to be regenerated with
@@ -120,12 +143,16 @@ class Planet:
     def draw(self, screen, camera_offset):
         """Draw the planet with its features"""
         screen_pos = self.position - camera_offset
-        
+
+        # Gas giants with rings: draw the ring first so the far side appears
+        # to pass behind the planet body
+        if self.planet_type == PlanetType.GAS_GIANT and self.has_rings:
+            self._draw_rings(screen, screen_pos)
+
         # Draw base planet
         pygame.draw.circle(screen, self.color,
                          (int(screen_pos.x), int(screen_pos.y)),
                          self.size)
-
 
         # Draw features based on planet type
         if self.planet_type == PlanetType.TERRESTRIAL:
@@ -139,6 +166,11 @@ class Planet:
         elif self.planet_type == PlanetType.DESERT_WORLD:
             self._draw_desert_features(screen, screen_pos)
 
+        # Draw the near side of the ring on top, so it appears in front of
+        # the planet body instead of being hidden behind it
+        if self.planet_type == PlanetType.GAS_GIANT and self.has_rings:
+            self._draw_rings(screen, screen_pos, front_only=True)
+
         # Draw atmosphere effect
         self._draw_atmosphere(screen, screen_pos)
 
@@ -151,14 +183,56 @@ class Planet:
                 radius = int(self.size * feature['size'])
                 pygame.draw.circle(screen, feature['color'], (int(x), int(y)), radius)
 
-    def _draw_gas_giant_features(self, screen, pos):
-        """Draw features for gas giants"""
+    def _build_gas_giant_overlay(self):
+        """Precompute the bands + storm spot once, clipped to the planet's
+        circular silhouette, instead of drawing full-width rectangles
+        straight onto the screen every frame - those ignored the circle
+        entirely and stuck out past its curved edge like flat bars."""
+        d = self.size * 2
+        content = pygame.Surface((d, d), pygame.SRCALPHA)
+
         for feature in self.features:
             if feature['type'] == 'band':
-                y = pos.y + (feature['pos'] * self.size)
+                y = self.size + (feature['pos'] * self.size)
                 height = int(self.size * feature['width'])
-                rect = pygame.Rect(pos.x - self.size, y - height//2, self.size * 2, height)
-                pygame.draw.rect(screen, feature['color'], rect)
+                rect = pygame.Rect(0, y - height // 2, d, height)
+                pygame.draw.rect(content, feature['color'], rect)
+            elif feature['type'] == 'storm':
+                cx = self.size + feature['pos'][0] * self.size
+                cy = self.size + feature['pos'][1] * self.size
+                sw = self.size * feature['size']
+                sh = sw * 0.7
+                pygame.draw.ellipse(content, feature['color'],
+                                   pygame.Rect(cx - sw, cy - sh, sw * 2, sh * 2))
+
+        # Clip to a circle: multiply alpha by a circular mask so anything
+        # drawn outside the planet's radius is discarded
+        mask = pygame.Surface((d, d), pygame.SRCALPHA)
+        pygame.draw.circle(mask, (255, 255, 255, 255), (self.size, self.size), self.size)
+        content.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+        self.gas_giant_overlay = content
+
+    def _draw_gas_giant_features(self, screen, pos):
+        """Blit the precomputed, circle-clipped band/storm overlay."""
+        screen.blit(self.gas_giant_overlay, (pos.x - self.size, pos.y - self.size))
+
+    def _draw_rings(self, screen, pos, front_only=False):
+        """Draw the gas giant's ring as a flattened ellipse. Called twice by
+        draw(): once before the planet body (far side, appears behind it)
+        and once after with front_only=True, clipped to just the bottom arc
+        so the near side appears to pass in front of the planet."""
+        rect = pygame.Rect(pos.x - self.ring_rx, pos.y - self.ring_ry,
+                          self.ring_rx * 2, self.ring_ry * 2)
+        if front_only:
+            original_clip = screen.get_clip()
+            bottom_clip = pygame.Rect(pos.x - self.ring_rx - 4, pos.y,
+                                     self.ring_rx * 2 + 8, self.ring_ry + 4)
+            screen.set_clip(bottom_clip)
+            pygame.draw.ellipse(screen, self.ring_color, rect, self.ring_thickness)
+            screen.set_clip(original_clip)
+        else:
+            pygame.draw.ellipse(screen, self.ring_color, rect, self.ring_thickness)
 
     def _draw_ice_features(self, screen, pos):
         """Draw features for ice worlds"""
