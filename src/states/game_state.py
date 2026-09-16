@@ -2485,7 +2485,10 @@ class MissionBoardState(State):
         
         # Get missions for this station
         self.refresh_missions()
-    
+
+        from ..ui.menu_style import MenuBackground
+        self.background = MenuBackground()
+
     def refresh_missions(self):
         """Refresh the mission lists."""
         if self.station:
@@ -2508,36 +2511,41 @@ class MissionBoardState(State):
                 self.message = ""
     
     def render(self, screen):
-        screen.fill((20, 20, 40))  # Dark blue background
-        
+        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+
+        self.background.draw(screen)
+
         # Fonts
-        title_font = pygame.font.Font(None, 64)
-        tab_font = pygame.font.Font(None, 48)
+        tab_font = pygame.font.Font(None, 40)
         header_font = pygame.font.Font(None, 36)
         text_font = pygame.font.Font(None, 28)
         small_font = pygame.font.Font(None, 20)
-        
+
         width, height = screen.get_size()
-        
+
         # Title
         station_name = self.station.name if self.station else "Mission Central"
-        title_text = f"MISSION BOARD - {station_name}"
-        title_surface = title_font.render(title_text, True, (255, 255, 255))
-        title_rect = title_surface.get_rect(centerx=width//2, y=20)
-        screen.blit(title_surface, title_rect)
-        
+        title_bottom = draw_title(screen, "MISSION BOARD", subtitle=station_name, y=50)
+
         # Tab navigation
-        tab_y = 80
+        tab_y = title_bottom + 20
         tab_spacing = 30
-        available_color = (255, 255, 0) if self.current_tab == "available" else (200, 200, 200)
-        active_color = (255, 255, 0) if self.current_tab == "active" else (200, 200, 200)
+        available_color = ACCENT_GOLD if self.current_tab == "available" else TEXT_DIM
+        active_color = ACCENT_GOLD if self.current_tab == "active" else TEXT_DIM
 
         available_tab = tab_font.render("Available", True, available_color)
         active_tab = tab_font.render("Active", True, active_color)
 
         screen.blit(available_tab, (50, tab_y))
-        screen.blit(active_tab, (50 + available_tab.get_width() + tab_spacing, tab_y))
-        
+        active_tab_x = 50 + available_tab.get_width() + tab_spacing
+        screen.blit(active_tab, (active_tab_x, tab_y))
+
+        # Underline whichever tab is selected
+        underline_rect = available_tab.get_rect(topleft=(50, tab_y)) if self.current_tab == "available" \
+            else active_tab.get_rect(topleft=(active_tab_x, tab_y))
+        pygame.draw.line(screen, ACCENT_GOLD, (underline_rect.left, underline_rect.bottom + 2),
+                        (underline_rect.right, underline_rect.bottom + 2), 2)
+
         # Mission count
         if self.current_tab == "available":
             count_text = f"({len(self.available_missions)} missions)"
@@ -2545,20 +2553,20 @@ class MissionBoardState(State):
         else:
             count_text = f"({len(self.active_missions)} missions)"
             missions_to_show = self.active_missions
-        
-        count_surface = small_font.render(count_text, True, (150, 150, 150))
-        screen.blit(count_surface, (50, tab_y + 40))
-        
-        # Divider line
-        pygame.draw.line(screen, (100, 100, 100), (0, 140), (width, 140), 2)
-        
-        # Instructions
+
+        count_surface = small_font.render(count_text, True, TEXT_DIM)
+        screen.blit(count_surface, (50, tab_y + 42))
+
+        # Panel behind the mission list/details
+        panel_top = tab_y + 70
         instruction_y = height - 80
+        panel_rect = pygame.Rect(20, panel_top, width - 40, instruction_y - 20 - panel_top)
+        draw_panel(screen, panel_rect)
 
         if not self.viewing_details:
-            self._render_mission_list(screen, missions_to_show, text_font, small_font, instruction_y)
+            self._render_mission_list(screen, missions_to_show, text_font, small_font, instruction_y, panel_rect)
         else:
-            self._render_mission_details(screen, missions_to_show, header_font, text_font, small_font)
+            self._render_mission_details(screen, missions_to_show, header_font, text_font, small_font, panel_rect)
 
         if not self.viewing_details:
             instructions = [
@@ -2569,29 +2577,34 @@ class MissionBoardState(State):
             instructions = [
                 "A: Accept mission | X: Abandon (if active) | ESC: Back to list"
             ]
-        
+
         instruction_font = pygame.font.Font(None, 20)
         for i, instruction in enumerate(instructions):
-            instr_text = instruction_font.render(instruction, True, (150, 150, 150))
+            instr_text = instruction_font.render(instruction, True, TEXT_DIM)
             screen.blit(instr_text, (20, instruction_y + i * 20))
-        
+
         # Draw message if any
         if self.message:
             message_font = pygame.font.Font(None, 36)
-            msg_color = (0, 255, 0) if "success" in self.message.lower() else (255, 100, 100)
+            msg_color = ACCENT_GOLD if "success" in self.message.lower() else (255, 120, 120)
             msg_text = message_font.render(self.message, True, msg_color)
             msg_rect = msg_text.get_rect(center=(width // 2, height // 2))
-            pygame.draw.rect(screen, (0, 0, 0), msg_rect.inflate(20, 10))
+            draw_panel(screen, msg_rect.inflate(30, 16), border_color=msg_color)
             screen.blit(msg_text, msg_rect)
     
-    def _render_mission_list(self, screen, missions, text_font, small_font, instruction_y=None):
-        """Render the list of missions."""
+    def _render_mission_list(self, screen, missions, text_font, small_font, instruction_y=None, panel_rect=None):
+        """Render the list of missions, inside panel_rect if given."""
+        from ..ui.menu_style import ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+
+        left = panel_rect.x + 20 if panel_rect else 50
+        right = panel_rect.right - 20 if panel_rect else screen.get_width() - 50
+        start_y = (panel_rect.y + 16) if panel_rect else 160
+
         if not missions:
-            no_missions_text = text_font.render("No missions available", True, (150, 150, 150))
-            screen.blit(no_missions_text, (50, 200))
+            no_missions_text = text_font.render("No missions available", True, TEXT_DIM)
+            screen.blit(no_missions_text, (left, start_y))
             return
 
-        start_y = 160
         mission_height = 100
 
         # Show as many missions as fit above the instructions footer
@@ -2601,71 +2614,79 @@ class MissionBoardState(State):
         start_index = max(0, self.selected_mission_index - max_visible // 2)
         start_index = min(start_index, max(0, len(missions) - max_visible))
         end_index = min(len(missions), start_index + max_visible)
-        
+
         for i in range(start_index, end_index):
             mission = missions[i]
             y = start_y + (i - start_index) * mission_height
-            
+
             # Highlight selected mission
             is_selected = i == self.selected_mission_index
             if is_selected:
-                pygame.draw.rect(screen, (50, 50, 100), 
-                               pygame.Rect(40, y - 5, screen.get_width() - 80, mission_height - 10))
-            
+                card_rect = pygame.Rect(left - 10, y - 5, right - left + 20, mission_height - 10)
+                pygame.draw.rect(screen, (40, 55, 90), card_rect, border_radius=6)
+                pygame.draw.rect(screen, ACCENT_BLUE, card_rect, 2, border_radius=6)
+
             # Mission title and type
-            title_color = (255, 255, 0) if is_selected else (255, 255, 255)
+            title_color = ACCENT_GOLD if is_selected else TEXT_PRIMARY
             title_text = text_font.render(mission.title, True, title_color)
-            screen.blit(title_text, (50, y))
-            
+            screen.blit(title_text, (left, y))
+
             # Mission type and priority
             type_text = f"{mission.mission_type.value} | {mission.priority.value}"
             type_color = self._get_priority_color(mission.priority)
             type_surface = small_font.render(type_text, True, type_color)
-            screen.blit(type_surface, (50, y + 25))
-            
+            screen.blit(type_surface, (left, y + 25))
+
             # Reward
             reward_text = f"Reward: {mission.reward.credits:,} credits"
-            reward_surface = small_font.render(reward_text, True, (0, 255, 0))
-            screen.blit(reward_surface, (50, y + 45))
-            
+            reward_surface = small_font.render(reward_text, True, (120, 230, 140))
+            screen.blit(reward_surface, (left, y + 45))
+
             # Destination info (if available)
             if hasattr(mission, 'destination_station_id') and mission.destination_station_id:
                 dest_coords = self.mission_manager.get_station_coordinates(
-                    mission.destination_station_id, 
+                    mission.destination_station_id,
                     self.game.universe.stations
                 )
                 if dest_coords:
                     dest_text = f"Destination: {mission.destination_station_id} - {dest_coords}"
                     dest_surface = small_font.render(dest_text, True, (150, 200, 255))
-                    screen.blit(dest_surface, (50, y + 65))
-            
+                    screen.blit(dest_surface, (left, y + 65))
+
             # Time remaining (if applicable)
             time_remaining = mission.get_formatted_time_remaining()
             if time_remaining != "No time limit":
-                time_color = (255, 0, 0) if "EXPIRED" in time_remaining else (255, 255, 0)
+                time_color = (255, 90, 90) if "EXPIRED" in time_remaining else ACCENT_GOLD
                 time_surface = small_font.render(f"Time: {time_remaining}", True, time_color)
-                screen.blit(time_surface, (350, y + 45))
-            
+                screen.blit(time_surface, (left + 300, y + 45))
+
             # Status (for active missions)
             if self.current_tab == "active":
                 status_text = f"Status: {mission.status.value} ({mission.completion_percentage:.0%})"
                 status_surface = small_font.render(status_text, True, (150, 200, 255))
-                screen.blit(status_surface, (50, y + 65))
+                screen.blit(status_surface, (left, y + 65))
     
-    def _render_mission_details(self, screen, missions, header_font, text_font, small_font):
-        """Render detailed view of selected mission."""
+    def _render_mission_details(self, screen, missions, header_font, text_font, small_font, panel_rect=None):
+        """Render detailed view of selected mission, clipped to panel_rect if given."""
         if not missions or self.selected_mission_index >= len(missions):
             return
-        
+
+        from ..ui.menu_style import TEXT_PRIMARY
+
         mission = missions[self.selected_mission_index]
-        
-        start_y = 160
+
+        left = panel_rect.x + 20 if panel_rect else 50
+        start_y = (panel_rect.y + 16) if panel_rect else 160
         line_height = 25
         current_y = start_y
-        
+
+        original_clip = screen.get_clip()
+        if panel_rect:
+            screen.set_clip(panel_rect.inflate(-4, -4))
+
         # Mission title
-        title_text = header_font.render(mission.title, True, (255, 255, 255))
-        screen.blit(title_text, (50, current_y))
+        title_text = header_font.render(mission.title, True, TEXT_PRIMARY)
+        screen.blit(title_text, (left, current_y))
         current_y += 40
         
         # Mission details
@@ -2713,46 +2734,48 @@ class MissionBoardState(State):
             if detail == "":
                 current_y += line_height // 2
                 continue
-            
-            color = (255, 255, 255)
+
+            color = TEXT_PRIMARY
             if "Priority:" in detail:
                 color = self._get_priority_color(mission.priority)
             elif "Reward:" in detail:
-                color = (0, 255, 0)
+                color = (120, 230, 140)
             elif "Time Limit:" in detail and "EXPIRED" in detail:
-                color = (255, 0, 0)
-            
+                color = (255, 90, 90)
+
             text_surface = text_font.render(detail, True, color)
-            screen.blit(text_surface, (50, current_y))
+            screen.blit(text_surface, (left, current_y))
             current_y += line_height
-        
+
         # Objectives
         for i, objective in enumerate(mission.objectives):
-            obj_color = (0, 255, 0) if objective.completed else (255, 255, 255)
-            status = "✓" if objective.completed else "○"
+            obj_color = (120, 230, 140) if objective.completed else TEXT_PRIMARY
+            status = "[X]" if objective.completed else "[ ]"
             obj_text = f"  {status} {objective.description}"
             obj_surface = small_font.render(obj_text, True, obj_color)
-            screen.blit(obj_surface, (70, current_y))
+            screen.blit(obj_surface, (left + 20, current_y))
             current_y += line_height
-        
+
         # Requirements
         if mission.requirements.min_reputation > 0 or mission.requirements.min_cargo_capacity > 0:
             current_y += line_height
-            req_header = text_font.render("Requirements:", True, (255, 255, 255))
-            screen.blit(req_header, (50, current_y))
+            req_header = text_font.render("Requirements:", True, TEXT_PRIMARY)
+            screen.blit(req_header, (left, current_y))
             current_y += line_height
-            
+
             if mission.requirements.min_reputation > 0:
                 req_text = f"  Minimum Reputation: {mission.requirements.min_reputation}"
-                req_surface = small_font.render(req_text, True, (255, 255, 255))
-                screen.blit(req_surface, (70, current_y))
+                req_surface = small_font.render(req_text, True, TEXT_PRIMARY)
+                screen.blit(req_surface, (left + 20, current_y))
                 current_y += line_height
-            
+
             if mission.requirements.min_cargo_capacity > 0:
                 req_text = f"  Minimum Cargo Space: {mission.requirements.min_cargo_capacity}"
-                req_surface = small_font.render(req_text, True, (255, 255, 255))
-                screen.blit(req_surface, (70, current_y))
+                req_surface = small_font.render(req_text, True, TEXT_PRIMARY)
+                screen.blit(req_surface, (left + 20, current_y))
                 current_y += line_height
+
+        screen.set_clip(original_clip)
     
     def _get_priority_color(self, priority):
         """Get color for mission priority."""
