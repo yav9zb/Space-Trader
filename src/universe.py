@@ -1,4 +1,5 @@
 import random
+import zlib
 from pygame import Vector2
 from .entities.station import Station
 from .entities.planet import Planet
@@ -49,9 +50,12 @@ class Universe:
         
     def _get_chunk_seed(self, chunk_x, chunk_y, layer=0):
         """Generate a deterministic seed for a specific chunk and generation layer"""
-        # Combine world seed with chunk coordinates and layer for unique seeds
+        # Combine world seed with chunk coordinates and layer for unique seeds.
+        # Uses zlib.crc32 rather than the builtin hash() because str hashing is
+        # randomized per-process (PYTHONHASHSEED) - that would make the "same"
+        # world seed generate different chunk content on every game launch.
         seed_string = f"{self.world_seed}_{chunk_x}_{chunk_y}_{layer}"
-        return hash(seed_string) & 0x7FFFFFFF  # Keep positive 32-bit integer
+        return zlib.crc32(seed_string.encode()) & 0x7FFFFFFF  # Keep positive 32-bit integer
     
     def generate_chunk_around_position(self, position):
         """Generate content for the chunk containing the given position"""
