@@ -2013,6 +2013,15 @@ class UpgradeState(State):
         from ..ui.menu_style import MenuBackground
         self.background = MenuBackground()
 
+    def _get_current_faction_standing(self) -> int:
+        """Standing with whichever faction controls this station's sector,
+        or 0 if there's no station (e.g. accessed outside normal docking)."""
+        if not self.station:
+            return 0
+        from ..factions import get_station_faction
+        faction = get_station_faction(self.station, self.game.world_seed)
+        return self.game.mission_manager.faction_standing.get(faction, 0)
+
     def update(self, delta_time):
         # Update message timer
         if self.message_timer > 0:
@@ -2187,13 +2196,19 @@ class UpgradeState(State):
 
                     # Price and details
                     station_type = self.station.station_type.value if self.station else "Shipyard"
-                    discounted_price = self.upgrade_system.get_discounted_price(upgrade, station_type)
+                    discounted_price = self.upgrade_system.get_discounted_price(
+                        upgrade, station_type, self._get_current_faction_standing()
+                    )
 
                     price_text = f"{discounted_price:,} credits"
+                    price_color = ACCENT_GOLD
                     if discounted_price < upgrade.cost:
                         price_text += f" (was {upgrade.cost:,})"
+                    elif discounted_price > upgrade.cost:
+                        price_text += f" (base {upgrade.cost:,})"
+                        price_color = (255, 120, 120)  # hostile-faction markup warning
 
-                    price_surface = small_font.render(price_text, True, ACCENT_GOLD)
+                    price_surface = small_font.render(price_text, True, price_color)
                     screen.blit(price_surface, (x + 20, current_y + 18))
 
                     current_y += line_height + 5
@@ -2278,8 +2293,10 @@ class UpgradeState(State):
         
         # Get discounted price
         station_type = self.station.station_type.value if self.station else "Shipyard"
-        discounted_price = self.upgrade_system.get_discounted_price(upgrade, station_type)
-        
+        discounted_price = self.upgrade_system.get_discounted_price(
+            upgrade, station_type, self._get_current_faction_standing()
+        )
+
         # Check if player can afford it
         if self.ship.credits < discounted_price:
             self._show_message("Insufficient credits")

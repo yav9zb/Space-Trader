@@ -68,3 +68,20 @@ def get_station_faction(station, world_seed) -> str:
     chunk_x = int(station.position.x // 1000)
     chunk_y = int(station.position.y // 1000)
     return get_controlling_faction(chunk_x, chunk_y, world_seed)
+
+
+def get_faction_price_multiplier(standing: int) -> float:
+    """Price multiplier from standing with the faction controlling a
+    station's sector - allied factions discount, hostile ones charge a
+    markup. Stacks with (multiplies against) the existing station-type
+    discount in upgrade_system.py rather than replacing it.
+    """
+    if standing >= 60:
+        return 0.90
+    if standing >= 25:
+        return 0.95
+    if standing <= -60:
+        return 1.25
+    if standing <= -25:
+        return 1.10
+    return 1.0

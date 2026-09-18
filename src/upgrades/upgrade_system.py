@@ -167,30 +167,36 @@ class UpgradeSystem:
         # Other stations don't have upgrades
         return False
     
-    def get_upgrade_discount(self, upgrade: UpgradeDefinition, station_type: str) -> float:
-        """Get discount multiplier for an upgrade at a station (1.0 = no discount)."""
+    def get_upgrade_discount(self, upgrade: UpgradeDefinition, station_type: str,
+                            faction_standing: int = 0) -> float:
+        """Get discount multiplier for an upgrade at a station (1.0 = no discount).
+        Stacks the existing station-type discount with a faction-standing
+        multiplier - allied factions discount further, hostile ones mark up."""
         station_lower = station_type.lower()
-        
+        station_multiplier = 1.0
+
         # Shipyard discounts
         if "shipyard" in station_lower:
             if upgrade.category == UpgradeCategory.HULL:
-                return 0.9  # 10% discount on hull upgrades
-        
+                station_multiplier = 0.9  # 10% discount on hull upgrades
+
         # Research lab discounts
         elif "research" in station_lower:
             if upgrade.category == UpgradeCategory.SCANNER:
-                return 0.85  # 15% discount on scanner upgrades
-        
+                station_multiplier = 0.85  # 15% discount on scanner upgrades
+
         # Military base discounts
         elif "military" in station_lower:
             if upgrade.category == UpgradeCategory.HULL:
-                return 0.8  # 20% discount on hull upgrades
-        
-        return 1.0  # No discount
-    
-    def get_discounted_price(self, upgrade: UpgradeDefinition, station_type: str) -> int:
+                station_multiplier = 0.8  # 20% discount on hull upgrades
+
+        from ..factions import get_faction_price_multiplier
+        return station_multiplier * get_faction_price_multiplier(faction_standing)
+
+    def get_discounted_price(self, upgrade: UpgradeDefinition, station_type: str,
+                            faction_standing: int = 0) -> int:
         """Get the discounted price for an upgrade at a station."""
-        discount = self.get_upgrade_discount(upgrade, station_type)
+        discount = self.get_upgrade_discount(upgrade, station_type, faction_standing)
         return int(upgrade.cost * discount)
     
     def get_upgrade_chain_progress(self, ship_upgrades: ShipUpgrades, 
