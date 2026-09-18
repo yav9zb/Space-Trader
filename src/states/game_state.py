@@ -251,6 +251,12 @@ class SettingsState(State):
         self.selected_camera_option = 0
         self.viewing_camera = False
 
+        # Display settings options
+        self.display_options = ["Resolution", "Display Mode", "HUD Scale", "Back"]
+        self.selected_display_option = 0
+        self.viewing_display = False
+        self.display_rects = []
+
         # Control scheme settings options
         self.control_options = ["Control Scheme", "Show Controls", "Back"]
         self.selected_control_option = 0
@@ -294,10 +300,12 @@ class SettingsState(State):
         self.background.draw(screen)
         draw_title(screen, self.title.upper(), y=70)
 
-        if not self.viewing_camera and not self.viewing_dev and not self.viewing_controls and not self.viewing_help and not self.viewing_difficulty and not self.viewing_audio:
+        if not self.viewing_camera and not self.viewing_dev and not self.viewing_controls and not self.viewing_help and not self.viewing_difficulty and not self.viewing_audio and not self.viewing_display:
             self._render_main_categories(screen)
         elif self.viewing_camera:
             self._render_camera_settings(screen)
+        elif self.viewing_display:
+            self._render_display_settings(screen)
         elif self.viewing_controls:
             self._render_control_settings(screen)
         elif self.viewing_audio:
@@ -467,6 +475,8 @@ class SettingsState(State):
             if event.key == pygame.K_ESCAPE:
                 if self.viewing_camera:
                     self.viewing_camera = False
+                elif self.viewing_display:
+                    self.viewing_display = False
                 elif self.viewing_controls:
                     self.viewing_controls = False
                 elif self.viewing_audio:
@@ -479,10 +489,12 @@ class SettingsState(State):
                     self.viewing_help = False
                 else:
                     self.game.change_state(self.previous_state)
-            elif not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
+            elif not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help and not self.viewing_display:
                 self._handle_main_input(event)
             elif self.viewing_camera:
                 self._handle_camera_input(event)
+            elif self.viewing_display:
+                self._handle_display_input(event)
             elif self.viewing_controls:
                 self._handle_control_input(event)
             elif self.viewing_audio:
@@ -496,10 +508,15 @@ class SettingsState(State):
         elif event.type == pygame.MOUSEMOTION:
             # Check for mouse hover on options
             mouse_pos = pygame.mouse.get_pos()
-            if not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
+            if not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help and not self.viewing_display:
                 for i, rect in enumerate(self.category_rects):
                     if rect.collidepoint(mouse_pos):
                         self.selected_category = i
+                        break
+            elif self.viewing_display:
+                for i, rect in enumerate(self.display_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_display_option = i
                         break
             elif self.viewing_controls:
                 for i, rect in enumerate(self.control_rects):
@@ -524,11 +541,17 @@ class SettingsState(State):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left click
                 mouse_pos = pygame.mouse.get_pos()
-                if not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help:
+                if not self.viewing_camera and not self.viewing_controls and not self.viewing_audio and not self.viewing_difficulty and not self.viewing_dev and not self.viewing_help and not self.viewing_display:
                     for i, rect in enumerate(self.category_rects):
                         if rect.collidepoint(mouse_pos):
                             self.selected_category = i
                             self._select_main_option()
+                            break
+                elif self.viewing_display:
+                    for i, rect in enumerate(self.display_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.selected_display_option = i
+                            self._select_display_option()
                             break
                 elif self.viewing_controls:
                     for i, rect in enumerate(self.control_rects):
@@ -571,7 +594,8 @@ class SettingsState(State):
             self.viewing_camera = True
             self.selected_camera_option = 0
         elif category == "Display":
-            pass  # TODO: Implement display settings
+            self.viewing_display = True
+            self.selected_display_option = 0
         elif category == "Controls":
             self.viewing_controls = True
             self.selected_control_option = 0
@@ -625,10 +649,119 @@ class SettingsState(State):
                 
         elif self.selected_camera_option == 2:  # Deadzone
             if self.settings.camera_mode.name == "DEADZONE":
-                self.settings.camera_deadzone_radius = max(10, min(200, 
+                self.settings.camera_deadzone_radius = max(10, min(200,
                     self.settings.camera_deadzone_radius + direction * 10))
                 self.settings.save()
-    
+
+    def _render_display_settings(self, screen):
+        """Render display settings submenu"""
+        from ..settings import DisplayMode
+
+        option_font = pygame.font.Font(None, 40)
+        small_font = pygame.font.Font(None, 28)
+
+        subtitle = option_font.render("Display Settings", True, (200, 200, 255))
+        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 150))
+        screen.blit(subtitle, subtitle_rect)
+
+        y_offset = 220
+        self.display_rects = []
+        windowed = self.settings.display_mode == DisplayMode.WINDOWED
+
+        for i, option in enumerate(self.display_options):
+            color = (255, 255, 0) if i == self.selected_display_option else (255, 255, 255)
+            desc = None
+
+            if option == "Resolution":
+                if windowed:
+                    res_text = f"Resolution: {self.settings.window_width}x{self.settings.window_height}"
+                else:
+                    res_text = f"Resolution: {self.settings.window_width}x{self.settings.window_height} (N/A, matches desktop)"
+                    color = (100, 100, 100)
+                text = option_font.render(res_text, True, color)
+
+            elif option == "Display Mode":
+                text = option_font.render(f"Display Mode: {self.settings.display_mode.value}", True, color)
+
+            elif option == "HUD Scale":
+                text = option_font.render(f"HUD Scale: {self.settings.hud_scale:.2f}x", True, color)
+                desc = "Scales the flight HUD panels' text and size - menus are unaffected"
+
+            else:  # Back
+                text = option_font.render(option, True, color)
+
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(text, text_rect)
+            self.display_rects.append(text_rect.inflate(40, 20))
+            extra_spacing = 0
+
+            if desc:
+                desc_surface = small_font.render(desc, True, (150, 150, 150))
+                desc_rect = desc_surface.get_rect(center=(screen.get_width() // 2, y_offset + 25))
+                screen.blit(desc_surface, desc_rect)
+                extra_spacing = 25
+
+            y_offset += 60 + extra_spacing
+
+        instruction_font = pygame.font.Font(None, 24)
+        instructions = "Use LEFT/RIGHT to change values, ENTER to select, ESC to go back"
+        instr_text = instruction_font.render(instructions, True, (150, 150, 150))
+        instr_rect = instr_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 40))
+        screen.blit(instr_text, instr_rect)
+
+    def _handle_display_input(self, event):
+        """Handle input for display settings"""
+        if event.key == pygame.K_UP:
+            self.selected_display_option = (self.selected_display_option - 1) % len(self.display_options)
+        elif event.key == pygame.K_DOWN:
+            self.selected_display_option = (self.selected_display_option + 1) % len(self.display_options)
+        elif event.key == pygame.K_LEFT:
+            self._adjust_display_setting(-1)
+        elif event.key == pygame.K_RIGHT:
+            self._adjust_display_setting(1)
+        elif event.key == pygame.K_RETURN:
+            self._select_display_option()
+
+    def _select_display_option(self):
+        """Handle display option selection"""
+        if self.display_options[self.selected_display_option] == "Back":
+            self.viewing_display = False
+
+    def _adjust_display_setting(self, direction):
+        """Adjust the selected display setting"""
+        from ..settings import DisplayMode
+
+        option = self.display_options[self.selected_display_option]
+
+        if option == "Resolution":
+            if self.settings.display_mode != DisplayMode.WINDOWED:
+                return
+            resolutions = self.settings.available_resolutions
+            current = (self.settings.window_width, self.settings.window_height)
+            try:
+                index = resolutions.index(current)
+            except ValueError:
+                index = 0
+            new_index = (index + direction) % len(resolutions)
+            width, height = resolutions[new_index]
+            self.settings.set_resolution(width, height)
+            self.settings.save()
+            self.game._update_display()
+
+        elif option == "Display Mode":
+            modes = list(DisplayMode)
+            current_index = modes.index(self.settings.display_mode)
+            new_index = (current_index + direction) % len(modes)
+            self.settings.display_mode = modes[new_index]
+            self.settings.save()
+            self.game._update_display()
+
+        elif option == "HUD Scale":
+            new_scale = max(0.75, min(1.75, round(self.settings.hud_scale + direction * 0.1, 2)))
+            self.settings.hud_scale = new_scale
+            self.settings.save()
+            self.game._update_display()
+
     def _render_dev_settings(self, screen):
         """Render dev view settings submenu"""
         option_font = pygame.font.Font(None, 40)

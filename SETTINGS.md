@@ -98,11 +98,19 @@ Master, SFX, and Music volume sliders (Settings > Audio) apply immediately to th
 
 Five difficulty levels (Peaceful, Easy, Normal, Hard, Extreme) are selectable in Settings > Difficulty, affecting hazard frequency, enemy spawns, damage taken, mission rewards/time limits, and repair/upgrade costs. Extreme enables permadeath - ship destruction ends the run instead of respawning. See `src/difficulty/difficulty_manager.py`.
 
+## Display Settings
+
+Settings > Display lets you change:
+- **Resolution**: cycles through the resolutions your monitor reports (only applies in Windowed mode - Fullscreen/Borderless always match your desktop resolution).
+- **Display Mode**: Windowed / Fullscreen / Borderless Fullscreen. On macOS, Fullscreen and Borderless both render as a large windowed mode instead, to avoid a known SDL multi-monitor blackout issue.
+- **HUD Scale** (0.75x-1.75x): scales the flight HUD panels' text and layout (Ship Status, Navigation, Local Map). Other screens (menus, Trading, Mission Board) are unaffected.
+
+Changes apply immediately and are saved to `settings.json`.
+
 ## Future Features
 
 Genuinely not implemented yet:
 
-- **Display Settings submenu**: the "Display" category exists in the Settings menu but is a placeholder (`# TODO: Implement display settings` in `src/states/game_state.py`) - resolution/fullscreen changes currently require editing `settings.json` directly.
 - **Auto-Dock / Docking Assist**: manual docking (approach at safe speed, press Dock) is fully implemented; automatic docking and configurable docking sensitivity are not.
 - **Controller support**.
 

@@ -13,12 +13,13 @@ This document tracks what's actually implemented versus genuinely still planned.
 - **Full visual redesign** - ship, bandit ships, weapon projectiles, explosions, stations (all 5 types now visually distinct - previously a rendering bug made every station look like a plain circle), planets (gas giants now have properly circle-clipped bands, a signature storm, and optional rings), HUD panel styling, and every menu screen (main menu, trading, mission board, upgrades, save/load, settings) now sharing a consistent starfield-background, accent-bordered look.
 - **Packaging** - PyInstaller build producing a standalone app (verified on macOS), a GitHub Actions workflow for cross-platform builds, and correct settings/save/log file locations for a packaged build.
 - **Steam integration scaffolding** - see `STEAM_RELEASE_CHECKLIST.md` for what's prepared versus what requires the developer's own Steamworks account.
-- **Numerous bug fixes** found by actually rendering and testing rather than just reading code, including a severe frame-rate bug (debris collision sparks accumulating unbounded, ~4.5x slowdown), several screens' content overflowing into fixed-position footers, and multiple UI strings using Unicode glyphs pygame's default font can't render.
+- **Numerous bug fixes** found by actually rendering and testing rather than just reading code, including a severe frame-rate bug (debris collision sparks accumulating unbounded, ~4.5x slowdown), several screens' content overflowing into fixed-position footers, a critical flight-rendering bug (everything but the starfield could vanish when no station was on screen), and multiple UI strings using Unicode glyphs pygame's default font can't render.
+- **Display settings submenu** - the "Display" category was a placeholder that did nothing when selected; now supports Resolution, Display Mode (Windowed/Fullscreen/Borderless), and HUD Scale (0.75x-1.75x, addresses beta feedback about small flight-HUD text). See `SETTINGS.md`.
+- **Reputation system** - `min_reputation` mission requirements and `reputation_bonus`/`reputation_loss` reward/penalty fields existed but were never applied; the player's reputation is now tracked, persisted, and shown in the Ship Status HUD and Mission Board.
 
 ## Planned / Not Yet Implemented
 
 ### Near-term
-- **Display settings submenu** - the "Display" category exists in the Settings menu but is a placeholder; resolution/fullscreen currently require editing `settings.json` directly.
 - **Auto-Dock / Docking Assist** - manual docking is fully implemented; automated docking and configurable docking sensitivity are not.
 - **Steam Achievements / Cloud Saves** - optional Steamworks features, not implemented; would map onto the existing mission-completion events and save system respectively.
 

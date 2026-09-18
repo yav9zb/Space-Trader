@@ -276,7 +276,6 @@ land in a packaged build).
 ## Known Issues / Beta Notes
 
 - **No dedicated save-system test coverage** yet - save/load is stable in manual testing but not covered by the automated suite. See [SAVE_SYSTEM.md](SAVE_SYSTEM.md).
-- **Display settings aren't configurable in-game** - the "Display" category in Settings is a placeholder; changing resolution/fullscreen currently requires editing `settings.json` directly.
 - **No auto-dock** - docking is fully manual (approach at a safe speed, press the dock key).
 - **Steam integration is unverified scaffolding**, not a tested integration - irrelevant unless you're building toward the Steam release; see [STEAM_RELEASE_CHECKLIST.md](STEAM_RELEASE_CHECKLIST.md).
 - **Windows/Linux builds haven't been produced yet** - only verified on macOS so far; the GitHub Actions workflow (`.github/workflows/build.yml`) should produce them on a tag push, but hasn't been validated against real CI yet.

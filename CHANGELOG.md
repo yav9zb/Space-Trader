@@ -1,5 +1,11 @@
 # Changelog
 
+## Beta 3 (unreleased)
+
+### Added
+- **Display settings submenu** - Settings > Display was a placeholder that did nothing when selected; now supports Resolution (Windowed mode only), Display Mode (Windowed/Fullscreen/Borderless), and HUD Scale (0.75x-1.75x). Added in response to beta feedback that some HUD text was hard to read.
+- **Reputation system** - missions have required a minimum reputation (5/10/15/20) to accept since before beta 1, and reward/penalty data for it already existed, but the player's actual reputation was never tracked, so those missions were permanently unacceptable. Now tracked, persisted in saves, and shown in the Ship Status HUD and Mission Board.
+
 ## Beta 2
 
 ### Fixed
