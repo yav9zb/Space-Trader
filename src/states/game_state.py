@@ -2735,8 +2735,26 @@ class MissionBoardState(State):
         reputation_surface = small_font.render(reputation_text, True, ACCENT_GOLD)
         screen.blit(reputation_surface, (width - reputation_surface.get_width() - 50, tab_y + 42))
 
+        # Per-faction standing - who specifically trusts (or resents) you
+        faction_parts = []
+        for faction_name, value in self.mission_manager.faction_standing.items():
+            if value > 0:
+                color = (120, 230, 140)
+            elif value < 0:
+                color = (255, 90, 90)
+            else:
+                color = TEXT_DIM
+            faction_parts.append((f"{faction_name}: {value:+d}", color))
+
+        standing_x = width - 50
+        for text, color in reversed(faction_parts):
+            surface = small_font.render(text, True, color)
+            standing_x -= surface.get_width()
+            screen.blit(surface, (standing_x, tab_y + 62))
+            standing_x -= 20
+
         # Panel behind the mission list/details
-        panel_top = tab_y + 70
+        panel_top = tab_y + 90
         instruction_y = height - 80
         panel_rect = pygame.Rect(20, panel_top, width - 40, instruction_y - 20 - panel_top)
         draw_panel(screen, panel_rect)
@@ -3049,7 +3067,7 @@ class MissionBoardState(State):
             return
         
         mission = self.active_missions[self.selected_mission_index]
-        success, message = self.mission_manager.abandon_mission(mission.id, self.game.ship)
+        success, message = self.mission_manager.abandon_mission(mission.id, self.game.ship, self.game)
         
         self.message = message
         self.message_timer = 2.0

@@ -379,10 +379,12 @@ class EnhancedHUD:
         surface.blit(pos_surface, (panel_x + self.ui_layout.padding, y_offset))
         y_offset += self.ui_layout.get_responsive_spacing(20)
 
-        # Controlling faction for this sector
+        # Controlling faction for this sector, with your standing there
         from ...factions import get_controlling_faction
         faction = get_controlling_faction(sector_x, -sector_y, game_engine.world_seed)
-        faction_surface = self.font_small.render(faction, True, (180, 190, 220))
+        standing = game_engine.mission_manager.get_faction_standing(faction)
+        faction_text = f"{faction} ({standing:+d})"
+        faction_surface = self.font_small.render(faction_text, True, (180, 190, 220))
         surface.blit(faction_surface, (panel_x + self.ui_layout.padding, y_offset))
         y_offset += self.ui_layout.get_responsive_spacing(20)
         

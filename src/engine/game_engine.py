@@ -477,6 +477,8 @@ class GameEngine:
         self.mission_manager.failed_missions.clear()
         self.mission_manager.last_generation_time = 0
         self.mission_manager.reputation = 0
+        for faction in self.mission_manager.faction_standing:
+            self.mission_manager.faction_standing[faction] = 0
         
         # Initialize missions for new universe
         self.mission_manager.initialize_missions(self)

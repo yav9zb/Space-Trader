@@ -231,6 +231,9 @@ class CombatManager:
                 from ..audio.sound_manager import sound_manager
                 sound_manager.play("impact")
                 mission_manager.reputation = max(0, mission_manager.reputation - 2)
+                mission_manager.faction_standing[trader.faction] = (
+                    mission_manager.faction_standing.get(trader.faction, 0) - 3
+                )
 
         # Check hits on asteroids
         alive_asteroids = [a for a in self.active_asteroids if not a.destroyed]
@@ -295,6 +298,9 @@ class CombatManager:
         credits but pay a meaningful reputation cost for piracy."""
         player_ship.credits += trader.credits_reward
         mission_manager.reputation = max(0, mission_manager.reputation - 15)
+        mission_manager.faction_standing[trader.faction] = (
+            mission_manager.faction_standing.get(trader.faction, 0) - 20
+        )
 
         self._create_explosion(trader.position, trader.size * 2)
     

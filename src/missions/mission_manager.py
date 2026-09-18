@@ -29,6 +29,13 @@ class MissionManager:
         self.failed_missions: List[Mission] = []
         self.reputation = 0
 
+        from ..factions import FACTION_TRADE_GUILD, FACTION_INDEPENDENT, FACTION_PIRATE
+        self.faction_standing = {
+            FACTION_TRADE_GUILD: 0,
+            FACTION_INDEPENDENT: 0,
+            FACTION_PIRATE: 0,
+        }
+
         # Mission generation settings
         self.max_active_missions = 5
         self.mission_generation_interval = 900  # Generate new missions every 15 minutes
@@ -82,10 +89,10 @@ class MissionManager:
         for mission in self.active_missions[:]:  # Copy list to avoid modification during iteration
             if mission.update_progress(game_engine.ship, self.get_current_station(game_engine)):
                 # Mission completed
-                self.complete_mission(mission, game_engine.ship)
+                self.complete_mission(mission, game_engine.ship, game_engine)
             elif mission.status in [MissionStatus.FAILED, MissionStatus.EXPIRED]:
                 # Mission failed or expired
-                self.fail_mission(mission, game_engine.ship)
+                self.fail_mission(mission, game_engine.ship, game_engine)
         
         # Clean up expired available missions
         self.cleanup_expired_missions()
@@ -381,29 +388,30 @@ class MissionManager:
         
         return False, "Failed to accept mission"
     
-    def abandon_mission(self, mission_id: str, ship) -> tuple[bool, str]:
+    def abandon_mission(self, mission_id: str, ship, game_engine=None) -> tuple[bool, str]:
         """Abandon an active mission."""
         mission = self.get_mission_by_id(mission_id, self.active_missions)
         if not mission:
             return False, "Mission not found in active missions"
-        
+
         penalty = mission.abandon()
 
         # Apply penalties
         ship.credits = max(0, ship.credits - penalty.credits)
         self.reputation = max(0, self.reputation - penalty.reputation_loss)
+        self._adjust_faction_standing_for_mission(mission, game_engine, -2)
 
         self.active_missions.remove(mission)
         self.failed_missions.append(mission)
-        
+
         logger.info(f"Mission abandoned: {mission.title} (Penalty: {penalty.credits} credits)")
         return True, f"Mission abandoned. Penalty: {penalty.credits} credits"
-    
-    def complete_mission(self, mission: Mission, ship):
+
+    def complete_mission(self, mission: Mission, ship, game_engine=None):
         """Complete a mission and apply rewards."""
         if mission in self.active_missions:
             self.active_missions.remove(mission)
-        
+
         self.completed_missions.append(mission)
 
         # Apply rewards, scaled by the current difficulty
@@ -412,28 +420,49 @@ class MissionManager:
 
         from ..audio.sound_manager import sound_manager
         sound_manager.play_music("mission_complete")
-        
+
         # Add bonus items to cargo
         for commodity_id, quantity in mission.reward.bonus_items.items():
             ship.cargo_hold.add_cargo(commodity_id, quantity)
 
         self.reputation += mission.reward.reputation_bonus
+        self._adjust_faction_standing_for_mission(mission, game_engine, 3)
 
         logger.info(f"Mission completed: {mission.title} (Reward: {mission.reward.credits} credits, Reputation: +{mission.reward.reputation_bonus})")
-    
-    def fail_mission(self, mission: Mission, ship):
+
+    def fail_mission(self, mission: Mission, ship, game_engine=None):
         """Fail a mission and apply penalties."""
         if mission in self.active_missions:
             self.active_missions.remove(mission)
-        
+
         self.failed_missions.append(mission)
-        
+
         # Apply penalties if the mission was abandoned or failed (not just expired)
         if mission.status == MissionStatus.FAILED:
             ship.credits = max(0, ship.credits - mission.penalty.credits)
             self.reputation = max(0, self.reputation - mission.penalty.reputation_loss)
+            self._adjust_faction_standing_for_mission(mission, game_engine, -2)
 
         logger.info(f"Mission failed: {mission.title}")
+
+    def _adjust_faction_standing_for_mission(self, mission: Mission, game_engine, delta: int):
+        """Nudge standing with whichever faction controls the mission's
+        origin station's sector. No-op if that can't be resolved (e.g. a
+        direct call without a game_engine, or a mission with no origin
+        station) - faction standing is a bonus layer on top of the always-
+        applied global reputation change, not a required part of it."""
+        if game_engine is None:
+            return
+        origin_id = getattr(mission, 'origin_station_id', None)
+        if not origin_id:
+            return
+        station = self.get_station_by_name(origin_id, game_engine.universe.stations)
+        if not station:
+            return
+
+        from ..factions import get_station_faction
+        faction = get_station_faction(station, game_engine.world_seed)
+        self.faction_standing[faction] = self.faction_standing.get(faction, 0) + delta
     
     def cleanup_expired_missions(self):
         """Remove expired missions from available missions."""
@@ -468,6 +497,10 @@ class MissionManager:
             "failed": len(self.failed_missions)
         }
     
+    def get_faction_standing(self, faction: str) -> int:
+        """Get current standing with a faction (0 if unknown)."""
+        return self.faction_standing.get(faction, 0)
+
     def get_station_by_name(self, station_name: str, stations_list):
         """Get station object by name from the stations list."""
         for station in stations_list:
@@ -494,7 +527,8 @@ class MissionManager:
             "last_generation_time": self.last_generation_time,
             "visited_stations": list(self.visited_stations),
             "station_mission_seeds": self.station_mission_seeds,
-            "reputation": self.reputation
+            "reputation": self.reputation,
+            "faction_standing": dict(self.faction_standing)
         }
     
     def from_dict(self, data: Dict[str, Any]):
@@ -534,6 +568,10 @@ class MissionManager:
         self.station_mission_seeds = data.get("station_mission_seeds", {})
 
         self.reputation = data.get("reputation", 0)
+
+        # Merge into the default dict rather than replacing it, so a save
+        # from before this feature (or missing a faction key) still works
+        self.faction_standing.update(data.get("faction_standing", {}))
 
 
 # Global mission manager instance

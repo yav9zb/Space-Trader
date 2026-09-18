@@ -58,3 +58,13 @@ def get_controlling_faction(chunk_x: int, chunk_y: int, world_seed) -> str:
     names = [name for name, _ in _FACTION_WEIGHTS]
     weights = [weight for _, weight in _FACTION_WEIGHTS]
     return rng.choices(names, weights=weights, k=1)[0]
+
+
+def get_station_faction(station, world_seed) -> str:
+    """Which faction controls the sector a station sits in. Uses the same
+    raw (non-inverted) chunk coordinates universe.py uses for generation -
+    the y-inversion in the Navigation HUD is a display-only concern.
+    """
+    chunk_x = int(station.position.x // 1000)
+    chunk_y = int(station.position.y // 1000)
+    return get_controlling_faction(chunk_x, chunk_y, world_seed)
