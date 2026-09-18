@@ -9,12 +9,14 @@ try:
     from ..entities.asteroid import Asteroid, AsteroidType
     from ..entities.bandit import BanditShip, BanditState
     from ..entities.black_hole import BlackHole
+    from ..entities.trader import TraderShip, TraderState
     from ..systems.respawn_system import respawn_system
     from .weapons import WeaponSystem
 except ImportError:
     from entities.asteroid import Asteroid, AsteroidType
     from entities.bandit import BanditShip, BanditState
     from entities.black_hole import BlackHole
+    from entities.trader import TraderShip, TraderState
     from systems.respawn_system import respawn_system
     from weapons import WeaponSystem
 
@@ -26,6 +28,7 @@ class CombatManager:
         self.active_asteroids: List[Asteroid] = []
         self.active_bandits: List[BanditShip] = []
         self.active_black_holes: List[BlackHole] = []
+        self.active_traders: List[TraderShip] = []
         self.explosions: List[dict] = []
         
         # Combat statistics
@@ -63,7 +66,13 @@ class CombatManager:
                 self._check_bandit_combat(bandit, ship, game_engine)
                 # Check hazard damage for bandits
                 self._check_bandit_hazard_damage(bandit, delta_time)
-        
+
+        # Update traders (no combat AI - just movement/fleeing)
+        for trader in self.active_traders[:]:
+            trader.update(delta_time, game_engine)
+            if not trader.alive:
+                self.active_traders.remove(trader)
+
         # Update explosions
         self._update_explosions(delta_time)
         
@@ -207,7 +216,22 @@ class CombatManager:
 
             if destroyed:
                 self._handle_bandit_destroyed(bandit, game_engine.ship)
-        
+
+        # Check hits on traders (piracy - real consequence via reputation)
+        hits = weapon_system.check_hits(self.active_traders)
+        for projectile, trader in hits:
+            damage = projectile.damage
+            destroyed = trader.take_damage(damage)
+            self.damage_dealt += damage
+
+            mission_manager = game_engine.mission_manager
+            if destroyed:
+                self._handle_trader_destroyed(trader, game_engine.ship, mission_manager)
+            else:
+                from ..audio.sound_manager import sound_manager
+                sound_manager.play("impact")
+                mission_manager.reputation = max(0, mission_manager.reputation - 2)
+
         # Check hits on asteroids
         alive_asteroids = [a for a in self.active_asteroids if not a.destroyed]
         hits = weapon_system.check_hits(alive_asteroids)
@@ -256,15 +280,23 @@ class CombatManager:
     def _handle_bandit_destroyed(self, bandit: BanditShip, player_ship):
         """Handle when a bandit is destroyed."""
         self.bandits_defeated += 1
-        
+
         # Award credits to player
         player_ship.credits += bandit.credits_reward
-        
+
         # Create explosion effect
         self._create_explosion(bandit.position, bandit.base_size * 2)
-        
+
         # Chance to drop loot (could be implemented later)
         # self._create_loot_drop(bandit.position)
+
+    def _handle_trader_destroyed(self, trader: TraderShip, player_ship, mission_manager):
+        """Handle when a trader is destroyed - real risk/reward: plunder
+        credits but pay a meaningful reputation cost for piracy."""
+        player_ship.credits += trader.credits_reward
+        mission_manager.reputation = max(0, mission_manager.reputation - 15)
+
+        self._create_explosion(trader.position, trader.size * 2)
     
     def _create_explosion(self, position: Vector2, radius: float):
         """Create an explosion effect."""
@@ -336,16 +368,25 @@ class CombatManager:
     def add_black_hole(self, black_hole: BlackHole):
         """Add a black hole to combat tracking."""
         self.active_black_holes.append(black_hole)
-    
+
+    def add_trader(self, trader: TraderShip):
+        """Add a trader to combat tracking."""
+        self.active_traders.append(trader)
+
     def remove_asteroid(self, asteroid: Asteroid):
         """Remove an asteroid from combat tracking."""
         if asteroid in self.active_asteroids:
             self.active_asteroids.remove(asteroid)
-    
+
     def remove_bandit(self, bandit: BanditShip):
         """Remove a bandit from combat tracking."""
         if bandit in self.active_bandits:
             self.active_bandits.remove(bandit)
+
+    def remove_trader(self, trader: TraderShip):
+        """Remove a trader from combat tracking."""
+        if trader in self.active_traders:
+            self.active_traders.remove(trader)
     
     def remove_black_hole(self, black_hole: BlackHole):
         """Remove a black hole from combat tracking."""
@@ -396,7 +437,11 @@ class CombatManager:
         # Draw bandits
         for bandit in self.active_bandits:
             bandit.draw(screen, camera_offset)
-    
+
+        # Draw traders
+        for trader in self.active_traders:
+            trader.draw(screen, camera_offset)
+
     def get_nearby_threats(self, position: Vector2, radius: float) -> dict:
         """Get information about nearby threats."""
         threats = {

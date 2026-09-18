@@ -7,10 +7,16 @@ from .entities.debris import Debris, DebrisType
 from .entities.asteroid import create_asteroid_field
 from .entities.bandit import create_bandit_encounter
 from .entities.black_hole import create_black_hole_field
+from .entities.trader import TraderShip
 from .combat.combat_manager import combat_manager
 from .systems.debris_field_manager import debris_field_manager
 from .universe_generation import universe_generator, UniverseType
 from .difficulty.difficulty_manager import difficulty_manager
+from .factions import (
+    get_controlling_faction,
+    FACTION_TRADER_SPAWN_MULTIPLIER,
+    FACTION_BANDIT_SPAWN_MULTIPLIER,
+)
 
 class Universe:
     def __init__(self, width=10000, height=10000, seed=None):
@@ -214,12 +220,16 @@ class Universe:
                     combat_manager.add_asteroid(asteroid)
                     placed_objects.append((asteroid.position, asteroid.size))
         
+        # Which faction controls this sector - affects bandit and trader density below
+        controlling_faction = get_controlling_faction(chunk_x, chunk_y, self.world_seed)
+
         # Generate bandit encounters using layer 4 seed
         bandit_seed = self._get_chunk_seed(chunk_x, chunk_y, 4)
         random.seed(bandit_seed)
         # Less frequent bandit encounters, avoid starting area
         start_distance = ((chunk_x * self.sector_size) ** 2 + (chunk_y * self.sector_size) ** 2) ** 0.5
-        encounter_chance = 0.15 * difficulty_manager.get_settings().enemy_spawn_multiplier
+        encounter_chance = (0.15 * difficulty_manager.get_settings().enemy_spawn_multiplier
+                             * FACTION_BANDIT_SPAWN_MULTIPLIER[controlling_faction])
         if start_distance > 1500 and random.random() < encounter_chance:  # base 15% chance away from spawn
             encounter_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=300)
             if encounter_pos:
@@ -228,13 +238,27 @@ class Universe:
                     encounter_types.extend(["heavy_escort"])
                 if start_distance > 5000:  # Boss encounters very far out
                     encounter_types.append("boss_fleet")
-                
+
                 encounter_type = random.choice(encounter_types)
                 bandits = create_bandit_encounter(encounter_pos, encounter_type)
                 for bandit in bandits:
                     combat_manager.add_bandit(bandit)
                     placed_objects.append((bandit.position, bandit.base_size))
-        
+
+        # Generate neutral trader ships using layer 6 seed - density follows
+        # the controlling faction, so Trade Guild sectors feel busier/safer
+        # and Pirate Territory sectors feel sparser/more dangerous
+        trader_seed = self._get_chunk_seed(chunk_x, chunk_y, 6)
+        random.seed(trader_seed)
+        trader_chance = 0.12 * FACTION_TRADER_SPAWN_MULTIPLIER[controlling_faction]
+        if self.stations and random.random() < trader_chance:
+            trader_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=100)
+            if trader_pos:
+                destination = random.choice(self.stations)
+                trader = TraderShip(trader_pos, destination, controlling_faction)
+                combat_manager.add_trader(trader)
+                placed_objects.append((trader.position, trader.size))
+
         # Generate black holes using layer 5 seed (very rare)
         black_hole_seed = self._get_chunk_seed(chunk_x, chunk_y, 5)
         random.seed(black_hole_seed)

@@ -378,6 +378,13 @@ class EnhancedHUD:
         pos_surface = self.font_small.render(pos_text, True, (255, 255, 255))
         surface.blit(pos_surface, (panel_x + self.ui_layout.padding, y_offset))
         y_offset += self.ui_layout.get_responsive_spacing(20)
+
+        # Controlling faction for this sector
+        from ...factions import get_controlling_faction
+        faction = get_controlling_faction(sector_x, -sector_y, game_engine.world_seed)
+        faction_surface = self.font_small.render(faction, True, (180, 190, 220))
+        surface.blit(faction_surface, (panel_x + self.ui_layout.padding, y_offset))
+        y_offset += self.ui_layout.get_responsive_spacing(20)
         
         # Nearest station
         if self.nearest_station:
