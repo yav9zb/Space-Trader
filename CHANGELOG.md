@@ -1,6 +1,11 @@
 # Changelog
 
-## Beta 1 (unreleased)
+## Beta 2
+
+### Fixed
+- **Flight view could go blank** - `PlayingState.render()` only drew the starfield and stations, then returned; the rest of the draw calls (ship, planets, debris, combat effects, minimap, HUD, onboarding hints) were misplaced inside a helper that only ran when a station was on screen. Flying far enough from every station left nothing but stars visible. Found via playtesting; fixed by restoring those draw calls to `render()` so they always run.
+
+## Beta 1
 
 First public beta. The core game (movement, procedural universe, docking,
 trading, missions, combat, upgrades, base building, save/load) already
