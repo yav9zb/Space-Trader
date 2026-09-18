@@ -219,7 +219,7 @@ class EnhancedHUD:
         ship = game_engine.ship
         
         # Panel dimensions using responsive sizing - made taller for fuel/ammo
-        panel_width, panel_height = self.ui_layout.get_panel_size(250, 280, 0.3, 0.6)
+        panel_width, panel_height = self.ui_layout.get_panel_size(250, 300, 0.3, 0.6)
         panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_LEFT, panel_width, panel_height)
         
         # Panel background and border using theme
@@ -336,7 +336,13 @@ class EnhancedHUD:
         upgrade_text = f"Upgrades: {sum(1 for v in upgrade_summary.values() if v != 'None')}/4"
         upgrade_surface = self.font_small.render(upgrade_text, True, (200, 200, 255))
         surface.blit(upgrade_surface, (panel_x + self.ui_layout.padding, y_offset))
-        
+        y_offset += self.ui_layout.get_responsive_spacing(20)
+
+        # Reputation
+        reputation_text = f"Reputation: {game_engine.mission_manager.reputation}"
+        reputation_surface = self.font_small.render(reputation_text, True, (200, 255, 200))
+        surface.blit(reputation_surface, (panel_x + self.ui_layout.padding, y_offset))
+
         # Reserve this area to prevent overlap
         self.ui_layout.reserve_area(panel_x, panel_y, panel_width, panel_height, "ship_status")
     

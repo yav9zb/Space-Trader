@@ -27,7 +27,8 @@ class MissionManager:
         self.active_missions: List[Mission] = []
         self.completed_missions: List[Mission] = []
         self.failed_missions: List[Mission] = []
-        
+        self.reputation = 0
+
         # Mission generation settings
         self.max_active_missions = 5
         self.mission_generation_interval = 900  # Generate new missions every 15 minutes
@@ -361,7 +362,7 @@ class MissionManager:
         if len(self.active_missions) >= self.max_active_missions:
             return False, f"Cannot accept more than {self.max_active_missions} missions"
         
-        can_accept, reason = mission.can_accept(ship)
+        can_accept, reason = mission.can_accept(ship, self.reputation)
         if not can_accept:
             return False, reason
         
@@ -387,11 +388,11 @@ class MissionManager:
             return False, "Mission not found in active missions"
         
         penalty = mission.abandon()
-        
+
         # Apply penalties
         ship.credits = max(0, ship.credits - penalty.credits)
-        # TODO: Apply reputation penalty when reputation system is implemented
-        
+        self.reputation = max(0, self.reputation - penalty.reputation_loss)
+
         self.active_missions.remove(mission)
         self.failed_missions.append(mission)
         
@@ -415,10 +416,10 @@ class MissionManager:
         # Add bonus items to cargo
         for commodity_id, quantity in mission.reward.bonus_items.items():
             ship.cargo_hold.add_cargo(commodity_id, quantity)
-        
-        # TODO: Apply reputation bonus when reputation system is implemented
-        
-        logger.info(f"Mission completed: {mission.title} (Reward: {mission.reward.credits} credits)")
+
+        self.reputation += mission.reward.reputation_bonus
+
+        logger.info(f"Mission completed: {mission.title} (Reward: {mission.reward.credits} credits, Reputation: +{mission.reward.reputation_bonus})")
     
     def fail_mission(self, mission: Mission, ship):
         """Fail a mission and apply penalties."""
@@ -430,8 +431,8 @@ class MissionManager:
         # Apply penalties if the mission was abandoned or failed (not just expired)
         if mission.status == MissionStatus.FAILED:
             ship.credits = max(0, ship.credits - mission.penalty.credits)
-            # TODO: Apply reputation penalty when reputation system is implemented
-        
+            self.reputation = max(0, self.reputation - mission.penalty.reputation_loss)
+
         logger.info(f"Mission failed: {mission.title}")
     
     def cleanup_expired_missions(self):
@@ -492,7 +493,8 @@ class MissionManager:
             "failed_missions": [mission.to_dict() for mission in self.failed_missions],
             "last_generation_time": self.last_generation_time,
             "visited_stations": list(self.visited_stations),
-            "station_mission_seeds": self.station_mission_seeds
+            "station_mission_seeds": self.station_mission_seeds,
+            "reputation": self.reputation
         }
     
     def from_dict(self, data: Dict[str, Any]):
@@ -530,6 +532,8 @@ class MissionManager:
         
         # Restore station mission seeds
         self.station_mission_seeds = data.get("station_mission_seeds", {})
+
+        self.reputation = data.get("reputation", 0)
 
 
 # Global mission manager instance

@@ -2592,6 +2592,11 @@ class MissionBoardState(State):
         count_surface = small_font.render(count_text, True, TEXT_DIM)
         screen.blit(count_surface, (50, tab_y + 42))
 
+        # Reputation (missions above may require a minimum to accept)
+        reputation_text = f"Reputation: {self.mission_manager.reputation}"
+        reputation_surface = small_font.render(reputation_text, True, ACCENT_GOLD)
+        screen.blit(reputation_surface, (width - reputation_surface.get_width() - 50, tab_y + 42))
+
         # Panel behind the mission list/details
         panel_top = tab_y + 70
         instruction_y = height - 80
