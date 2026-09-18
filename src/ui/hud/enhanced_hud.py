@@ -339,7 +339,9 @@ class EnhancedHUD:
         y_offset += self.ui_layout.get_responsive_spacing(20)
 
         # Reputation
-        reputation_text = f"Reputation: {game_engine.mission_manager.reputation}"
+        from ...missions.rank_system import get_rank_name
+        reputation = game_engine.mission_manager.reputation
+        reputation_text = f"Reputation: {reputation} ({get_rank_name(reputation)})"
         reputation_surface = self.font_small.render(reputation_text, True, (200, 255, 200))
         surface.blit(reputation_surface, (panel_x + self.ui_layout.padding, y_offset))
 

@@ -19,11 +19,11 @@ class UpgradeSystem:
     def __init__(self):
         pass
     
-    def purchase_upgrade(self, ship_upgrades: ShipUpgrades, upgrade_id: str, 
-                        current_credits: int) -> Tuple[UpgradeResult, int]:
+    def purchase_upgrade(self, ship_upgrades: ShipUpgrades, upgrade_id: str,
+                        current_credits: int, reputation: int = 0) -> Tuple[UpgradeResult, int]:
         """
         Attempt to purchase and install an upgrade.
-        
+
         Returns:
             Tuple of (UpgradeResult, remaining_credits)
         """
@@ -31,7 +31,21 @@ class UpgradeSystem:
             upgrade = upgrade_registry.get_upgrade(upgrade_id)
         except KeyError:
             return UpgradeResult(False, f"Unknown upgrade: {upgrade_id}"), current_credits
-        
+
+        # Top tier requires a minimum rank - belt-and-suspenders in case this
+        # is ever reached outside the already-filtered available-upgrades list
+        if upgrade.tier >= 4:
+            from ..missions.rank_system import TIER_4_MIN_REPUTATION, get_rank_name
+            if reputation < TIER_4_MIN_REPUTATION:
+                from ..audio.sound_manager import sound_manager
+                sound_manager.play("ui_error")
+                required_rank = get_rank_name(TIER_4_MIN_REPUTATION)
+                current_rank = get_rank_name(reputation)
+                return UpgradeResult(
+                    False,
+                    f"Requires {required_rank} rank (currently {current_rank})"
+                ), current_credits
+
         # Check if player has enough credits (cost scaled by current difficulty)
         effective_cost = difficulty_manager.apply_upgrade_cost_multiplier(upgrade.cost)
         if current_credits < effective_cost:
@@ -114,13 +128,14 @@ class UpgradeSystem:
         
         return None
     
-    def get_available_upgrades_for_station(self, ship_upgrades: ShipUpgrades, 
-                                          station_type: str, 
-                                          credits: int) -> List[UpgradeDefinition]:
+    def get_available_upgrades_for_station(self, ship_upgrades: ShipUpgrades,
+                                          station_type: str,
+                                          credits: int, reputation: int = 0) -> List[UpgradeDefinition]:
         """Get upgrades available at a specific station type."""
         all_available = upgrade_registry.get_available_upgrades(
             ship_upgrades.installed_upgrades,
-            credits
+            credits,
+            reputation
         )
         
         # Filter by station type

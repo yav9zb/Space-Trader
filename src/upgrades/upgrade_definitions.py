@@ -283,26 +283,32 @@ class UpgradeRegistry:
         """Get all upgrades of a specific tier."""
         return [u for u in self._upgrades.values() if u.tier == tier]
     
-    def get_available_upgrades(self, current_upgrades: Dict[str, bool], 
-                              credits: int) -> List[UpgradeDefinition]:
+    def get_available_upgrades(self, current_upgrades: Dict[str, bool],
+                              credits: int, reputation: int = 0) -> List[UpgradeDefinition]:
         """Get upgrades that are available for purchase."""
+        from ..missions.rank_system import TIER_4_MIN_REPUTATION
+
         available = []
-        
+
         for upgrade in self._upgrades.values():
             # Check if already purchased
             if current_upgrades.get(upgrade.id, False):
                 continue
-                
+
             # Check if player has enough credits
             if credits < upgrade.cost:
                 continue
-                
+
+            # Top tier requires a minimum rank
+            if upgrade.tier >= 4 and reputation < TIER_4_MIN_REPUTATION:
+                continue
+
             # Check if requirements are met
             requirements_met = all(
-                current_upgrades.get(req_id, False) 
+                current_upgrades.get(req_id, False)
                 for req_id in upgrade.requirements
             )
-            
+
             if requirements_met:
                 available.append(upgrade)
         

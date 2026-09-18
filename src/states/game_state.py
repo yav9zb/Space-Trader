@@ -1997,9 +1997,10 @@ class UpgradeState(State):
         self.available_upgrades = upgrade_system.get_available_upgrades_for_station(
             self.ship.upgrades,
             station_type,
-            self.ship.credits
+            self.ship.credits,
+            self.game.mission_manager.reputation
         )
-        
+
         # Group upgrades by category
         self.upgrades_by_category = {}
         for category in UpgradeCategory:
@@ -2291,7 +2292,8 @@ class UpgradeState(State):
         
         try:
             result, remaining_credits = self.upgrade_system.purchase_upgrade(
-                self.ship.upgrades, upgrade.id, self.ship.credits
+                self.ship.upgrades, upgrade.id, self.ship.credits,
+                self.game.mission_manager.reputation
             )
             
             if result.success:
@@ -2313,7 +2315,8 @@ class UpgradeState(State):
         self.available_upgrades = self.upgrade_system.get_available_upgrades_for_station(
             self.ship.upgrades,
             station_type,
-            self.ship.credits
+            self.ship.credits,
+            self.game.mission_manager.reputation
         )
         
         # Rebuild categories
@@ -2726,7 +2729,9 @@ class MissionBoardState(State):
         screen.blit(count_surface, (50, tab_y + 42))
 
         # Reputation (missions above may require a minimum to accept)
-        reputation_text = f"Reputation: {self.mission_manager.reputation}"
+        from ..missions.rank_system import get_rank_name
+        reputation = self.mission_manager.reputation
+        reputation_text = f"Reputation: {reputation} ({get_rank_name(reputation)})"
         reputation_surface = small_font.render(reputation_text, True, ACCENT_GOLD)
         screen.blit(reputation_surface, (width - reputation_surface.get_width() - 50, tab_y + 42))
 
