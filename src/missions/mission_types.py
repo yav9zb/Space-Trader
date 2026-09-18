@@ -63,6 +63,7 @@ class MissionPenalty:
 class MissionRequirement:
     """Requirements that must be met to accept/complete a mission."""
     min_reputation: int = 0
+    min_faction_standing: int = 0
     min_cargo_capacity: int = 0
     required_upgrades: List[str] = field(default_factory=list)
     required_items: Dict[str, int] = field(default_factory=dict)  # commodity_id -> quantity
@@ -260,6 +261,7 @@ class Mission:
             "destination_station_id": self.destination_station_id,
             "requirements": {
                 "min_reputation": self.requirements.min_reputation,
+                "min_faction_standing": self.requirements.min_faction_standing,
                 "min_cargo_capacity": self.requirements.min_cargo_capacity,
                 "required_upgrades": self.requirements.required_upgrades,
                 "required_items": self.requirements.required_items
@@ -308,6 +310,7 @@ class Mission:
         req_data = data["requirements"]
         mission.requirements = MissionRequirement(
             min_reputation=req_data["min_reputation"],
+            min_faction_standing=req_data.get("min_faction_standing", 0),
             min_cargo_capacity=req_data["min_cargo_capacity"],
             required_upgrades=req_data["required_upgrades"],
             required_items=req_data["required_items"]

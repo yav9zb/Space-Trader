@@ -2753,9 +2753,12 @@ class MissionBoardState(State):
             screen.blit(surface, (standing_x, tab_y + 62))
             standing_x -= 20
 
-        # Panel behind the mission list/details
+        # Panel behind the mission list/details. Details mode only needs one
+        # instruction line instead of two, so it gets that 20px back - this
+        # view's content (variable-length description/objectives/requirements)
+        # runs close to the panel's bottom edge more easily than the list view.
         panel_top = tab_y + 90
-        instruction_y = height - 80
+        instruction_y = height - 60 if self.viewing_details else height - 80
         panel_rect = pygame.Rect(20, panel_top, width - 40, instruction_y - 20 - panel_top)
         draw_panel(screen, panel_rect)
 
@@ -2961,6 +2964,14 @@ class MissionBoardState(State):
 
             if mission.requirements.min_reputation > 0:
                 req_text = f"  Minimum Reputation: {mission.requirements.min_reputation}"
+                # min_faction_standing is set equal to min_reputation at
+                # generation time (see mission_manager.py), so rather than a
+                # second line repeating the same number, note the faction
+                # inline on this one
+                if mission.requirements.min_faction_standing > 0:
+                    faction = self.mission_manager.resolve_mission_faction(mission, self.game)
+                    if faction:
+                        req_text += f" (also requires {faction} standing)"
                 req_surface = small_font.render(req_text, True, TEXT_PRIMARY)
                 screen.blit(req_surface, (left + 20, current_y))
                 current_y += line_height

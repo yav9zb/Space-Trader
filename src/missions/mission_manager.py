@@ -128,6 +128,7 @@ class MissionManager:
         for _ in range(station_missions):
             mission = self.generate_station_specific_mission(station, game_engine.universe.stations)
             if mission:
+                mission.requirements.min_faction_standing = mission.requirements.min_reputation
                 self.available_missions.append(mission)
                 missions_generated += 1
                 logger.debug(f"Generated mission for {station.name}: {mission.title}")
@@ -172,6 +173,7 @@ class MissionManager:
                 for _ in range(station_missions):
                     mission = self.generate_station_specific_mission(station, game_engine.universe.stations)
                     if mission:
+                        mission.requirements.min_faction_standing = mission.requirements.min_reputation
                         self.available_missions.append(mission)
                         logger.debug(f"Refreshed mission for {station.name}: {mission.title}")
         
@@ -372,7 +374,15 @@ class MissionManager:
         can_accept, reason = mission.can_accept(ship, self.reputation)
         if not can_accept:
             return False, reason
-        
+
+        threshold = mission.requirements.min_faction_standing
+        if threshold > 0:
+            faction = self.resolve_mission_faction(mission, game_engine)
+            if faction is not None:
+                current = self.faction_standing.get(faction, 0)
+                if current < threshold:
+                    return False, f"Requires {threshold} standing with {faction} (currently {current})"
+
         if mission.accept(ship):
             self.available_missions.remove(mission)
             self.active_missions.append(mission)
@@ -445,23 +455,30 @@ class MissionManager:
 
         logger.info(f"Mission failed: {mission.title}")
 
-    def _adjust_faction_standing_for_mission(self, mission: Mission, game_engine, delta: int):
-        """Nudge standing with whichever faction controls the mission's
-        origin station's sector. No-op if that can't be resolved (e.g. a
-        direct call without a game_engine, or a mission with no origin
-        station) - faction standing is a bonus layer on top of the always-
-        applied global reputation change, not a required part of it."""
+    def resolve_mission_faction(self, mission: Mission, game_engine) -> Optional[str]:
+        """Which faction issued this mission, resolved via its origin
+        station's sector. None if that can't be resolved (e.g. no
+        game_engine, or a mission with no origin station)."""
         if game_engine is None:
-            return
+            return None
         origin_id = getattr(mission, 'origin_station_id', None)
         if not origin_id:
-            return
+            return None
         station = self.get_station_by_name(origin_id, game_engine.universe.stations)
         if not station:
-            return
+            return None
 
         from ..factions import get_station_faction
-        faction = get_station_faction(station, game_engine.world_seed)
+        return get_station_faction(station, game_engine.world_seed)
+
+    def _adjust_faction_standing_for_mission(self, mission: Mission, game_engine, delta: int):
+        """Nudge standing with whichever faction issued this mission.
+        No-op if the faction can't be resolved - faction standing is a
+        bonus layer on top of the always-applied global reputation
+        change, not a required part of it."""
+        faction = self.resolve_mission_faction(mission, game_engine)
+        if faction is None:
+            return
         self.faction_standing[faction] = self.faction_standing.get(faction, 0) + delta
     
     def cleanup_expired_missions(self):
