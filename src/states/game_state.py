@@ -1172,9 +1172,65 @@ class PlayingState(State):
             if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and 
                 -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
                 station.draw(screen, camera_offset)
-                
+
                 # Draw docking zones and feedback
                 self._draw_docking_feedback(screen, station, camera_offset)
+
+        # Draw all planets
+        for planet in self.game.universe.planets:
+            screen_pos = self.game.camera.world_to_screen(planet.position)
+            # Only draw if on screen (with buffer for planet size)
+            buffer = planet.size + 50  # Add buffer for planet size
+            if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and
+                -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
+                planet.draw(screen, camera_offset)
+
+        # Draw debris using debris field manager
+        from ..systems.debris_field_manager import debris_field_manager
+        debris_field_manager.draw(screen, camera_offset)
+
+        # Draw legacy debris (backward compatibility)
+        for debris in self.game.universe.debris:
+            if debris not in debris_field_manager.debris_list:
+                screen_pos = self.game.camera.world_to_screen(debris.position)
+                # Only draw if on screen (with buffer for debris size)
+                buffer = debris.size + 50  # Add buffer for debris size
+                if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and
+                    -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
+                    debris.draw(screen, camera_offset)
+
+        # Draw combat entities (asteroids and bandits)
+        from ..combat.combat_manager import combat_manager
+        combat_manager.draw_entities(screen, camera_offset)
+
+        # Draw ship
+        self.game.ship.draw(screen, camera_offset)
+
+        # Draw combat effects (explosions, etc.)
+        combat_manager.draw_combat_effects(screen, camera_offset)
+
+        # Draw minimap last (so it's on top)
+        self.game.minimap.draw(screen, self.game.ship,
+                             self.game.universe.stations,
+                             self.game.universe.planets)
+
+        # Draw enhanced HUD (on top of everything)
+        self.enhanced_hud.render(screen, self.game)
+
+        # Draw large map overlay if visible (should be on top of everything)
+        self.large_map.draw(screen, self.game.ship, self.game.universe.stations, self.game.universe.planets)
+
+        # Draw respawn UI if ship is destroyed
+        from ..systems.respawn_system import respawn_system
+        respawn_system.draw_respawn_ui(screen)
+
+        # Draw repair UI if docked and ship needs repair
+        if self.game.docking_manager.is_docked():
+            target_station = self.game.docking_manager.get_target_station()
+            repair_system.draw_repair_ui(screen, self.game.ship, target_station)
+
+        # Draw onboarding hints last, on top of everything
+        self.onboarding_hints.render(screen)
 
     def _draw_docking_feedback(self, screen, station, camera_offset):
         """Draw docking zones and visual feedback for stations."""
@@ -1240,63 +1296,6 @@ class PlayingState(State):
             text_rect.centerx = int(screen_pos.x)
             text_rect.y = int(screen_pos.y + station.size + 10)
             screen.blit(docked_text, text_rect)
-
-        # Draw all planets
-        for planet in self.game.universe.planets:
-            screen_pos = self.game.camera.world_to_screen(planet.position)
-            # Only draw if on screen (with buffer for planet size)
-            buffer = planet.size + 50  # Add buffer for planet size
-            if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and 
-                -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
-                planet.draw(screen, camera_offset)
-
-        # Draw debris using debris field manager
-        from ..systems.debris_field_manager import debris_field_manager
-        debris_field_manager.draw(screen, camera_offset)
-        
-        # Draw legacy debris (backward compatibility)
-        for debris in self.game.universe.debris:
-            if debris not in debris_field_manager.debris_list:
-                screen_pos = self.game.camera.world_to_screen(debris.position)
-                # Only draw if on screen (with buffer for debris size)
-                buffer = debris.size + 50  # Add buffer for debris size
-                if (-buffer <= screen_pos.x <= self.game.WINDOW_SIZE[0] + buffer and 
-                    -buffer <= screen_pos.y <= self.game.WINDOW_SIZE[1] + buffer):
-                    debris.draw(screen, camera_offset)
-        
-        # Draw combat entities (asteroids and bandits)
-        from ..combat.combat_manager import combat_manager
-        combat_manager.draw_entities(screen, camera_offset)
-        
-        # Draw ship
-        self.game.ship.draw(screen, camera_offset)
-        
-        # Draw combat effects (explosions, etc.)
-        combat_manager.draw_combat_effects(screen, camera_offset)
-        
-        # Draw minimap last (so it's on top)
-        self.game.minimap.draw(screen, self.game.ship,
-                             self.game.universe.stations,
-                             self.game.universe.planets)
-        
-        # Draw enhanced HUD (on top of everything)
-        self.enhanced_hud.render(screen, self.game)
-        
-        # Draw large map overlay if visible (should be on top of everything)
-        self.large_map.draw(screen, self.game.ship, self.game.universe.stations, self.game.universe.planets)
-        
-        # Draw respawn UI if ship is destroyed
-        from ..systems.respawn_system import respawn_system
-        respawn_system.draw_respawn_ui(screen)
-        
-        # Draw repair UI if docked and ship needs repair
-        if self.game.docking_manager.is_docked():
-            station = self.game.docking_manager.get_target_station()
-            repair_system.draw_repair_ui(screen, self.game.ship, station)
-
-        # Draw onboarding hints last, on top of everything
-        self.onboarding_hints.render(screen)
-
 
     def _draw_debug_info(self, screen, camera_offset):
         """Draw debug information for object positions"""
