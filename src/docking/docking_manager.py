@@ -223,6 +223,9 @@ class DockingManager:
         from ..ui.onboarding_hints import onboarding_hints
         onboarding_hints.trigger("station_services")
 
+        from ..story.story_state import story_state
+        story_state.record_event("docked", station=self.target_station.name)
+
     def _initiate_undocking(self, ship):
         """Begin the undocking sequence."""
         self.docking_state = DockingState.UNDOCKING

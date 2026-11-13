@@ -290,6 +290,14 @@ class CombatManager:
         # Create explosion effect
         self._create_explosion(bandit.position, bandit.base_size * 2)
 
+        from ..story.story_state import story_state
+        story_state.record_event(
+            "bandit_destroyed",
+            bandit_type=bandit.bandit_type.value,
+            sector_x=int(bandit.position.x // 1000),
+            sector_y=int(bandit.position.y // 1000),
+        )
+
         # Chance to drop loot (could be implemented later)
         # self._create_loot_drop(bandit.position)
 
@@ -303,6 +311,9 @@ class CombatManager:
         )
 
         self._create_explosion(trader.position, trader.size * 2)
+
+        from ..story.story_state import story_state
+        story_state.record_event("trader_destroyed", faction=trader.faction)
     
     def _create_explosion(self, position: Vector2, radius: float):
         """Create an explosion effect."""

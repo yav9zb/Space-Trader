@@ -438,6 +438,13 @@ class MissionManager:
         self.reputation += mission.reward.reputation_bonus
         self._adjust_faction_standing_for_mission(mission, game_engine, 3)
 
+        from ..story.story_state import story_state
+        story_state.record_event(
+            "mission_completed",
+            mission_type=mission.mission_type.value,
+            mission_id=mission.id,
+        )
+
         logger.info(f"Mission completed: {mission.title} (Reward: {mission.reward.credits} credits, Reputation: +{mission.reward.reputation_bonus})")
 
     def fail_mission(self, mission: Mission, ship, game_engine=None):

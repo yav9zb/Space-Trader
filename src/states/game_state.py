@@ -29,6 +29,7 @@ class GameStates(Enum):
     LOAD_GAME = auto()  # Added for load menu
     BASE_CONSTRUCTION = auto()  # Added for base building
     GAME_OVER = auto()
+    DIALOGUE = auto()  # Added for story/NPC conversations
 
 class State:
     def __init__(self, game):

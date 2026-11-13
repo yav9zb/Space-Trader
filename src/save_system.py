@@ -157,6 +157,7 @@ class SaveSystem:
             "player": self._save_player_data(game_engine),
             "universe": self._save_universe_data(game_engine),
             "missions": self._save_mission_data(game_engine),
+            "story": self._save_story_data(game_engine),
             "game_state": self._save_game_state_data(game_engine)
         }
         
@@ -230,6 +231,12 @@ class SaveSystem:
             return game_engine.mission_manager.to_dict()
         return {}
     
+    def _save_story_data(self, game_engine) -> Dict[str, Any]:
+        """Save campaign state."""
+        if hasattr(game_engine, 'story_state'):
+            return game_engine.story_state.to_dict()
+        return {}
+
     def _save_game_state_data(self, game_engine) -> Dict[str, Any]:
         """Save general game state."""
         return {
@@ -248,6 +255,9 @@ class SaveSystem:
         
         # Load mission data
         self._load_mission_data(save_data.get("missions", {}), game_engine)
+        
+        # Load story state (missing in saves from before the campaign existed)
+        self._load_story_data(save_data.get("story", {}), game_engine)
         
         # Load game state
         self._load_game_state_data(save_data.get("game_state", {}), game_engine)
@@ -353,6 +363,12 @@ class SaveSystem:
         if hasattr(game_engine, 'mission_manager') and mission_data:
             game_engine.mission_manager.from_dict(mission_data)
     
+    def _load_story_data(self, story_data: Dict[str, Any], game_engine):
+        """Load campaign state. Always applied, even when empty, so loading
+        an older save doesn't inherit the previous session's story progress."""
+        if hasattr(game_engine, 'story_state'):
+            game_engine.story_state.from_dict(story_data)
+
     def _load_game_state_data(self, game_state_data: Dict[str, Any], game_engine):
         """Load general game state."""
         if "play_time" in game_state_data:

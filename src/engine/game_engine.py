@@ -113,6 +113,10 @@ class GameEngine:
         # Initialize mission system
         from src.missions.mission_manager import mission_manager
         self.mission_manager = mission_manager
+
+        from src.story.story_state import story_state
+        self.story_state = story_state
+        self.pending_dialogue = None
         
         # Initialize missions for new game
         self.mission_manager.initialize_missions(self)
@@ -129,6 +133,7 @@ class GameEngine:
             GameStates.UPGRADES: None,  # Will be created dynamically with station parameter
             GameStates.MISSIONS: None,  # Will be created dynamically with station parameter
             GameStates.BASE_CONSTRUCTION: None,  # Will be created dynamically
+            GameStates.DIALOGUE: None,  # Will be created dynamically with a start node
             GameStates.SAVE_GAME: None,  # Will be created dynamically
             GameStates.LOAD_GAME: LoadGameState(self),
             GameStates.GAME_OVER: GameOverState(self)
@@ -349,6 +354,11 @@ class GameEngine:
         self.steam_manager.shutdown()
         pygame.quit()
 
+    def start_dialogue(self, start_id: str) -> None:
+        """Open a conversation at the given dialogue node."""
+        self.pending_dialogue = start_id
+        self.change_state(GameStates.DIALOGUE)
+
     def toggle_fullscreen(self):
         """Toggle fullscreen mode."""
         self.settings.toggle_fullscreen()
@@ -438,6 +448,10 @@ class GameEngine:
             # Create settings state with previous state tracking
             from src.states.game_state import SettingsState
             self.states[GameStates.SETTINGS] = SettingsState(self, self.current_state)
+        elif new_state == GameStates.DIALOGUE:
+            # Create a dialogue screen for the node set by start_dialogue()
+            from src.states.dialogue_state import DialogueState
+            self.states[GameStates.DIALOGUE] = DialogueState(self, self.pending_dialogue)
         elif new_state == GameStates.BASE_CONSTRUCTION:
             # Create base construction state
             from src.states.base_construction_state import BaseConstructionState
@@ -479,6 +493,7 @@ class GameEngine:
         self.mission_manager.reputation = 0
         for faction in self.mission_manager.faction_standing:
             self.mission_manager.faction_standing[faction] = 0
+        self.story_state.reset()
         
         # Initialize missions for new universe
         self.mission_manager.initialize_missions(self)
