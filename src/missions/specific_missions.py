@@ -15,6 +15,8 @@ except ImportError:
 
 class DeliveryMission(Mission):
     """A mission to deliver specific cargo from one station to another."""
+
+    EXTRA_STATE_FIELDS = ("commodity_id", "quantity", "pickup_completed")
     
     def __init__(self, origin_station_id: str, destination_station_id: str, 
                  commodity_id: str, quantity: int, mission_id: str = None):
@@ -138,6 +140,8 @@ class DeliveryMission(Mission):
 
 class TradingContractMission(Mission):
     """A mission to trade specific quantities of commodities for profit."""
+
+    EXTRA_STATE_FIELDS = ("buy_commodity", "buy_quantity", "sell_commodity", "sell_quantity", "trade_completed")
     
     def __init__(self, station_id: str, buy_commodity: str, buy_quantity: int,
                  sell_commodity: str, sell_quantity: int, mission_id: str = None):
@@ -256,6 +260,8 @@ class TradingContractMission(Mission):
 
 class SupplyRunMission(Mission):
     """A mission to deliver multiple types of supplies to a station."""
+
+    EXTRA_STATE_FIELDS = ("required_supplies",)
     
     def __init__(self, destination_station_id: str, required_supplies: Dict[str, int], 
                  mission_id: str = None):
@@ -395,6 +401,8 @@ class SupplyRunMission(Mission):
 
 class EmergencyDeliveryMission(Mission):
     """An urgent mission with higher rewards but strict time limits."""
+
+    EXTRA_STATE_FIELDS = ("commodity_id", "quantity", "pickup_completed")
     
     def __init__(self, origin_station_id: str, destination_station_id: str,
                  commodity_id: str, quantity: int, mission_id: str = None):
@@ -511,6 +519,17 @@ class EmergencyDeliveryMission(Mission):
 
 class ExplorationMission(Mission):
     """A mission to explore and report on distant sectors."""
+
+    def get_extra_state(self):
+        return {
+            "target_sectors": [list(sector) for sector in self.target_sectors],
+            "explored_sectors": sorted(list(sector) for sector in self.explored_sectors),
+        }
+
+    def load_extra_state(self, state):
+        # JSON turns tuples into lists; update_progress compares tuples
+        self.target_sectors = [tuple(sector) for sector in state.get("target_sectors", [])]
+        self.explored_sectors = {tuple(sector) for sector in state.get("explored_sectors", [])}
     
     def __init__(self, target_sectors: List[tuple], mission_id: str = None):
         super().__init__(mission_id)

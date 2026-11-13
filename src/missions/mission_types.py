@@ -103,7 +103,28 @@ class MissionObjective:
 
 class Mission:
     """Base class for all missions."""
-    
+
+    # Subclasses register themselves by class name so from_dict can rebuild
+    # the right type (and its completion logic) from a save file
+    REGISTRY: Dict[str, type] = {}
+
+    # Names of subclass-specific attributes persisted alongside the base
+    # fields. Plain JSON values only; override get/load_extra_state for
+    # anything needing conversion (tuples, sets).
+    EXTRA_STATE_FIELDS: tuple = ()
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        Mission.REGISTRY[cls.__name__] = cls
+
+    def get_extra_state(self) -> Dict[str, Any]:
+        return {name: getattr(self, name) for name in self.EXTRA_STATE_FIELDS}
+
+    def load_extra_state(self, state: Dict[str, Any]):
+        for name in self.EXTRA_STATE_FIELDS:
+            if name in state:
+                setattr(self, name, state[name])
+
     def __init__(self, mission_id: str = None):
         self.id = mission_id or str(uuid.uuid4())
         self.title = "Unknown Mission"
@@ -246,6 +267,8 @@ class Mission:
     def to_dict(self) -> Dict[str, Any]:
         """Serialize mission to dictionary for saving."""
         return {
+            "class": type(self).__name__,
+            "extra_state": self.get_extra_state(),
             "id": self.id,
             "title": self.title,
             "description": self.description,
@@ -291,8 +314,15 @@ class Mission:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Mission':
-        """Deserialize mission from dictionary."""
-        mission = cls(data["id"])
+        """Deserialize mission from dictionary, rebuilding the original
+        subclass. Subclass constructors take generation arguments, so the
+        instance is created without calling them and its state restored
+        from the saved fields instead."""
+        from . import specific_missions  # noqa: F401 - registers subclasses
+
+        target = Mission.REGISTRY.get(data.get("class"), cls)
+        mission = target.__new__(target)
+        Mission.__init__(mission, data["id"])
         mission.title = data["title"]
         mission.description = data["description"]
         mission.mission_type = MissionType(data["mission_type"])
@@ -344,5 +374,7 @@ class Mission:
         
         mission.progress_description = data["progress_description"]
         mission.completion_percentage = data["completion_percentage"]
-        
+
+        mission.load_extra_state(data.get("extra_state", {}))
+
         return mission
