@@ -1,10 +1,40 @@
 # Changelog
 
-## Beta 3 (unreleased)
+## Beta 7
+
+### Fixed
+- **Accepted missions could never be completed after loading a save.** Saves rebuilt every mission as a plain base mission, dropping the type-specific progress logic and state (cargo pickup status, exploration progress, and so on). Mission types and their state now survive save/load; older saves still load.
+
+### Internal
+- Groundwork for a story campaign: persistent campaign state saved alongside the game, event tracking (docking, kills, mission completions), a dialogue engine, and a conversation screen. No player-visible story content yet.
+
+## Beta 6
 
 ### Added
-- **Display settings submenu** - Settings > Display was a placeholder that did nothing when selected; now supports Resolution (Windowed mode only), Display Mode (Windowed/Fullscreen/Borderless), and HUD Scale (0.75x-1.75x). Added in response to beta feedback that some HUD text was hard to read.
-- **Reputation system** - missions have required a minimum reputation (5/10/15/20) to accept since before beta 1, and reward/penalty data for it already existed, but the player's actual reputation was never tracked, so those missions were permanently unacceptable. Now tracked, persisted in saves, and shown in the Ship Status HUD and Mission Board.
+- **Faction-gated missions** - missions can require a minimum standing with whoever's territory issued them.
+- **Faction-based upgrade pricing** - standing with a station's controlling faction discounts (trusted) or marks up (hostile) upgrade prices, stacking with the existing station-type discounts.
+
+### Fixed
+- Recovered some vertical space in the Mission Board details view as a partial mitigation for content clipping (a fuller fix is tracked separately).
+
+## Beta 5
+
+### Added
+- **Per-faction reputation** - standing with Trade Guild, Independent, and Pirate Territory tracked separately from overall reputation. Missions build or damage standing with the faction that issued them; attacking a trader hurts standing with that trader's faction specifically.
+
+## Beta 4
+
+### Added
+- **Neutral trader NPCs** - unarmed ships that fly between stations and flee if attacked.
+- **Faction-controlled sectors** - Trade Guild, Independent, and Pirate Territory zones (deterministic per seed, shown in the Navigation HUD) with different trader and bandit density. The starting area is always safe.
+- **Piracy has a cost** - attacking traders plunders credits but costs reputation.
+
+## Beta 3
+
+### Added
+- **Display settings submenu** - Resolution (Windowed mode), Display Mode (Windowed/Fullscreen/Borderless), and HUD Scale (0.75x-1.75x). Added in response to feedback that some HUD text was hard to read.
+- **Reputation system** - missions have required a minimum reputation since before beta 1, but reputation was never tracked, so those missions were permanently unacceptable. Now tracked, saved, and shown in the HUD and Mission Board.
+- **Rank/License progression** - reputation maps to ranks (Rookie, Trader, Merchant, Captain, Legend); the top tier of ship upgrades requires Captain rank.
 
 ## Beta 2
 

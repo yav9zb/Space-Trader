@@ -278,7 +278,7 @@ land in a packaged build).
 - **No dedicated save-system test coverage** yet - save/load is stable in manual testing but not covered by the automated suite. See [SAVE_SYSTEM.md](SAVE_SYSTEM.md).
 - **No auto-dock** - docking is fully manual (approach at a safe speed, press the dock key).
 - **Steam integration is unverified scaffolding**, not a tested integration - irrelevant unless you're building toward the Steam release; see [STEAM_RELEASE_CHECKLIST.md](STEAM_RELEASE_CHECKLIST.md).
-- **Windows/Linux builds haven't been produced yet** - only verified on macOS so far; the GitHub Actions workflow (`.github/workflows/build.yml`) should produce them on a tag push, but hasn't been validated against real CI yet.
+- **Windows/Linux builds are untested on real machines** - the GitHub Actions workflow (`.github/workflows/build.yml`) builds all three platforms on a tag push and they pass CI, but only the macOS build has been launched and played by hand.
 - Found something else? [Open an issue](https://github.com/yav9zb/Space-Trader/issues) - beta feedback is genuinely useful right now.
 
 ## License
