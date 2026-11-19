@@ -87,7 +87,7 @@ Two control schemes are available (Settings > Controls) - the exact bindings for
 | Fire weapons | Space | Right Ctrl |
 | Afterburner (hold) | Left Shift | Right Shift |
 | Dock / Undock | X / Z | F / G |
-| Trading / Upgrades / Missions (when docked) | T / U / M | F / G / V |
+| Trading / Upgrades / Missions / Talk (when docked) | T / U / M / N | X / C / V / Z |
 | Cloak / Repair | C / R | E / Q |
 | Base construction | B | B |
 | Toggle large map | Tab | Tab |

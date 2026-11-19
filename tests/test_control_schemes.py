@@ -78,9 +78,12 @@ def test_left_handed_scheme():
     assert manager.get_key("cloaking") == pygame.K_e
     assert manager.get_key("repair") == pygame.K_q
 
-    assert manager.get_key("trading") == pygame.K_f
-    assert manager.get_key("upgrades") == pygame.K_g
+    assert manager.get_key("dock") == pygame.K_f
+    assert manager.get_key("undock") == pygame.K_g
+    assert manager.get_key("trading") == pygame.K_x
+    assert manager.get_key("upgrades") == pygame.K_c
     assert manager.get_key("missions") == pygame.K_v
+    assert manager.get_key("talk") == pygame.K_z
 
     info = manager.get_scheme_info()
     assert "Arrow Keys" in info["name"]
@@ -178,3 +181,30 @@ def test_key_display_names():
     assert manager.get_key_name("afterburner") == "Right Shift"
 
     assert manager.get_key_name("invalid_action") == "Unbound"
+
+
+def test_no_two_actions_share_a_key_within_a_scheme():
+    """Actions are dispatched with an if/elif chain on the pressed key, so a
+    shared key makes the later action unreachable (the left-handed scheme once
+    had dock/trading on F and undock/upgrades on G, so a docked player could
+    not undock)."""
+    import pygame
+    from src.input.control_schemes import control_scheme_manager
+
+    for scheme, bindings in control_scheme_manager.schemes.items():
+        seen = {}
+        for action, key in bindings.items():
+            if not isinstance(key, int):
+                continue  # name/description entries
+            assert key not in seen, (
+                f"{scheme.name}: '{action}' and '{seen[key]}' both use "
+                f"{pygame.key.name(key)}"
+            )
+            seen[key] = action
+
+
+def test_talk_action_exists_in_every_scheme():
+    from src.input.control_schemes import control_scheme_manager
+
+    for scheme, bindings in control_scheme_manager.schemes.items():
+        assert isinstance(bindings.get("talk"), int), scheme.name

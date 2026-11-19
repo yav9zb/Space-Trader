@@ -57,7 +57,7 @@ Two control schemes are available (switch in Settings > Controls), each with its
 | Fire weapons | Space | Right Ctrl |
 | Afterburner | Left Shift | Right Shift |
 | Dock / Undock | X / Z | F / G |
-| Trading / Upgrades / Missions | T / U / M | F / G / V |
+| Trading / Upgrades / Missions / Talk | T / U / M / N | X / C / V / Z |
 | Cloak / Repair | C / R | E / Q |
 | Toggle map | Tab | Tab |
 | Base construction | B | B |

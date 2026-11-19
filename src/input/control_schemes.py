@@ -46,6 +46,7 @@ class ControlSchemeManager:
                 "trading": pygame.K_t,
                 "upgrades": pygame.K_u,
                 "missions": pygame.K_m,
+                "talk": pygame.K_n,
                 "base_construction": pygame.K_b,
                 
                 # Menu navigation
@@ -82,9 +83,10 @@ class ControlSchemeManager:
                 "undock": pygame.K_g,
                 
                 # Station interfaces
-                "trading": pygame.K_f,
-                "upgrades": pygame.K_g,
+                "trading": pygame.K_x,
+                "upgrades": pygame.K_c,
                 "missions": pygame.K_v,
+                "talk": pygame.K_z,
                 "base_construction": pygame.K_b,
                 
                 # Menu navigation
@@ -206,7 +208,8 @@ class ControlSchemeManager:
             "Station": {
                 "trading": "Trading",
                 "upgrades": "Ship Upgrades",
-                "missions": "Mission Board"
+                "missions": "Mission Board",
+                "talk": "Talk to Contact"
             }
         }
         
