@@ -183,7 +183,7 @@ class LargeMap:
         # Reset pan offset to center on ship (ship will be at map center)
         self.pan_offset = Vector2(0, 0)
     
-    def draw(self, surface, ship, stations, planets):
+    def draw(self, surface, ship, stations, planets, objectives=None):
         """Draw the large map overlay."""
         if not self.visible:
             return
@@ -206,6 +206,7 @@ class LargeMap:
         # Draw universe objects
         self._draw_planets(surface, planets, ship_pos)
         self._draw_stations(surface, stations, ship_pos)
+        self._draw_objectives(surface, objectives or [], ship_pos)
         self._draw_ship(surface, ship, ship_pos)
         
         # Draw UI elements
@@ -294,6 +295,35 @@ class LargeMap:
                         surface.blit(name_surface, label_rect.topleft)
                         placed_label_rects.append(label_rect)
     
+    def _draw_objectives(self, surface, objectives, center_pos):
+        """Mark mission destinations: a ring where they are on the map, or an
+        arrow and distance at the map edge when they are off it."""
+        from . import objective_pointer as op
+
+        gold = op.COLOR
+        inner = pygame.Rect(self.margin + 14, self.margin + 14,
+                            self.map_width - 28, self.map_height - 28)
+        for label, world_pos in objectives:
+            map_pos = self.world_to_map_coords(world_pos, center_pos)
+            if inner.collidepoint(map_pos.x, map_pos.y):
+                pygame.draw.circle(surface, gold, (int(map_pos.x), int(map_pos.y)), 12, 2)
+                continue
+
+            edge = op.edge_point(self.map_center, map_pos, inner)
+            direction = (map_pos - self.map_center)
+            if direction.length_squared() == 0:
+                continue
+            points = op.pointer_points(edge - direction.normalize() * op.RING_RADIUS,
+                                       direction, size=9)
+            pygame.draw.polygon(surface, gold, points)
+            distance = (world_pos - center_pos).length()
+            text = self.font_small.render(f"{label}  {op.distance_text(distance)}", True, gold)
+            rect = text.get_rect(center=(int(edge.x), int(edge.y)))
+            rect.move_ip(int(-direction.normalize().x * (text.get_width() / 2 + 14)),
+                         int(-direction.normalize().y * 16))
+            rect.clamp_ip(surface.get_rect().inflate(-6, -6))
+            surface.blit(text, rect)
+
     def _draw_ship(self, surface, ship, center_pos):
         """Draw the player ship on the large map."""
         # Ship position relative to center (usually at map center when center_pos is ship.position)

@@ -37,6 +37,35 @@ def target_position(destination: Optional[str], stations) -> Optional[Vector2]:
     return None
 
 
+def all_objectives(game_engine) -> List[Tuple[str, Vector2]]:
+    """Every active mission objective that has a place, story missions first.
+    Used to mark them on the large map."""
+    stations = game_engine.universe.stations
+    missions = list(game_engine.mission_manager.active_missions)
+    missions.sort(key=lambda m: 0 if getattr(m, "story_id", None) else 1)
+    found = []
+    for mission in missions:
+        destination = getattr(mission, "destination_station_id", None)
+        position = target_position(destination, stations)
+        if position is not None and all(label != destination for label, _ in found):
+            found.append((destination, position))
+    return found
+
+
+def edge_point(center: Vector2, target: Vector2, rect: pygame.Rect) -> Vector2:
+    """Where the line from center toward target leaves rect (or the target
+    itself if it is inside). center must be inside rect."""
+    delta = target - center
+    scale = 1.0
+    for d, c, low, high in ((delta.x, center.x, rect.left, rect.right),
+                            (delta.y, center.y, rect.top, rect.bottom)):
+        if d > 0:
+            scale = min(scale, (high - c) / d)
+        elif d < 0:
+            scale = min(scale, (low - c) / d)
+    return center + delta * max(0.0, scale)
+
+
 def current_objective(game_engine) -> Optional[Tuple[str, Vector2]]:
     """(label, world position) of the objective to point at: the first active
     story mission with somewhere to go, else the first other mission."""

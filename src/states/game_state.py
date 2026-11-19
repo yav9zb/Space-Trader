@@ -1363,7 +1363,12 @@ class PlayingState(State):
         self.enhanced_hud.render(screen, self.game)
 
         # Draw large map overlay if visible (should be on top of everything)
-        self.large_map.draw(screen, self.game.ship, self.game.universe.stations, self.game.universe.planets)
+        objectives = []
+        if self.large_map.visible:
+            from ..ui.objective_pointer import all_objectives
+            objectives = all_objectives(self.game)
+        self.large_map.draw(screen, self.game.ship, self.game.universe.stations, self.game.universe.planets,
+                            objectives)
 
         # Draw respawn UI if ship is destroyed
         from ..systems.respawn_system import respawn_system

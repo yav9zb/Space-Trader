@@ -4,6 +4,7 @@
 
 ### Added
 - **Objective pointer.** A small gold arrow circles your ship and points toward the current mission objective, with its name and distance. Story missions are pointed at first. It disappears when you are within about 450 units of the target.
+- **Objectives on the large map.** Mission destinations are circled on the map, and ones beyond the edge get an arrow with their name and distance.
 
 ## Beta 15
 

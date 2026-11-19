@@ -113,3 +113,51 @@ def test_the_label_stays_on_screen_when_the_target_is_toward_an_edge():
     surface = pygame.Surface((924, 668))
     op.draw(surface, g, font)                                               # must not raise
     assert gold_pixels(surface) > 0
+
+
+# --- Large map -----------------------------------------------------------------------
+
+RECT = pygame.Rect(50, 50, 700, 500)
+CENTER = Vector2(400, 300)
+
+
+def test_edge_point_is_on_the_rectangle_border_along_the_line_to_the_target():
+    for target in (Vector2(5000, 300), Vector2(-5000, 300), Vector2(400, -5000), Vector2(400, 9000),
+                   Vector2(3000, 2000), Vector2(-2000, -1500)):
+        point = op.edge_point(CENTER, target, RECT)
+        on_border = (abs(point.x - RECT.left) < 1e-6 or abs(point.x - RECT.right) < 1e-6
+                     or abs(point.y - RECT.top) < 1e-6 or abs(point.y - RECT.bottom) < 1e-6)
+        assert on_border, (target, point)
+        assert RECT.inflate(2, 2).collidepoint(point.x, point.y)
+        assert (point - CENTER).normalize().dot((target - CENTER).normalize()) > 0.999   # same direction
+
+
+def test_edge_point_leaves_a_target_inside_the_rectangle_alone():
+    assert op.edge_point(CENTER, Vector2(500, 350), RECT) == Vector2(500, 350)
+    assert op.edge_point(CENTER, CENTER, RECT) == CENTER
+
+
+def test_all_objectives_lists_each_destination_once_story_first():
+    stations = [station("A-1", 1000, 0), station("B-2", 0, 2000)]
+    missions = [mission("B-2"), mission("A-1", story=True), mission("A-1"), mission(None, story=True),
+                mission("Sector (3, -4)")]
+    found = op.all_objectives(game(missions, stations))
+    assert [label for label, _ in found] == ["A-1", "B-2", "Sector (3, -4)"]
+
+
+def map_pixels(objectives, ship_at=(0, 0)):
+    from src.ui.large_map import LargeMap
+    large = LargeMap(924, 668)
+    large.visible = True
+    surface = pygame.Surface((924, 668))
+    ship = SimpleNamespace(position=Vector2(ship_at), heading=Vector2(0, -1), rotation=0)
+    large.draw(surface, ship, [], [], objectives)
+    return gold_pixels(surface)
+
+
+def test_the_large_map_marks_near_and_far_objectives_and_shows_nothing_without_any():
+    assert map_pixels([]) == 0
+    assert map_pixels([("Near-1", Vector2(800, 300))]) > 20            # a ring on the map
+    assert map_pixels([("Far-1", Vector2(40000, -30000))]) > 20        # an arrow at the edge
+    assert map_pixels([("Far-1", Vector2(40000, -30000)), ("Far-2", Vector2(-40000, 20000))]) \
+        > map_pixels([("Far-1", Vector2(40000, -30000))])
