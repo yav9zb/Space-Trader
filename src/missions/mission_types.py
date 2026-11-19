@@ -171,9 +171,10 @@ class Mission:
         
         return True, "Mission can be accepted"
     
-    def accept(self, ship) -> bool:
-        """Accept this mission."""
-        can_accept, reason = self.can_accept(ship)
+    def accept(self, ship, reputation: int = 0) -> bool:
+        """Accept this mission. The caller's reputation must be passed so
+        reputation-gated missions can be accepted at all."""
+        can_accept, reason = self.can_accept(ship, reputation)
         if not can_accept:
             return False
         

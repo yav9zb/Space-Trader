@@ -383,7 +383,7 @@ class MissionManager:
                 if current < threshold:
                     return False, f"Requires {threshold} standing with {faction} (currently {current})"
 
-        if mission.accept(ship):
+        if mission.accept(ship, self.reputation):
             self.available_missions.remove(mission)
             self.active_missions.append(mission)
             
@@ -402,7 +402,7 @@ class MissionManager:
         """Put an authored story mission straight into the active list. Story
         missions are handed out in conversation rather than taken from the
         board, so they bypass the board's active-mission cap."""
-        if not mission.accept(ship):
+        if not mission.accept(ship, self.reputation):
             return False
         self.active_missions.append(mission)
         logger.info(f"Story mission started: {mission.title}")
