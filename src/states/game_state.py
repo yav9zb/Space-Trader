@@ -66,8 +66,11 @@ class MenuState(State):
 
         # Lazily build a starfield sized to the actual screen, and let it
         # drift slowly over time for a subtle sense of motion.
-        if self.starfield is None or self.starfield.screen_width != screen.get_width():
-            self.starfield = StarField(160, screen.get_width(), screen.get_height())
+        if (self.starfield is None or self.starfield.screen_width != screen.get_width()
+                or self.starfield.screen_height != screen.get_height()):
+            from .. import display
+            self.starfield = StarField(display.star_count(screen.get_size(), 160),
+                                       screen.get_width(), screen.get_height())
         drift = (pygame.time.get_ticks() - self.start_ticks) * 0.02
         self.starfield.draw(screen, Vector2(drift, drift * 0.4))
 
@@ -739,14 +742,7 @@ class SettingsState(State):
         if option == "Resolution":
             if self.settings.display_mode != DisplayMode.WINDOWED:
                 return
-            resolutions = self.settings.available_resolutions
-            current = (self.settings.window_width, self.settings.window_height)
-            try:
-                index = resolutions.index(current)
-            except ValueError:
-                index = 0
-            new_index = (index + direction) % len(resolutions)
-            width, height = resolutions[new_index]
+            width, height = self.settings.next_resolution(direction)
             self.settings.set_resolution(width, height)
             self.settings.save()
             self.game._update_display()
@@ -1614,7 +1610,15 @@ class PausedState(State):
         s.set_alpha(128)
         s.fill((0, 0, 0))
         screen.blit(s, (0, 0))
-        
+
+        # The menu itself is drawn at a logical size and scaled, like the other
+        # menu screens, while the world behind it stays at real window pixels
+        from ..ui.screen_scaler import scaler
+        scaler.draw_overlay(self._draw_menu, screen)
+
+    def _draw_menu(self, screen):
+        width, height = screen.get_size()
+
         # Title
         title_font = pygame.font.Font(None, 74)
         title_text = title_font.render("PAUSED", True, (255, 255, 255))

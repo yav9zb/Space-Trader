@@ -1,5 +1,20 @@
 # Changelog
 
+## Beta 19
+
+### Changed
+- **Built for the whole range of Mac displays.** Window sizes are now worked out in points, the way macOS counts them, so a 14-inch MacBook Pro is treated as the 1512x982 screen it presents rather than its 3024x1964 pixels.
+  - The first window is sized to the screen (about 80% of what is left under the menu bar and Dock, in a 16:10 shape) instead of a fixed 1280x720.
+  - A window size saved on a bigger monitor is pulled back onto the screen you are on now, and never goes below 1024x640.
+  - The resolution list in Settings only offers sizes that fit. It used to list physical-pixel sizes on a Retina Mac, which were twice as wide as the screen. Stepping the resolution from a window you dragged to an odd size now goes to the next listed size.
+  - Resizing the window no longer re-creates it on every event, which flickered and fought macOS's own fullscreen (the green button). The layout simply follows the new size.
+  - "Fullscreen" and "Borderless" on a Mac now fill the whole usable screen rather than a window 50 pixels short of it, and leave your windowed size alone.
+- **Menus, trading, upgrades, missions, settings, the logbook, conversations and the ending adapt to the window.** They are laid out for a fixed height, so on a short window the Settings list ran off the bottom, and on a big one the text sat tiny in a corner. They are now drawn at a size suited to their layout and scaled to fill the window (down to 1024x640, and up to 2560x1440 and beyond), with the mouse mapped accordingly. The pause menu is scaled the same way over the unscaled game. Flight and the HUD are still drawn at the window's real pixels.
+- The starfield has more stars on bigger windows.
+
+### Known limits
+- pygame 2.6 draws at point resolution and macOS enlarges the picture on Retina screens, so the game is sized correctly but not drawn at the screen's full pixel density.
+
 ## Beta 18
 
 ### Changed

@@ -14,6 +14,7 @@ from ..states.game_state import GameStates
 from ..entities.ship import Ship
 from ..entities.station import Station
 from ..ui.minimap import Minimap
+from ..ui.screen_scaler import scaler as screen_scaler, install as install_screen_scaler
 from ..entities.starfield import StarField
 
 
@@ -24,6 +25,18 @@ logging.basicConfig(
     filename=get_user_data_path('game.log')
 )
 logger = logging.getLogger(__name__)
+
+# Screens drawn at a logical size and scaled to the window (see ui/screen_scaler.py).
+# Flight is drawn at real window pixels; pause and base building are overlays on it.
+SCALED_STATES = frozenset({
+    GameStates.MAIN_MENU, GameStates.SETTINGS, GameStates.TRADING, GameStates.UPGRADES,
+    GameStates.MISSIONS, GameStates.SAVE_GAME, GameStates.LOAD_GAME, GameStates.GAME_OVER,
+    GameStates.DIALOGUE, GameStates.LOGBOOK, GameStates.VICTORY,
+})
+# The pause menu is drawn over the world, so only its menu layer is scaled (by
+# the state itself), but its mouse positions need mapping like the others.
+MOUSE_SCALED_STATES = SCALED_STATES | {GameStates.PAUSED}
+
 
 class GameEngine:
 
@@ -37,6 +50,7 @@ class GameEngine:
         # The game's font (Exo 2); must come before any screen creates a font
         from src.ui import fonts
         fonts.install()
+        install_screen_scaler()
 
         # Initialize Steamworks if running under Steam - safe no-op otherwise
         from src.steam.steam_manager import steam_manager
@@ -63,7 +77,8 @@ class GameEngine:
         self.delta_time = 0
                 
         # Initialize starfield first
-        self.starfield = StarField(100, self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+        from src import display as _display
+        self.starfield = StarField(_display.star_count(self.WINDOW_SIZE), self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
         
         # Create universe before creating ship
         self.universe = Universe(seed=None)  # None will generate a random seed
@@ -188,16 +203,16 @@ class GameEngine:
             if event.type == QUIT:
                 self.running = False
                 return
-            elif event.type == pygame.VIDEORESIZE:
-                # Handle window resize events (for windowed mode)
-                if self.settings.display_mode == DisplayMode.WINDOWED:
-                    self.settings.window_width = event.w
-                    self.settings.window_height = event.h
-                    self._update_display()
+            elif event.type in (pygame.VIDEORESIZE, pygame.WINDOWSIZECHANGED, pygame.WINDOWRESIZED):
+                # The window changed size (dragged, zoomed, or macOS fullscreen).
+                # pygame has already resized the surface; just re-lay-out.
+                self._on_window_resized()
             
-            # Let the current state handle the event first
+            # Let the current state handle the event first (mouse positions are
+            # mapped into the logical coordinates scaled screens draw in)
             current_state = self.states[self.current_state]
-            current_state.handle_input(event)
+            screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
+            current_state.handle_input(screen_scaler.map_event(event))
 
             # Handle other keys globally (ESC is handled by individual states)
             if event.type == KEYDOWN and event.key != K_ESCAPE:
@@ -241,6 +256,7 @@ class GameEngine:
     def update(self) -> None:
         """Update game logic based on current state"""
         self.delta_time = self.clock.get_time() / 1000.0  # Convert to seconds
+        screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
         
         # Update play time when playing
         if self.current_state == GameStates.PLAYING:
@@ -308,7 +324,12 @@ class GameEngine:
         
         # Get current state and render it
         current_state = self.states[self.current_state]
-        current_state.render(self.screen)
+        if self.current_state in SCALED_STATES:
+            screen_scaler.prepare(self.screen, True)
+            screen_scaler.render(current_state, self.screen)
+        else:
+            screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
+            current_state.render(self.screen)
         
         pygame.display.flip()
 
@@ -416,33 +437,47 @@ class GameEngine:
         self.settings.toggle_fullscreen()
         self._update_display()
     
+    def _on_window_resized(self):
+        """React to the window having a new size without re-creating it
+        (re-creating on every resize event flickers and fights macOS's own
+        fullscreen). Remembers the size for next time in windowed mode."""
+        surface = pygame.display.get_surface()
+        if surface is None or surface.get_size() == self.WINDOW_SIZE:
+            return
+        self.screen = surface
+        if self.settings.display_mode == DisplayMode.WINDOWED:
+            self.settings.window_width, self.settings.window_height = surface.get_size()
+        self._relayout()
+
     def _update_display(self):
-        """Update display and resize all UI components."""
-        old_size = self.WINDOW_SIZE
+        """Apply the display settings (creating or resizing the window) and re-lay-out."""
         self.screen = self.settings.apply_display_settings(self.screen)
+        self._relayout()
+
+    def _relayout(self):
+        """Rebuild everything that depends on the window size."""
+        from .. import display
+        old_size = self.WINDOW_SIZE
         self.WINDOW_SIZE = self.screen.get_size()
-        
-        # Log the change
         logger.info(f"Display updated: {old_size[0]}x{old_size[1]} -> {self.WINDOW_SIZE[0]}x{self.WINDOW_SIZE[1]}")
-        
-        # Recreate starfield with new dimensions
-        self.starfield = StarField(100, self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
-        
+
+        # Recreate starfield with new dimensions (more stars on bigger windows)
+        self.starfield = StarField(display.star_count(self.WINDOW_SIZE), self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
+
         # Update camera with new window size
         self.camera = Camera(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
-        
+
         # Update minimap with new window size
         self.minimap.resize(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
-        
+
         # Update all state UI components
         for state in self.states.values():
             if hasattr(state, 'enhanced_hud'):
                 state.enhanced_hud.resize(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
             if hasattr(state, 'large_map'):
-                # For large map, recreate with new size
                 from ..ui.large_map import LargeMap
                 state.large_map = LargeMap(self.WINDOW_SIZE[0], self.WINDOW_SIZE[1])
-        
+
         logger.info(f"Display mode: {self.settings.display_mode.value} ({self.WINDOW_SIZE[0]}x{self.WINDOW_SIZE[1]})")
 
     def _check_auto_save(self):

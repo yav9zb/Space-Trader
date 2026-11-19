@@ -33,7 +33,9 @@ def test_camera_descriptions():
     desc = settings.get_camera_description()
     assert "deadzone" in desc.lower() or "center area" in desc.lower()
 
-def test_settings_save_load():
+def test_settings_save_load(monkeypatch):
+    from src import display
+    monkeypatch.setattr(display, 'desktop_size', lambda index=0: (2560, 1440))   # a roomy screen
     # Create a temporary file for testing
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
         temp_filename = f.name
@@ -87,3 +89,29 @@ def test_settings_load_nonexistent_file():
     assert settings.camera_mode == CameraMode.CENTERED
     assert settings.window_width == 800
     assert settings.window_height == 600
+
+
+def test_a_window_size_saved_on_a_bigger_screen_is_clamped_when_loaded(monkeypatch, tmp_path):
+    """Settings saved with an external 4K monitor must not make the next
+    laptop-screen launch open a window larger than the screen."""
+    import json
+    from src import display
+
+    path = tmp_path / "settings.json"
+    path.write_text(json.dumps({"window_width": 3440, "window_height": 1440}))
+    monkeypatch.setattr(display, "desktop_size", lambda index=0: (1512, 982))
+
+    loaded = Settings()
+    loaded.load(str(path))
+    usable = display.usable_area((1512, 982))
+    assert (loaded.window_width, loaded.window_height) == (usable[0], usable[1])
+
+
+def test_the_default_window_and_resolution_list_follow_the_screen(monkeypatch):
+    from src import display
+
+    monkeypatch.setattr(display, "desktop_size", lambda index=0: (1512, 982))
+    fresh = Settings()
+    usable = display.usable_area((1512, 982))
+    assert fresh.window_width <= usable[0] and fresh.window_height <= usable[1]
+    assert all(w <= usable[0] and h <= usable[1] for w, h in fresh.available_resolutions)

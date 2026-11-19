@@ -28,8 +28,11 @@ class MenuBackground:
         from ..entities.starfield import StarField
 
         screen.fill(bg_color)
-        if self.starfield is None or self.starfield.screen_width != screen.get_width():
-            self.starfield = StarField(120, screen.get_width(), screen.get_height())
+        if (self.starfield is None or self.starfield.screen_width != screen.get_width()
+                or self.starfield.screen_height != screen.get_height()):
+            from .. import display
+            self.starfield = StarField(display.star_count(screen.get_size(), 120),
+                                       screen.get_width(), screen.get_height())
         drift = (pygame.time.get_ticks() - self.start_ticks) * 0.015
         self.starfield.draw(screen, Vector2(drift, drift * 0.35))
 

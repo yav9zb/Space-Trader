@@ -16,40 +16,20 @@ class DisplayMode(Enum):
     BORDERLESS = "Borderless Fullscreen"
 
 
-def get_available_resolutions():
-    """Get list of available screen resolutions."""
-    try:
-        pygame.display.init()
-        modes = pygame.display.list_modes()
-        if modes == -1:  # All modes supported
-            # Return common resolutions
-            return [(1920, 1080), (1680, 1050), (1600, 900), (1440, 900), 
-                   (1366, 768), (1280, 720), (1024, 768), (800, 600)]
-        else:
-            # Filter for reasonable resolutions (minimum 800x600)
-            return [mode for mode in modes if mode[0] >= 800 and mode[1] >= 600]
-    except:
-        # Fallback resolutions
-        return [(1920, 1080), (1680, 1050), (1600, 900), (1440, 900), 
-               (1366, 768), (1280, 720), (1024, 768), (800, 600)]
+def get_available_resolutions(current=None):
+    """Window sizes for the settings menu, in points, that fit this screen."""
+    from . import display
+    return display.resolution_options(display.usable_area(display.desktop_size()), current)
 
 
 def get_desktop_resolution():
-    """Get the desktop resolution."""
-    try:
-        pygame.display.init()
-        info = pygame.display.Info()
-        width, height = info.current_w, info.current_h
-        
-        # Ensure minimum resolution for playability
-        width = max(800, width)
-        height = max(600, height)
-        
-        print(f"Detected desktop resolution: {width}x{height}")
-        return (width, height)
-    except Exception as e:
-        print(f"Failed to detect desktop resolution: {e}")
-        return (1920, 1080)  # Fallback
+    """The desktop size in points (what a window can occupy), never below the
+    smallest playable size."""
+    from . import display
+    width, height = display.desktop_size()
+    print(f"Detected desktop resolution: {width}x{height}")
+    return (max(800, width), max(600, height))
+
 
 class Settings:
     def __init__(self):
@@ -59,9 +39,9 @@ class Settings:
         self.camera_deadzone_radius = 50  # For deadzone camera mode
         
         # Display settings
-        desktop_res = get_desktop_resolution()
-        self.window_width = min(1280, desktop_res[0])  # Default to 1280 or desktop width
-        self.window_height = min(720, desktop_res[1])   # Default to 720 or desktop height
+        from . import display
+        self.window_width, self.window_height = display.default_window_size(
+            display.usable_area(get_desktop_resolution()))
         self.display_mode = DisplayMode.WINDOWED
         self.vsync = True
         self.show_fps = False
@@ -164,9 +144,12 @@ class Settings:
             self.camera_deadzone_radius = settings_dict.get("camera_deadzone_radius", 50)
             
             # Load display settings
-            desktop_res = get_desktop_resolution()
-            self.window_width = settings_dict.get("window_width", min(1280, desktop_res[0]))
-            self.window_height = settings_dict.get("window_height", min(720, desktop_res[1]))
+            # A size saved on a bigger monitor must not outgrow the screen we are on now
+            from . import display
+            usable = display.usable_area(get_desktop_resolution())
+            saved = (settings_dict.get("window_width", self.window_width),
+                     settings_dict.get("window_height", self.window_height))
+            self.window_width, self.window_height = display.clamp_size(saved, usable)
             
             # Handle legacy fullscreen setting
             if "fullscreen" in settings_dict and settings_dict["fullscreen"]:
@@ -233,85 +216,60 @@ class Settings:
         return descriptions.get(self.display_mode, "Unknown display mode")
     
     def apply_display_settings(self, screen):
-        """Apply current display settings to the screen."""
-        flags = 0
-        
-        if self.display_mode == DisplayMode.FULLSCREEN:
-            flags |= pygame.FULLSCREEN
-        elif self.display_mode == DisplayMode.BORDERLESS:
-            flags |= pygame.NOFRAME
-        
-        if self.vsync:
-            flags |= pygame.DOUBLEBUF
-        
+        """Create or resize the window for the current display settings and
+        return its surface."""
+        import os
+        from . import display
+
+        desktop = get_desktop_resolution()
+        usable = display.usable_area(desktop)
+        mac = display.is_macos()
+        flags = pygame.RESIZABLE
+
         try:
-            # Check if we're on macOS to avoid multi-monitor issues
-            import platform
-            is_macos = platform.system() == "Darwin"
-            
-            if self.display_mode == DisplayMode.FULLSCREEN:
-                if is_macos:
-                    # On macOS, avoid fullscreen entirely and force windowed mode to prevent multi-monitor issues
-                    print("macOS detected: Forcing windowed mode to prevent laptop screen blackout")
-                    desktop_res = get_desktop_resolution()
-                    
-                    # Create a large windowed mode that covers most of the screen
-                    windowed_width = desktop_res[0] - 50
-                    windowed_height = desktop_res[1] - 100  # Leave room for dock/menu bar
-                    
-                    flags = pygame.RESIZABLE | (pygame.DOUBLEBUF if self.vsync else 0)
-                    new_screen = pygame.display.set_mode((windowed_width, windowed_height), flags)
-                    self.window_width, self.window_height = windowed_width, windowed_height
-                    
-                    # Set window position to center it on the current display
-                    import os
-                    os.environ['SDL_VIDEO_WINDOW_POS'] = '25,50'
-                else:
-                    # On other platforms, use traditional fullscreen
-                    desktop_res = get_desktop_resolution()
-                    if (800 <= self.window_width <= desktop_res[0] and 
-                        600 <= self.window_height <= desktop_res[1]):
-                        new_screen = pygame.display.set_mode((self.window_width, self.window_height), flags)
-                    else:
-                        new_screen = pygame.display.set_mode(desktop_res, flags)
-                        self.window_width, self.window_height = desktop_res
-            elif self.display_mode == DisplayMode.BORDERLESS:
-                if is_macos:
-                    # On macOS, even borderless can cause issues, so use large windowed mode
-                    print("macOS detected: Using large windowed mode instead of borderless")
-                    desktop_res = get_desktop_resolution()
-                    windowed_width = desktop_res[0] - 50
-                    windowed_height = desktop_res[1] - 100
-                    flags = pygame.RESIZABLE | (pygame.DOUBLEBUF if self.vsync else 0)
-                    new_screen = pygame.display.set_mode((windowed_width, windowed_height), flags)
-                    self.window_width, self.window_height = windowed_width, windowed_height
-                    import os
-                    os.environ['SDL_VIDEO_WINDOW_POS'] = '25,50'
-                else:
-                    # For borderless on other platforms
-                    desktop_res = get_desktop_resolution()
-                    borderless_flags = pygame.NOFRAME | (pygame.DOUBLEBUF if self.vsync else 0)
-                    new_screen = pygame.display.set_mode(desktop_res, borderless_flags)
-                    self.window_width, self.window_height = desktop_res
+            if self.display_mode == DisplayMode.WINDOWED:
+                # Never larger than this screen, never smaller than the minimum
+                self.window_width, self.window_height = display.clamp_size(
+                    (self.window_width, self.window_height), usable)
+                size = (self.window_width, self.window_height)
+                if screen is None:
+                    os.environ.setdefault("SDL_VIDEO_CENTERED", "1")
+            elif mac:
+                # Real fullscreen on macOS can black out a laptop display, so
+                # "fullscreen" fills the whole usable screen with a window. The
+                # saved windowed size is left alone for when you switch back.
+                size = display.clamp_size(usable, usable)
+                os.environ['SDL_VIDEO_WINDOW_POS'] = '0,%d' % display.MENU_BAR
+            elif self.display_mode == DisplayMode.FULLSCREEN:
+                flags = pygame.FULLSCREEN
+                size = desktop
             else:
-                # For windowed mode, ensure size doesn't exceed desktop and make it resizable
-                desktop_res = get_desktop_resolution()
-                max_width = min(self.window_width, desktop_res[0] - 100)  # Leave some margin
-                max_height = min(self.window_height, desktop_res[1] - 100)
-                flags = pygame.RESIZABLE | (pygame.DOUBLEBUF if self.vsync else 0)
-                new_screen = pygame.display.set_mode((max_width, max_height), flags)
-                self.window_width, self.window_height = max_width, max_height
-            
+                flags = pygame.NOFRAME
+                size = desktop
+
+            new_screen = pygame.display.set_mode(size, flags)
             return new_screen
         except pygame.error as e:
             print(f"Failed to set display mode: {e}")
-            # Fallback to smaller windowed mode
+            # Fall back to a plain window of a sensible size
             self.display_mode = DisplayMode.WINDOWED
-            fallback_width = min(1280, get_desktop_resolution()[0] - 100)
-            fallback_height = min(720, get_desktop_resolution()[1] - 100)
-            self.window_width, self.window_height = fallback_width, fallback_height
-            return pygame.display.set_mode((fallback_width, fallback_height))
-    
+            self.window_width, self.window_height = display.default_window_size(usable)
+            return pygame.display.set_mode((self.window_width, self.window_height), pygame.RESIZABLE)
+
+    def next_resolution(self, direction: int):
+        """The window size one step larger (direction > 0) or smaller (< 0) than
+        the current one, from the sizes that fit the screen the window is on now.
+        The window may have been dragged to a size that is not in the list, in
+        which case this moves to the nearest listed size in that direction."""
+        current = (self.window_width, self.window_height)
+        options = get_available_resolutions()
+        area = lambda size: size[0] * size[1]
+        if direction > 0:
+            larger = [o for o in options if area(o) > area(current)]
+            return larger[0] if larger else options[0]                    # wrap to the smallest
+        smaller = [o for o in options if area(o) < area(current)]
+        return smaller[-1] if smaller else options[-1]                    # wrap to the largest
+
     def get_resolution_string(self):
         """Get current resolution as a string."""
         return f"{self.window_width}x{self.window_height}"
