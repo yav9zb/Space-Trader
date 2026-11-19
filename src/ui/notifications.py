@@ -32,23 +32,28 @@ class Notifications:
     def clear(self):
         self.items.clear()
 
-    def render(self, screen: pygame.Surface):
+    def render(self, screen: pygame.Surface, ratio: float = 1.0):
+        """Draw the stack. `ratio` is pixels per point, for drawing at full
+        resolution on a Retina display."""
         if not self.items:
             return
-        if self._font is None:
-            self._font = pygame.font.Font(None, 28)
+        size = round(28 * ratio)
+        if self._font is None or getattr(self, "_font_size", None) != size:
+            self._font = pygame.font.Font(None, size)
+            self._font_size = size
         width = screen.get_width()
-        y = 70
+        y = round(70 * ratio)
+        pad_x, pad_y, gap = round(12 * ratio), round(5 * ratio), round(6 * ratio)
         for text, left, color in self.items:
             surface = self._font.render(text, True, color)
             if left < FADE_TIME:
                 surface.set_alpha(int(255 * max(0.0, left / FADE_TIME)))
-            back = pygame.Surface((surface.get_width() + 24, surface.get_height() + 10), pygame.SRCALPHA)
+            back = pygame.Surface((surface.get_width() + 2 * pad_x, surface.get_height() + 2 * pad_y), pygame.SRCALPHA)
             back.fill((0, 0, 0, 150))
             x = (width - back.get_width()) // 2
             screen.blit(back, (x, y))
-            screen.blit(surface, (x + 12, y + 5))
-            y += back.get_height() + 6
+            screen.blit(surface, (x + pad_x, y + pad_y))
+            y += back.get_height() + gap
 
 
 notifications = Notifications()

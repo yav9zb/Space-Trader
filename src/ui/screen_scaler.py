@@ -88,19 +88,22 @@ class ScreenScaler:
         else:
             pygame.transform.smoothscale(self._surface, window, screen)
 
-    def draw_overlay(self, draw, screen: pygame.Surface):
+    def draw_overlay(self, draw, screen: pygame.Surface, reference: Optional[Size] = None):
         """Draw a menu layer on top of what is already on screen (the pause
         menu over the game). `draw(surface)` paints onto a transparent surface
-        of the logical size, which is then scaled and composited onto screen."""
-        window = screen.get_size()
+        of the logical size, which is then scaled and composited onto screen.
+        `reference` is the window size in points when screen is a higher-
+        resolution surface (Retina), so the layout and mouse mapping, which
+        work in points, stay consistent."""
+        window = tuple(reference) if reference else screen.get_size()
         self.scale = scale_for(window)
-        if self.scale == 1.0:
+        if self.scale == 1.0 and window == screen.get_size():
             draw(screen)
             return
         size = logical_size(window)
         layer = pygame.Surface(size, pygame.SRCALPHA)
         draw(layer)
-        screen.blit(pygame.transform.smoothscale(layer, window), (0, 0))
+        screen.blit(pygame.transform.smoothscale(layer, screen.get_size()), (0, 0))
 
     def prepare(self, screen: pygame.Surface, active: bool):
         """Called before events, updates and rendering so that mouse mapping

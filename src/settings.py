@@ -247,7 +247,7 @@ class Settings:
                 flags = pygame.NOFRAME
                 size = desktop
 
-            new_screen = pygame.display.set_mode(size, flags)
+            new_screen = self._create_display(size, flags, screen)
             return new_screen
         except pygame.error as e:
             print(f"Failed to set display mode: {e}")
@@ -255,6 +255,17 @@ class Settings:
             self.display_mode = DisplayMode.WINDOWED
             self.window_width, self.window_height = display.default_window_size(usable)
             return pygame.display.set_mode((self.window_width, self.window_height), pygame.RESIZABLE)
+
+    def _create_display(self, size, flags, existing):
+        """The window and the surface the game draws into: the high-density
+        window on a Retina Mac (the surface is then point-sized and scaled up
+        each frame), otherwise an ordinary pygame display."""
+        from . import hidpi
+        if flags & pygame.RESIZABLE and (hidpi.get_presenter() is not None or hidpi.wanted()):
+            surface = hidpi.configure("Space Trading Simulator", size, resizable=True)
+            if surface is not None:
+                return surface
+        return pygame.display.set_mode(size, flags)
 
     def next_resolution(self, direction: int):
         """The window size one step larger (direction > 0) or smaller (< 0) than

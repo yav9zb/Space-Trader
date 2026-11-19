@@ -84,13 +84,19 @@ class StatusBar:
 class EnhancedHUD:
     """Enhanced HUD system with comprehensive information display."""
     
-    def __init__(self, screen_width: int, screen_height: int):
+    def __init__(self, screen_width: int, screen_height: int, ratio: float = 1.0):
+        """`ratio` is pixels per point: 1.0 normally, 2.0 when this HUD draws at
+        full resolution on a Retina display (screen_width/height are then the
+        pixel size, and sizes are chosen as for the point size, then doubled)."""
+        self.ratio = ratio
+        self.minimap = None          # the radar this HUD sits beside, if not the engine's
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.scale = game_settings.hud_scale
         
         # Initialize UI layout system
         self.ui_layout = UILayout(screen_width, screen_height, self.scale)
+        self._apply_ratio()
         
         # Update theme scale
         ui_theme.update_scale(self.ui_layout.font_scale)
@@ -186,38 +192,53 @@ class EnhancedHUD:
                 nearest_dist = dist
                 self.nearest_station = station
     
-    def render(self, surface: pygame.Surface, game_engine):
-        """Render the complete HUD."""
-        # Clear reserved areas at start of each frame
-        self.ui_layout.clear_reserved_areas()
+    def _apply_ratio(self):
+        """At a pixel ratio above 1, lay out as for the point size and then
+        scale the lengths, so a Retina HUD is the same size on screen but
+        drawn with twice the pixels."""
+        if self.ratio == 1.0:
+            return
+        layout = self.ui_layout
+        layout.resize(round(self.screen_width / self.ratio), round(self.screen_height / self.ratio))
+        layout.margin_x = round(layout.margin_x * self.ratio)
+        layout.margin_y = round(layout.margin_y * self.ratio)
+        layout.padding = round(layout.padding * self.ratio)
+        layout.screen_width, layout.screen_height = self.screen_width, self.screen_height
 
-        # Arrow toward the current mission objective: drawn first, so the
-        # panels sit on top of it rather than being covered by its label
+    def render_pointer(self, surface: pygame.Surface, game_engine):
+        """Arrow toward the current mission objective. It lives in the world,
+        so on a Retina display it is drawn with the world, not the sharp layer."""
         try:
             from .. import objective_pointer
             objective_pointer.draw(surface, game_engine, self.font_small)
         except Exception:
             logger.exception("Objective pointer failed")
-        
+
+    def render_panels(self, surface: pygame.Surface, game_engine):
+        """The panels: ship status, navigation and the mission tracker."""
+        self.ui_layout.clear_reserved_areas()
         if self.show_ship_status or self.show_navigation:
             self._render_left_column(surface, game_engine)
-        
         if self.show_mission_tracker:
             self._render_mission_tracker(surface, game_engine)
-        
+
+    def render_overlays(self, surface: pygame.Surface, game_engine):
+        """Everything else the HUD can show (market info, fps, dev view, alerts)."""
         if self.show_market_info:
             self._render_market_info(surface, game_engine)
-        
-        # Always show FPS if enabled
         if game_settings.show_fps:
             self._render_fps(surface, game_engine)
-        
-        # Render dev view overlay
         self.dev_view.render(surface, game_engine)
-        
-        # Render alerts
         self._render_alerts(surface)
-    
+
+    def render(self, surface: pygame.Surface, game_engine):
+        """Render the complete HUD."""
+        # The pointer is drawn first, so the panels sit on top of it rather
+        # than being covered by its label
+        self.render_pointer(surface, game_engine)
+        self.render_panels(surface, game_engine)
+        self.render_overlays(surface, game_engine)
+
     # ---- panels ------------------------------------------------------------------
 
     FACTION_COLORS = {"Trade Guild": (232, 190, 90), "Independent": (150, 180, 215),
@@ -227,10 +248,10 @@ class EnhancedHUD:
 
     def _metrics(self):
         """Pixel metrics for the current window size, rebuilt only when it changes."""
-        scale = self.ui_layout.font_scale
-        if getattr(self, "_metrics_for", None) != scale:
-            self._metrics_cache = panel_kit.make_metrics(scale)
-            self._metrics_for = scale
+        key = (self.ui_layout.font_scale, self.ratio)
+        if getattr(self, "_metrics_for", None) != key:
+            self._metrics_cache = panel_kit.make_metrics(key[0], self.ratio)
+            self._metrics_for = key
         return self._metrics_cache
 
     def _left_width(self, m) -> int:
@@ -369,7 +390,7 @@ class EnhancedHUD:
         if len(active) > 3:
             panel.note(f"+{len(active) - 3} more in the Mission Board")
 
-        minimap = getattr(game_engine, 'minimap', None)
+        minimap = self.minimap if self.minimap is not None else getattr(game_engine, 'minimap', None)
         top = (minimap.rect.bottom + m.gap) if minimap is not None else self.ui_layout.margin_y
         x = self.screen_width - width - self.ui_layout.margin_x
         rect = panel.draw(surface, x, top)
@@ -436,6 +457,7 @@ class EnhancedHUD:
         
         # Update UI layout system
         self.ui_layout.resize(screen_width, screen_height)
+        self._apply_ratio()
         
         # Update theme scale
         ui_theme.update_scale(self.ui_layout.font_scale)

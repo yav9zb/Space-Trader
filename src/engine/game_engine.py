@@ -72,7 +72,10 @@ class GameEngine:
 
         try:
             icon_path = get_resource_path(os.path.join('assets', 'icon', 'icon_64.png'))
-            pygame.display.set_icon(pygame.image.load(icon_path))
+            icon = pygame.image.load(icon_path)
+            pygame.display.set_icon(icon)
+            if self.presenter is not None and hasattr(self.presenter.window, "set_icon"):
+                self.presenter.window.set_icon(icon)        # the high-density window has its own
         except (pygame.error, FileNotFoundError) as e:
             logger.warning(f"Failed to load window icon: {e}")
         
@@ -339,7 +342,7 @@ class GameEngine:
             current_state.render(self.screen)
 
         self._draw_fade()
-        pygame.display.flip()
+        self._present()
 
 
 
@@ -445,6 +448,20 @@ class GameEngine:
         self.settings.toggle_fullscreen()
         self._update_display()
     
+    @property
+    def presenter(self):
+        """The high-density presenter, or None on the standard display path."""
+        from .. import hidpi
+        return hidpi.get_presenter()
+
+    def _present(self):
+        """Show the finished frame."""
+        presenter = self.presenter
+        if presenter is not None:
+            presenter.present()
+        else:
+            pygame.display.flip()
+
     def _draw_fade(self):
         """Fade in from black right after switching screens."""
         remaining = getattr(self, "fade_remaining", 0.0)
@@ -461,7 +478,8 @@ class GameEngine:
         """React to the window having a new size without re-creating it
         (re-creating on every resize event flickers and fights macOS's own
         fullscreen). Remembers the size for next time in windowed mode."""
-        surface = pygame.display.get_surface()
+        presenter = self.presenter
+        surface = presenter.sync() if presenter is not None else pygame.display.get_surface()
         if surface is None or surface.get_size() == self.WINDOW_SIZE:
             return
         self.screen = surface

@@ -335,8 +335,9 @@ class Universe:
                 self.generate_chunk_around_position(chunk_pos)
 
     
-    def update(self, delta_time):
-        """Update all dynamic objects in the universe"""
+    def update(self, delta_time, focus=None):
+        """Update all dynamic objects in the universe. `focus` is the player's
+        position: debris far from it is simulated at a lower rate."""
         # Markets slowly recover stock and demand and drift in price; without
         # this a station that has been bought out stays empty forever
         self._market_timer += delta_time
@@ -346,7 +347,7 @@ class Universe:
                 station.market.refresh_market()
 
         # Update debris field manager (handles all debris physics)
-        debris_field_manager.update(delta_time)
+        debris_field_manager.update(delta_time, focus)
         
         # Update individual debris (legacy support)
         for debris in self.debris:

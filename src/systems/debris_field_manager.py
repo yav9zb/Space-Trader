@@ -165,11 +165,21 @@ class DebrisFieldManager:
         
         return created_debris
     
-    def update(self, delta_time: float):
-        """Update all debris with advanced physics."""
+    # Level of detail: debris near the player is simulated every frame; debris
+    # farther away than NEAR_RADIUS only every FAR_PERIOD frames, with the time
+    # it missed. Nobody can see it, and it was most of the frame's cost.
+    NEAR_RADIUS = 2500.0
+    FAR_PERIOD = 4
+
+    def update(self, delta_time: float, focus: Optional[Vector2] = None):
+        """Update all debris with advanced physics. `focus` is the point
+        (the player) debris is simulated in full detail around; without one,
+        everything is updated every frame."""
         # Reset frame statistics
         self.stats['collisions_this_frame'] = 0
         self.collision_pairs_processed.clear()
+        self._frame = getattr(self, "_frame", 0) + 1
+        near_sq = self.NEAR_RADIUS * self.NEAR_RADIUS
         
         # Rebuild spatial grid
         self.spatial_grid.clear()
@@ -177,7 +187,12 @@ class DebrisFieldManager:
             self.spatial_grid.add_debris(debris)
         
         # Update each debris piece
-        for debris in self.debris_list[:]:  # Use slice to avoid modification during iteration
+        for index, debris in enumerate(self.debris_list[:]):  # Use slice to avoid modification during iteration
+            step = delta_time
+            if focus is not None and (debris.position - focus).length_squared() > near_sq:
+                if (index + self._frame) % self.FAR_PERIOD:
+                    continue                       # not this far piece's turn
+                step = delta_time * self.FAR_PERIOD
             # Get nearby debris for physics interactions
             nearby_debris = self.spatial_grid.get_nearby_debris(
                 debris.position, 
@@ -185,7 +200,7 @@ class DebrisFieldManager:
             ) if self.enable_gravity else None
             
             # Update debris physics
-            debris.update(delta_time, nearby_debris)
+            debris.update(step, nearby_debris)
             
             # Handle collisions
             if self.enable_collisions:

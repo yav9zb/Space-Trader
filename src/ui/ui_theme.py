@@ -204,6 +204,11 @@ class UITheme:
         }
     
     PANEL_RADIUS = 8  # Rounded corners, matching the settings/onboarding panels
+    pixel_ratio = 1.0  # >1 while drawing at full resolution on a high-density display
+
+    @property
+    def radius(self) -> int:
+        return max(1, round(self.PANEL_RADIUS * self.pixel_ratio))
 
     def draw_border(self, surface: pygame.Surface, rect: pygame.Rect,
                    element_type: UIElementType, state: UIState = UIState.NORMAL):
@@ -214,16 +219,17 @@ class UITheme:
         if style['alpha'] < 255 and self.alpha_enabled:
             border_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
             pygame.draw.rect(border_surface, (*style['color'], style['alpha']),
-                           (0, 0, rect.width, rect.height), style['thickness'], border_radius=self.PANEL_RADIUS)
+                           (0, 0, rect.width, rect.height), style['thickness'], border_radius=self.radius)
             surface.blit(border_surface, rect.topleft)
         else:
-            pygame.draw.rect(surface, style['color'], rect, style['thickness'], border_radius=self.PANEL_RADIUS)
+            pygame.draw.rect(surface, style['color'], rect, style['thickness'], border_radius=self.radius)
 
         # Bright corner brackets give panels an instrument-panel finish
         if element_type not in (UIElementType.STATUS_BAR, UIElementType.SELECTION_HIGHLIGHT,
                                 UIElementType.INPUT_BOX) and rect.width >= 60 and rect.height >= 40:
             from . import gfx
-            gfx.draw_corner_accents(surface, rect, gfx.lighten(style['color'], 0.35))
+            gfx.draw_corner_accents(surface, rect, gfx.lighten(style['color'], 0.35),
+                                    length=round(10 * self.pixel_ratio), thickness=max(2, round(2 * self.pixel_ratio)))
 
     def draw_panel_background(self, surface: pygame.Surface, rect: pygame.Rect,
                             alpha: int = 180):
@@ -231,9 +237,9 @@ class UITheme:
         if alpha < 255 and self.alpha_enabled:
             from . import gfx
             surface.blit(gfx.panel_surface(rect.width, rect.height, self.colors['panel_bg'],
-                                           alpha, self.PANEL_RADIUS), rect.topleft)
+                                           alpha, self.radius), rect.topleft)
         else:
-            pygame.draw.rect(surface, self.colors['panel_bg'], rect, border_radius=self.PANEL_RADIUS)
+            pygame.draw.rect(surface, self.colors['panel_bg'], rect, border_radius=self.radius)
     
     def get_text_color(self, element_type: UIElementType, state: UIState = UIState.NORMAL) -> Tuple[int, int, int]:
         """Get appropriate text color for a UI element."""

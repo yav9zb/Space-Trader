@@ -1,5 +1,14 @@
 # Changelog
 
+## Beta 21
+
+### Changed
+- **Moved from pygame to pygame-ce** (a drop-in fork; the install line is the only change for you: run `pip install -r requirements.txt`).
+- **Sharp HUD on Retina Macs.** On a high-density display the HUD panels, radar, mission tracker and notifications are drawn at the screen's full pixel resolution. The world and menus are still drawn at point resolution and scaled up, so they look as before. Standard displays, headless runs and `SPACETRADER_HIDPI=0` use the plain path.
+
+### Fixed
+- **Debris simulation was the biggest cost of every frame.** Up to 500 pieces collided and attracted each other every frame, even far from the player. Pieces beyond 2,500 units now update every fourth frame with the time they missed. Update time dropped from about 13 ms to about 7 ms in a headless run.
+
 ## Beta 20
 
 ### Changed

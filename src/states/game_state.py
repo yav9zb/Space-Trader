@@ -1195,7 +1195,7 @@ class PlayingState(State):
         self.game.universe.ensure_chunks_around_position(self.game.ship.position)
         
         # Update universe (debris physics, etc.)
-        self.game.universe.update(delta_time)
+        self.game.universe.update(delta_time, self.game.ship.position)
         
         # Update docking system
         self.game.docking_manager.update(
@@ -1350,19 +1350,28 @@ class PlayingState(State):
         # Draw combat effects (explosions, etc.)
         combat_manager.draw_combat_effects(screen, camera_offset)
 
-        # Draw minimap last (so it's on top)
-        from ..ui.minimap import gather_contacts
-        self.game.minimap.draw(screen, self.game.ship,
-                             self.game.universe.stations,
-                             self.game.universe.planets,
-                             gather_contacts(self.game, self.game.minimap.view_radius))
+        presenter = self.game.presenter
+        if presenter is None:
+            # Draw minimap last (so it's on top)
+            from ..ui.minimap import gather_contacts
+            self.game.minimap.draw(screen, self.game.ship,
+                                 self.game.universe.stations,
+                                 self.game.universe.planets,
+                                 gather_contacts(self.game, self.game.minimap.view_radius))
 
         # Red edge flash right after the player is hit
         from ..ui import gfx as _gfx
         _gfx.draw_edge_flash(screen, (255, 40, 30), getattr(self.game.ship, 'damage_pulse', 0.0) * 0.9)
 
-        # Draw enhanced HUD (on top of everything)
-        self.enhanced_hud.render(screen, self.game)
+        if presenter is None:
+            # Draw enhanced HUD (on top of everything)
+            self.enhanced_hud.render(screen, self.game)
+        else:
+            # On a Retina display the panels, radar and notifications are drawn
+            # later at full resolution; what lives in the world stays here
+            self.enhanced_hud.render_pointer(screen, self.game)
+            self.enhanced_hud.render_overlays(screen, self.game)
+            presenter.queue(self._draw_sharp_hud)
 
         # Draw large map overlay if visible (should be on top of everything)
         objectives = []
@@ -1381,11 +1390,37 @@ class PlayingState(State):
             target_station = self.game.docking_manager.get_target_station()
             repair_system.draw_repair_ui(screen, self.game.ship, target_station)
 
-        from ..ui.notifications import notifications
-        notifications.render(screen)
+        if self.game.presenter is None:
+            from ..ui.notifications import notifications
+            notifications.render(screen)
 
         # Draw onboarding hints last, on top of everything
         self.onboarding_hints.render(screen)
+
+    def _sharp_ui(self, size, ratio):
+        """The full-resolution HUD and radar for the current pixel size,
+        rebuilt when the size or ratio changes."""
+        from ..ui.minimap import Minimap
+        from ..ui.hud.enhanced_hud import EnhancedHUD
+        key = (tuple(size), ratio)
+        if getattr(self, "_sharp_key", None) != key:
+            self._sharp_hud = EnhancedHUD(size[0], size[1], ratio)
+            self._sharp_radar = Minimap(size[0], size[1], ratio=ratio)
+            self._sharp_hud.minimap = self._sharp_radar
+            self._sharp_key = key
+        return self._sharp_hud, self._sharp_radar
+
+    def _draw_sharp_hud(self, pixels, ratio):
+        """Draw the radar, panels and notifications at the display's real pixels."""
+        from ..ui.minimap import gather_contacts
+        from ..ui.notifications import notifications
+        hud, radar = self._sharp_ui(pixels.get_size(), ratio)
+        hud.update(getattr(self.game, 'delta_time', 0.016), self.game)
+        radar.set_view_radius(self.game.minimap.view_radius)
+        radar.draw(pixels, self.game.ship, self.game.universe.stations, self.game.universe.planets,
+                   gather_contacts(self.game, radar.view_radius))
+        hud.render_panels(pixels, self.game)
+        notifications.render(pixels, ratio)
 
     def _draw_docking_feedback(self, screen, station, camera_offset):
         """Draw docking zones and visual feedback for stations."""
@@ -1605,6 +1640,17 @@ class PausedState(State):
         # Get screen dimensions
         width, height = screen.get_size()
         
+        from ..ui.screen_scaler import scaler
+        presenter = self.game.presenter
+        if presenter is not None:
+            # On a Retina display the veil goes over the finished frame, sharp
+            # HUD included, and the menu on top of that
+            presenter.veil_alpha = 128
+            points = screen.get_size()
+            presenter.queue(lambda pixels, ratio: scaler.draw_overlay(self._draw_menu, pixels, reference=points),
+                            on_top=True)
+            return
+
         # Draw pause overlay (full screen)
         s = pygame.Surface((width, height))
         s.set_alpha(128)
@@ -1613,7 +1659,6 @@ class PausedState(State):
 
         # The menu itself is drawn at a logical size and scaled, like the other
         # menu screens, while the world behind it stays at real window pixels
-        from ..ui.screen_scaler import scaler
         scaler.draw_overlay(self._draw_menu, screen)
 
     def _draw_menu(self, screen):

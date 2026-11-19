@@ -1,6 +1,7 @@
 """Comprehensive tests for the advanced debris physics system."""
 
 import pygame
+import pytest
 from src.entities.debris import Debris, DebrisType, DebrisPhysics
 from src.systems.debris_field_manager import DebrisFieldManager, SpatialGrid
 from pygame import Vector2
@@ -208,3 +209,68 @@ def test_performance_features():
         grid.add_debris(debris)
 
     assert len(grid.grid) > 0
+
+
+# --- level of detail ---------------------------------------------------------------------------
+
+def _field(near_count=5, far_count=40):
+    from pygame import Vector2
+    from src.entities.debris import Debris, DebrisType
+    from src.systems.debris_field_manager import DebrisFieldManager
+
+    manager = DebrisFieldManager()
+    pieces = []
+    for i in range(near_count):
+        d = Debris(100 + i * 30, 100, DebrisType.METAL)
+        manager.add_debris(d); pieces.append(d)
+    for i in range(far_count):
+        d = Debris(20000 + i * 300, 20000, DebrisType.METAL)
+        manager.add_debris(d); pieces.append(d)
+    return manager, pieces[:near_count], pieces[near_count:]
+
+
+def _count_updates(pieces, manager, frames, focus):
+    calls = {id(p): [] for p in pieces}
+    for p in pieces:
+        real = p.update
+        p.update = (lambda dt, nearby=None, _p=p, _real=real: (calls[id(_p)].append(dt), _real(dt, nearby))[1])
+    for _ in range(frames):
+        manager.update(0.016, focus)
+    return calls
+
+
+def test_debris_near_the_player_updates_every_frame_and_far_debris_a_quarter_as_often():
+    from pygame import Vector2
+    manager, near, far = _field()
+    calls = _count_updates(near + far, manager, 8, Vector2(100, 100))
+    assert all(len(calls[id(p)]) == 8 for p in near)
+    assert all(len(calls[id(p)]) == 2 for p in far)                     # 8 frames / period 4
+
+
+def test_far_debris_gets_the_time_it_missed_so_it_moves_at_the_same_average_speed():
+    from pygame import Vector2
+    manager, near, far = _field()
+    calls = _count_updates(near + far, manager, 8, Vector2(100, 100))
+    for p in far:
+        assert sum(calls[id(p)]) == pytest.approx(8 * 0.016)
+
+
+def test_without_a_focus_everything_updates_every_frame_as_before():
+    manager, near, far = _field()
+    calls = _count_updates(near + far, manager, 6, None)
+    assert all(len(c) == 6 for c in calls.values())
+
+
+def test_the_simulation_does_not_cost_more_when_most_debris_is_far_away():
+    import time
+    from pygame import Vector2
+    manager, near, far = _field(near_count=10, far_count=300)
+    t = time.perf_counter()
+    for _ in range(20):
+        manager.update(0.016, None)
+    full = time.perf_counter() - t
+    t = time.perf_counter()
+    for _ in range(20):
+        manager.update(0.016, Vector2(100, 100))
+    lod = time.perf_counter() - t
+    assert lod < full

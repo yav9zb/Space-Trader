@@ -80,7 +80,8 @@ def gather_contacts(game_engine, view_radius: float) -> List[Contact]:
 
 
 class Minimap:
-    def __init__(self, screen_width, screen_height, map_size=150):
+    def __init__(self, screen_width, screen_height, map_size=150, ratio: float = 1.0):
+        self.ratio = ratio           # pixels per point when drawing at full resolution
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.base_size = map_size
@@ -95,14 +96,15 @@ class Minimap:
         """Everything that depends on the window size."""
         # About a fifth of the window's short side, within sensible bounds
         short_side = min(self.screen_width, self.screen_height)
-        self.map_size = max(110, min(280, int(short_side * 0.22)))
-        self.caption_font = fonts.exact(max(11, round(12 * max(0.9, self.ui_layout.font_scale))))
-        self.caption_height = self.caption_font.get_height() + 6
+        self.map_size = round(max(110, min(280, int(short_side / self.ratio * 0.22))) * self.ratio)
+        point_scale = UILayout(round(self.screen_width / self.ratio), round(self.screen_height / self.ratio)).font_scale
+        self.caption_font = fonts.exact(round(max(11, round(12 * max(0.9, point_scale))) * self.ratio))
+        self.caption_height = self.caption_font.get_height() + round(6 * self.ratio)
         self.total_height = self.map_size + self.caption_height
-        map_x, map_y = self.ui_layout.get_position(Anchor.TOP_RIGHT, self.map_size, self.total_height, 0, 60)
+        map_x, map_y = self.ui_layout.get_position(Anchor.TOP_RIGHT, self.map_size, self.total_height, 0, round(60 * self.ratio))
         self.position = Vector2(map_x, map_y)
         self.center = Vector2(self.map_size / 2, self.map_size / 2)
-        self.radius = self.map_size / 2 - 4
+        self.radius = self.map_size / 2 - 4 * self.ratio
         self.scale = self.radius / self.view_radius
         self.surface = pygame.Surface((self.map_size, self.total_height), pygame.SRCALPHA)
         self._backdrop = None
@@ -131,45 +133,52 @@ class Minimap:
             for i in range(r, 0, -1):               # a gentle glow toward the middle
                 t = 1 - i / r
                 pygame.draw.circle(surface, (*gfx.mix((4, 8, 24), (14, 30, 66), t), 215), c, i)
+            k = self.ratio
+            thin, thick = max(1, round(k)), max(2, round(2 * k))
             for fraction in (1 / 3, 2 / 3):
-                pygame.draw.circle(surface, GRID, c, int(r * fraction), 1)
-            pygame.draw.line(surface, GRID, (c[0] - r, c[1]), (c[0] + r, c[1]), 1)
-            pygame.draw.line(surface, GRID, (c[0], c[1] - r), (c[0], c[1] + r), 1)
-            pygame.draw.circle(surface, RIM, c, r, 2)
+                pygame.draw.circle(surface, GRID, c, int(r * fraction), thin)
+            pygame.draw.line(surface, GRID, (c[0] - r, c[1]), (c[0] + r, c[1]), thin)
+            pygame.draw.line(surface, GRID, (c[0], c[1] - r), (c[0], c[1] + r), thin)
+            pygame.draw.circle(surface, RIM, c, r, thick)
             for angle in range(0, 360, 45):          # rim ticks
                 a = math.radians(angle)
-                inner = r - (6 if angle % 90 == 0 else 3)
+                inner = r - round((6 if angle % 90 == 0 else 3) * k)
                 pygame.draw.line(surface, RIM, (c[0] + math.cos(a) * inner, c[1] + math.sin(a) * inner),
-                                 (c[0] + math.cos(a) * r, c[1] + math.sin(a) * r), 1)
+                                 (c[0] + math.cos(a) * r, c[1] + math.sin(a) * r), thin)
             self._backdrop = surface
         return self._backdrop
 
     def _marker(self, kind: str, at: Vector2, scale_hint: float = 1.0):
+        k = self.ratio
         color = COLORS.get(kind, (200, 200, 200))
         x, y = int(at.x), int(at.y)
         surface = self.surface
+        n = lambda v: max(1, round(v * k))             # a size in points, in pixels
+        edge = max(1, round(k))
         if kind == "station":
-            pygame.draw.rect(surface, color, (x - 3, y - 3, 7, 7))
-            pygame.draw.rect(surface, gfx.darken(color, 0.55), (x - 3, y - 3, 7, 7), 1)
+            half = n(3)
+            pygame.draw.rect(surface, color, (x - half, y - half, 2 * half + 1, 2 * half + 1))
+            pygame.draw.rect(surface, gfx.darken(color, 0.55), (x - half, y - half, 2 * half + 1, 2 * half + 1), edge)
         elif kind == "planet":
-            pygame.draw.circle(surface, color, (x, y), max(3, int(4 * scale_hint)))
-            pygame.draw.circle(surface, gfx.lighten(color, 0.4), (x, y), max(3, int(4 * scale_hint)), 1)
+            radius = max(n(3), int(n(4) * scale_hint))
+            pygame.draw.circle(surface, color, (x, y), radius)
+            pygame.draw.circle(surface, gfx.lighten(color, 0.4), (x, y), radius, edge)
         elif kind in ("hostile", "patrol"):
-            pts = [(x, y - 5), (x - 4, y + 4), (x + 4, y + 4)]
+            pts = [(x, y - n(5)), (x - n(4), y + n(4)), (x + n(4), y + n(4))]
             pygame.draw.polygon(surface, color, pts)
-            pygame.draw.polygon(surface, gfx.darken(color, 0.5), pts, 1)
+            pygame.draw.polygon(surface, gfx.darken(color, 0.5), pts, edge)
         elif kind == "trader":
-            pygame.draw.circle(surface, color, (x, y), 2)
+            pygame.draw.circle(surface, color, (x, y), n(2))
         elif kind == "blackhole":
-            pygame.draw.circle(surface, (0, 0, 0), (x, y), 4)
-            pygame.draw.circle(surface, color, (x, y), 5, 1)
+            pygame.draw.circle(surface, (0, 0, 0), (x, y), n(4))
+            pygame.draw.circle(surface, color, (x, y), n(5), edge)
         elif kind == "objective":
-            pts = [(x, y - 6), (x + 6, y), (x, y + 6), (x - 6, y)]
-            gfx.draw_glow(surface, (x, y), 11, color, 0.9)
+            pts = [(x, y - n(6)), (x + n(6), y), (x, y + n(6)), (x - n(6), y)]
+            gfx.draw_glow(surface, (x, y), n(11), color, 0.9)
             pygame.draw.polygon(surface, color, pts)
-            pygame.draw.polygon(surface, (60, 45, 15), pts, 1)
+            pygame.draw.polygon(surface, (60, 45, 15), pts, edge)
         else:                                       # hazards
-            pygame.draw.circle(surface, color, (x, y), 2 if kind != "hazard" else 1)
+            pygame.draw.circle(surface, color, (x, y), n(2) if kind != "hazard" else n(1))
 
     # Marker order: things you need to see last, so nothing important is hidden
     ORDER = ["hazard", "planet", "hazard_radioactive", "hazard_explosive", "blackhole", "station",
@@ -211,8 +220,8 @@ class Minimap:
             direction = direction.normalize()
             tip = c + direction * (self.radius - 1)
             side = Vector2(-direction.y, direction.x)
-            base = tip - direction * 9
-            pts = [tip, base + side * 5, base - side * 5]
+            base = tip - direction * 9 * self.ratio
+            pts = [tip, base + side * 5 * self.ratio, base - side * 5 * self.ratio]
             pygame.draw.polygon(surface, COLORS["objective"], pts)
             pygame.draw.polygon(surface, (60, 45, 15), pts, 1)
 
@@ -221,19 +230,19 @@ class Minimap:
         for i, fade in enumerate((0.6, 0.35, 0.15)):
             a = math.radians(sweep - i * 8)
             end = c + Vector2(math.cos(a), math.sin(a)) * (self.radius - 2)
-            pygame.draw.line(surface, (*gfx.mix((10, 20, 40), (90, 200, 255), fade), 255), c, end, 1)
+            pygame.draw.line(surface, (*gfx.mix((10, 20, 40), (90, 200, 255), fade), 255), c, end, max(1, round(self.ratio)))
 
         # The ship: a wedge pointing the way it faces
         pts = [Vector2(0, -7), Vector2(-4.5, 5), Vector2(0, 2.5), Vector2(4.5, 5)]
-        pts = [c + p.rotate(ship.rotation) for p in pts]
-        gfx.draw_glow(surface, c, 12, (60, 255, 120), 0.45)
+        pts = [c + (p * self.ratio).rotate(ship.rotation) for p in pts]
+        gfx.draw_glow(surface, c, round(12 * self.ratio), (60, 255, 120), 0.45)
         pygame.draw.polygon(surface, (90, 255, 130), pts)
         pygame.draw.polygon(surface, (20, 90, 40), pts, 1)
 
         # Caption under the disc: the range, never on top of the map
         text = f"RANGE {self.view_radius / 1000:g} km"
         label = self.caption_font.render(text, True, (150, 170, 205))
-        surface.blit(label, ((self.map_size - label.get_width()) // 2, self.map_size + 2))
+        surface.blit(label, ((self.map_size - label.get_width()) // 2, self.map_size + round(2 * self.ratio)))
 
         screen.blit(surface, (int(self.position.x), int(self.position.y)))
 
