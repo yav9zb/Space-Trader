@@ -113,3 +113,31 @@ def test_the_mission_tracker_does_not_sit_on_top_of_the_minimap(engine):
     minimap_rect = pygame.Rect(int(minimap.position.x), int(minimap.position.y),
                                minimap.map_size, minimap.map_size)
     assert not tracker_rect.colliderect(minimap_rect), (tracker_rect, minimap_rect)
+
+
+def test_loading_an_old_prologue_save_puts_the_player_into_act_one_with_contacts(engine, tmp_path):
+    """A save made by beta 9 to 12 after the prologue must continue into the
+    new campaign, with the Act 1 contacts waiting at stations."""
+    import json
+    from src.save_system import SaveSystem
+
+    engine.create_new_universe()
+    system = SaveSystem(str(tmp_path))
+    assert system.save_game(engine, "old")
+
+    path = tmp_path / "old.json"
+    data = json.loads(path.read_text())
+    data["story"] = {
+        "flags": {"prologue_complete": True, "prologue_epilogue_seen": True, "met_hale": True},
+        "chapter": "prologue",
+        "completed_story_missions": ["prologue_1", "prologue_2", "prologue_3"],
+        "seen_nodes": ["hale_intro", "hale_epilogue"],
+        "npc_stations": {"hale": engine.story_state.npc_stations["hale"]},
+    }
+    path.write_text(json.dumps(data))
+
+    assert system.load_game("old", engine)
+
+    assert engine.story_state.chapter == "act_1"
+    for npc in ("rourke", "voss", "kestrel"):
+        assert engine.story_state.npc_stations.get(npc), f"{npc} was not placed after loading"

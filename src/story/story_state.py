@@ -129,6 +129,12 @@ class StoryState:
             self.set_region_override((rx, ry), faction)
         self._next_seq = data.get("next_seq", len(self.recent_events))
 
+        # Saves from before the acts existed finished the prologue with the
+        # chapter still "prologue" and Hale's old epilogue already seen, so
+        # nothing would ever start Act 1 for them.
+        if self.chapter == "prologue" and self.has_flag("prologue_epilogue_seen"):
+            self.chapter = "act_1"
+
 
 # Global story state, like mission_manager
 story_state = StoryState()

@@ -22,6 +22,8 @@ OKOYE = "Dr. Okoye"
 
 _hale_hub = NODES["hale_return"]
 _hale_extra = [
+    Choice("Where can I find them again?", next="hale_contacts",
+           requires={"flag": "prologue_epilogue_seen", "not_flag": "act1_debriefed"}),
     Choice("Rourke, Voss and Kestrel have each told me their part.", next="hale_act1_end",
            requires={"story_done_all": ["act1_1", "act1_2", "act1_3"],
                      "not_flag": "act1_debriefed"}),
@@ -36,6 +38,15 @@ _hale_extra = [
            requires={"story_done": "act3_1", "not_story_started": "act3_2"}),
 ]
 _hale_hub.choices[3:3] = _hale_extra     # after the prologue choices, before the chat
+
+_add(Node(
+    "hale_contacts", HALE,
+    "Captain Rourke is at {station:rourke}. Auditor Voss is at {station:voss}, "
+    "in Guild space, so mind your manners. And Kestrel keeps to "
+    "{station:kestrel}, in Pirate Territory. Dock, then press the Talk key to "
+    "speak to whoever is waiting.",
+    choices=[Choice("Thank you.", next=None)],
+))
 
 _add(Node(
     "hale_act1_end", HALE,

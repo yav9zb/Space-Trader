@@ -352,3 +352,21 @@ def test_fleet_and_sector_stages_show_where_to_go_and_it_survives_a_reload():
 
     assert start_story_mission("act4_2", c.engine)
     assert c.mission("act4_2").destination_station_id == "Sector (%d, %d)" % SIGNAL_SECTOR
+
+
+def test_hale_can_say_where_the_three_contacts_are_until_act_one_is_done():
+    c = Campaign()
+    prologue(c)
+    session = c.play("hale_return", "Where can I find them again?")
+    text = session.current_text()
+    for npc in ("rourke", "voss", "kestrel"):
+        assert story_state.npc_stations[npc] in text
+
+    # not offered before the epilogue, nor once Act 1 is wrapped up
+    story_state.flags.pop("prologue_epilogue_seen")
+    offered = [x.text for x in DialogueSession(NODES, "hale_return", c.engine).visible_choices()]
+    assert "Where can I find them again?" not in offered
+    story_state.set_flag("prologue_epilogue_seen")
+    story_state.set_flag("act1_debriefed")
+    offered = [x.text for x in DialogueSession(NODES, "hale_return", c.engine).visible_choices()]
+    assert "Where can I find them again?" not in offered

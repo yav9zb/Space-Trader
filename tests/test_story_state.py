@@ -102,3 +102,33 @@ def test_story_package_text_is_ascii_only():
         text = path.read_text(encoding="utf-8")
         bad = sorted({ch for ch in text if ord(ch) > 127})
         assert not bad, f"{path.name} has non-ASCII characters: {bad}"
+
+
+def test_a_save_from_before_the_campaign_acts_continues_into_act_one():
+    """Beta 9 to 12 saves finished the prologue with the chapter still set to
+    'prologue' and Hale's old epilogue already seen. Nothing would ever have
+    moved them on, so loading does it."""
+    old = {
+        "flags": {"prologue_complete": True, "prologue_epilogue_seen": True},
+        "chapter": "prologue",
+        "completed_story_missions": ["prologue_1", "prologue_2", "prologue_3"],
+        "seen_nodes": ["hale_intro", "hale_epilogue"],
+    }
+    story = StoryState()
+    story.from_dict(old)
+    assert story.chapter == "act_1"
+
+
+def test_loading_leaves_a_save_still_in_the_prologue_alone():
+    story = StoryState()
+    story.from_dict({"flags": {"prologue_complete": True}, "chapter": "prologue"})
+    assert story.chapter == "prologue"
+
+    story.from_dict({"flags": {}, "chapter": "prologue"})
+    assert story.chapter == "prologue"
+
+
+def test_loading_never_moves_a_later_chapter_backwards():
+    story = StoryState()
+    story.from_dict({"flags": {"prologue_epilogue_seen": True}, "chapter": "act_3"})
+    assert story.chapter == "act_3"
