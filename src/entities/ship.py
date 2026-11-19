@@ -3,6 +3,8 @@ import math
 import pygame
 from pygame import Vector2
 
+from ..ui import gfx
+
 try:
     from ..trading.cargo import CargoHold
     from ..upgrades.ship_upgrades import ShipUpgrades, ShipStats
@@ -72,6 +74,8 @@ class Ship:
             scanner_range=150.0
         )
         self.current_hull = 100  # Current hull damage state
+        self._trail = []         # exhaust puffs: [world position, age in seconds]
+        self.damage_pulse = 0.0  # 0..1, jumps when hit and fades; drives screen shake and flash
         
         # Combat system
         self.weapon_system = WeaponSystem()
@@ -161,6 +165,9 @@ class Ship:
             cloaking_system.break_cloak_from_action(self.get_effective_stats(), "firing")
 
     def update(self, delta_time):
+        self._record_exhaust(delta_time)
+        self.damage_pulse = max(0.0, self.damage_pulse - delta_time * 2.5)
+
         # Apply acceleration in ships heading direction
         self.velocity += self.acceleration * delta_time
         
@@ -233,13 +240,19 @@ class Ship:
         # Get cloaking alpha
         ship_alpha = cloaking_system.get_ship_alpha(effective_stats)
 
-        # Draw thrust flame first, so it sits behind the hull
+        # Exhaust trail and flame sit behind the hull
+        self._draw_trail(screen, camera_offset)
         if self.thrusting:
             self._draw_flame(screen, screen_pos, ship_alpha)
+        else:
+            # Idle engines still glow faintly
+            glow_at = Vector2(0, self.size * 0.55).rotate(self.rotation) + screen_pos
+            gfx.draw_glow(screen, glow_at, self.size * 0.9, (40, 90, 200), 0.35)
 
         HULL_FILL = (230, 238, 255)
         HULL_OUTLINE = (140, 190, 255)
         COCKPIT = (90, 140, 220)
+        HULL_SHADOW = (168, 186, 224)
 
         # Draw the ship with appropriate alpha
         if ship_alpha < 255:
@@ -261,7 +274,12 @@ class Ship:
         else:
             # Normal drawing
             pygame.draw.polygon(screen, HULL_FILL, transformed_points)
+            # Shadowed starboard half gives the hull some depth
+            pygame.draw.polygon(screen, HULL_SHADOW,
+                                [transformed_points[0], transformed_points[3], transformed_points[2]])
             pygame.draw.polygon(screen, HULL_OUTLINE, transformed_points, 2)
+            # Bright edge along the port wing
+            pygame.draw.line(screen, (255, 255, 255), transformed_points[0], transformed_points[1], 1)
 
             # Cockpit accent, a little forward of center
             cockpit_local = Vector2(0, -self.size * 0.15).rotate(self.rotation)
@@ -275,30 +293,33 @@ class Ship:
         cloaking_system.draw_cloak_effects(screen, self.position, camera_offset)
 
     def _draw_flame(self, screen, screen_pos, ship_alpha):
-        """Draw a layered engine flame (dim outer + bright core), both solid
-        polygons - no per-frame full-screen alpha surface, which would be
-        wasteful allocated every frame while thrusting."""
+        """Engine flame: a flickering layered burn with a glow, coloured by
+        engine state."""
         if self.afterburner_active and not self.emergency_fuel_active:
-            outer_color, inner_color = (30, 90, 190), (170, 220, 255)
-            length_mult, width_mult = 1.9, 0.65
+            outer_color, inner_color, power = (40, 110, 230), (190, 230, 255), 1.9
         elif self.emergency_fuel_active:
-            outer_color, inner_color = (150, 25, 25), (255, 140, 120)
-            length_mult, width_mult = 1.0, 0.4
+            outer_color, inner_color, power = (170, 30, 30), (255, 150, 120), 0.9
         else:
-            outer_color, inner_color = (200, 90, 15), (255, 220, 140)
-            length_mult, width_mult = 1.25, 0.5
+            outer_color, inner_color, power = (230, 100, 20), (255, 230, 160), 1.25
+        gfx.draw_engine_flame(screen, screen_pos, self.rotation, self.size, outer_color, inner_color,
+                              power=power, seed=self.position.x * 0.001)
 
-        def flame_polygon(length_scale, width_scale):
-            local_points = [
-                Vector2(0, self.size * 0.5),
-                Vector2(-self.size * width_scale, self.size * (0.5 + length_scale)),
-                Vector2(0, self.size * (0.5 + length_scale * 1.3)),
-                Vector2(self.size * width_scale, self.size * (0.5 + length_scale)),
-            ]
-            return [point.rotate(self.rotation) + screen_pos for point in local_points]
+    def _record_exhaust(self, delta_time):
+        """Leave a short fading trail while thrusting."""
+        for puff in self._trail:
+            puff[1] += delta_time
+        self._trail = [puff for puff in self._trail if puff[1] < 0.55][-24:]
+        if self.thrusting:
+            stern = self.position - self.heading * self.size * 0.8
+            self._trail.append([Vector2(stern), 0.0])
 
-        pygame.draw.polygon(screen, outer_color, flame_polygon(length_mult, width_mult))
-        pygame.draw.polygon(screen, inner_color, flame_polygon(length_mult * 0.55, width_mult * 0.5))
+    def _draw_trail(self, screen, camera_offset):
+        for position, age in self._trail:
+            fade = 1.0 - age / 0.55
+            if fade <= 0:
+                continue
+            at = position - camera_offset
+            gfx.draw_glow(screen, at, 3 + int(5 * fade), (200, 110, 40), 0.5 * fade)
 
     def check_collision_detailed(self, other_object):
         """Enhanced collision detection with visual debugging"""
@@ -441,6 +462,8 @@ class Ship:
         max_hull = effective_stats.get_effective_hull_points()
         hull_before = self.current_hull
         self.current_hull = max(0, self.current_hull - actual_damage)
+        if actual_damage > 0:
+            self.damage_pulse = min(1.0, max(self.damage_pulse, 0.3 + actual_damage / 40.0))
 
         # Play a low-hull alert once when crossing below 25% integrity
         if max_hull > 0:

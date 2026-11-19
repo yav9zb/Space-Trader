@@ -6,6 +6,7 @@ import pygame
 from pygame import Vector2
 
 from ..story.story_state import story_state
+from ..ui import gfx
 
 
 class TraderState(Enum):
@@ -143,5 +144,10 @@ class TraderShip:
             rotated_point = point.rotate(self.rotation)
             transformed_points.append((rotated_point + screen_pos))
 
+        if self.velocity.length() > 30:
+            gfx.draw_engine_flame(screen, screen_pos, self.rotation, self.size * 0.9,
+                                  (60, 120, 200), (200, 230, 255),
+                                  power=min(1.1, self.velocity.length() / 250.0 + 0.3),
+                                  seed=self.position.y * 0.002)
         pygame.draw.polygon(screen, self.color, transformed_points)
-        pygame.draw.polygon(screen, self.outline_color, transformed_points, 1)
+        pygame.draw.polygon(screen, gfx.lighten(self.color, 0.4), transformed_points, 1)

@@ -4,6 +4,8 @@ from pygame import Vector2
 import random
 from enum import Enum
 
+from ..ui import gfx
+
 
 
 class PlanetType(Enum):
@@ -144,6 +146,9 @@ class Planet:
         """Draw the planet with its features"""
         screen_pos = self.position - camera_offset
 
+        # Atmosphere glow sits behind the body
+        self._draw_atmosphere(screen, screen_pos)
+
         # Gas giants with rings: draw the ring first so the far side appears
         # to pass behind the planet body
         if self.planet_type == PlanetType.GAS_GIANT and self.has_rings:
@@ -171,8 +176,8 @@ class Planet:
         if self.planet_type == PlanetType.GAS_GIANT and self.has_rings:
             self._draw_rings(screen, screen_pos, front_only=True)
 
-        # Draw atmosphere effect
-        self._draw_atmosphere(screen, screen_pos)
+        # Light from the upper left, darker toward the lower right
+        gfx.draw_shaded_sphere_overlay(screen, screen_pos, self.size)
 
     def _draw_terrestrial_features(self, screen, pos):
         """Draw features for terrestrial planets"""
@@ -284,10 +289,7 @@ class Planet:
                 pygame.draw.circle(screen, (180, 140, 90), (int(x), int(y)), radius)
 
     def _draw_atmosphere(self, screen, pos):
-        """Draw atmospheric glow effect"""
-        # Create a slightly larger, semi-transparent circle for atmosphere
-        atmosphere_surf = pygame.Surface((self.size * 2 + 10, self.size * 2 + 10), pygame.SRCALPHA)
-        pygame.draw.circle(atmosphere_surf, (*self.color, 30),
-                         (self.size + 5, self.size + 5), self.size + 5)
-        screen.blit(atmosphere_surf,
-                   (pos.x - self.size - 5, pos.y - self.size - 5))
+        """Soft additive glow around the planet, tinted by its own colour.
+        Cached, so it costs one blit rather than a new surface per frame."""
+        tint = gfx.lighten(self.color, 0.25)
+        gfx.draw_glow(screen, pos, self.size * 1.45, tint, 0.55)

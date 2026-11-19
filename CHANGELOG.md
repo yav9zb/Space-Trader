@@ -5,6 +5,9 @@
 ### Fixed
 - **Dying could permanently block the story.** Respawning cleared every active mission, including story missions, without telling the story system. The contact then never offered that mission again and its report option never appeared. Active story missions now survive a respawn (credits, upgrades, cargo and ordinary missions are still reset), and loading a save already stuck this way repairs it.
 
+### Changed
+- **Visual polish.** Planets are shaded spheres with a soft atmosphere glow. Each of the five station types has its own silhouette (a wheel hub for Trading Posts, an armoured fortress for Military Bases, a drill-armed core for Mining Stations, a ringed sphere with a dish for Research Stations, a gantry for Shipyards), with halos and blinking lights. Ships have a flickering engine flame with a glow, hull shading and a short exhaust trail. Bandits and patrols have layered armour plating and engine flames, and a boss has a pulsing red aura. The starfield has three depth layers, tinted stars and a twinkle. Explosions are glowing flashes with a shockwave ring and sparks. Taking a hit shakes the screen briefly and flashes the edges red.
+
 ### Added
 - **Objective pointer.** A small gold arrow circles your ship and points toward the current mission objective, with its name and distance. Story missions are pointed at first. It disappears when you are within about 450 units of the target.
 - **Objectives on the large map.** Mission destinations are circled on the map, and ones beyond the edge get an arrow with their name and distance.

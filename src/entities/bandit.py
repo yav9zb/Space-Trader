@@ -4,6 +4,8 @@ import pygame
 import math
 import random
 from pygame import Vector2
+
+from ..ui import gfx
 from typing import Optional, List
 from enum import Enum
 
@@ -439,8 +441,28 @@ class BanditShip:
         else:
             color = self.color
         
-        outline_color = (80, 20, 20) if self.state == BanditState.DISABLED else (255, 210, 130)
+        disabled = self.state == BanditState.DISABLED
+        outline_color = (80, 20, 20) if disabled else (255, 210, 130)
+
+        if not disabled:
+            # Menacing glow, strongest on a boss, and an engine burn when moving
+            boss = self.bandit_type == BanditType.BOSS
+            pulse = gfx.flicker(self.position.x * 0.003, speed=0.25, low=0.5)
+            gfx.draw_glow(screen, screen_pos, self.base_size * (3.2 if boss else 2.0),
+                          (200, 40, 30), (0.45 if boss else 0.25) * (pulse if boss else 1.0))
+            speed = self.velocity.length()
+            if speed > 40:
+                gfx.draw_engine_flame(screen, screen_pos, self.rotation, self.base_size * 0.9,
+                                      (200, 50, 20), (255, 200, 120),
+                                      power=min(1.3, speed / 300.0 + 0.4),
+                                      seed=self.position.y * 0.002)
+
         pygame.draw.polygon(screen, color, transformed_points)
+        if not disabled:
+            # Layered armour plate: the same silhouette, smaller and darker
+            plate = [screen_pos + (Vector2(p) - screen_pos) * 0.55 for p in transformed_points]
+            pygame.draw.polygon(screen, gfx.darken(color, 0.45), plate)
+            pygame.draw.polygon(screen, gfx.lighten(color, 0.2), plate, 1)
         pygame.draw.polygon(screen, outline_color, transformed_points, 2)
         
         # Draw hull bar above ship

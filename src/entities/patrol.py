@@ -10,6 +10,7 @@ except ImportError:
     from combat.weapons import WeaponSystem, create_weapon
 
 from ..factions import is_hostile
+from ..ui import gfx
 
 PATROL_COLOR = (120, 190, 255)
 PATROL_OUTLINE = (235, 245, 255)
@@ -182,7 +183,15 @@ class PatrolShip:
     def draw(self, screen: pygame.Surface, camera_offset: Vector2):
         screen_pos = self.position - camera_offset
         points = [(point.rotate(self.rotation) + screen_pos) for point in self.points]
+        gfx.draw_glow(screen, screen_pos, self.size * 2.0, PATROL_COLOR, 0.3)
+        if self.velocity.length() > 40:
+            gfx.draw_engine_flame(screen, screen_pos, self.rotation, self.size * 0.9,
+                                  (40, 110, 230), (190, 230, 255),
+                                  power=min(1.3, self.velocity.length() / 300.0 + 0.4),
+                                  seed=self.position.y * 0.002)
         pygame.draw.polygon(screen, PATROL_COLOR, points)
+        plate = [screen_pos + (p - screen_pos) * 0.55 for p in points]
+        pygame.draw.polygon(screen, gfx.darken(PATROL_COLOR, 0.4), plate)
         pygame.draw.polygon(screen, PATROL_OUTLINE, points, 2)
 
         if self.current_hull < self.max_hull:

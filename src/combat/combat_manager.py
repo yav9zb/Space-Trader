@@ -4,6 +4,8 @@ import math
 import pygame
 import random
 from pygame import Vector2
+
+from ..ui import gfx
 from typing import List, Tuple, Optional
 
 try:
@@ -415,7 +417,12 @@ class CombatManager:
             "max_radius": radius,
             "age": 0.0,
             "duration": 1.0,  # Explosion lasts 1 second
-            "color": (255, 150, 0)
+            "color": (255, 150, 0),
+            # Sparks fly out and fade: [position, velocity, life 0..1]
+            "sparks": [[Vector2(position),
+                        Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
+                        * random.uniform(0.6, 2.2) * max(40.0, radius * 3),
+                        1.0] for _ in range(14)],
         }
         self.explosions.append(explosion)
 
@@ -453,6 +460,11 @@ class CombatManager:
         for explosion in self.explosions[:]:
             explosion["age"] += delta_time
             
+            for spark in explosion.get("sparks", ()):
+                spark[0] += spark[1] * delta_time
+                spark[1] *= 0.94
+                spark[2] = max(0.0, spark[2] - delta_time * 1.4)
+
             # Expand explosion
             progress = explosion["age"] / explosion["duration"]
             if progress < 0.5:
@@ -508,32 +520,32 @@ class CombatManager:
     
     def draw_combat_effects(self, screen: pygame.Surface, camera_offset: Vector2):
         """Draw combat effects like explosions."""
-        # Draw explosions
+        # Draw explosions: hot additive glows, a shockwave ring and sparks
         for explosion in self.explosions:
             screen_pos = explosion["position"] - camera_offset
             radius = int(explosion["radius"])
-            
+            progress = min(1.0, explosion["age"] / explosion["duration"])
+            fade = 1.0 - progress
+            max_radius = explosion["max_radius"]
+
             if radius > 0:
-                # Draw explosion with fading effect
-                age_factor = explosion["age"] / explosion["duration"]
-                alpha = int(255 * (1.0 - age_factor))
+                gfx.draw_glow(screen, screen_pos, radius * 1.7, explosion["color"], 0.9 * fade + 0.1)
+                gfx.draw_glow(screen, screen_pos, radius * 0.9, (255, 245, 210), fade)
+                core = int(radius * max(0.0, 0.5 - progress * 0.5))
+                if core > 1:
+                    pygame.draw.circle(screen, (255, 255, 230), (int(screen_pos.x), int(screen_pos.y)), core)
 
-                # Layered flash: dim outer ring (base color) + bright white-hot
-                # core that shrinks faster than the outer ring, for more of an
-                # energetic "flash" read than a single flat-color circle
-                explosion_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-                outer_color = (*explosion["color"], alpha)
-                pygame.draw.circle(explosion_surface, outer_color, (radius, radius), radius)
+            ring_radius = int(max_radius * (0.5 + 1.6 * progress))
+            if ring_radius > 2 and fade > 0.05:
+                ring = tuple(int(c * fade) for c in (255, 170, 80))
+                pygame.draw.circle(screen, ring, (int(screen_pos.x), int(screen_pos.y)), ring_radius, 2)
 
-                core_radius = int(radius * max(0, 0.6 - age_factor * 0.6))
-                if core_radius > 0:
-                    core_color = (255, 255, 220, alpha)
-                    pygame.draw.circle(explosion_surface, core_color, (radius, radius), core_radius)
+            for position, _, life in explosion.get("sparks", ()):
+                if life > 0:
+                    at = position - camera_offset
+                    spark_color = tuple(int(c * life) for c in (255, 210, 120))
+                    pygame.draw.circle(screen, spark_color, (int(at.x), int(at.y)), 2 if life > 0.5 else 1)
 
-                # Blit to screen
-                screen.blit(explosion_surface,
-                          (screen_pos.x - radius, screen_pos.y - radius))
-        
         # Draw respawn effects
         respawn_system.draw_effects(screen, camera_offset)
     

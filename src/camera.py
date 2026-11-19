@@ -1,4 +1,6 @@
 # src/camera.py
+import random
+
 from pygame import Vector2
 from .settings import game_settings, CameraMode
 
@@ -10,9 +12,11 @@ class Camera:
         self.height = height
         self.universe_width = universe_width
         self.universe_height = universe_height
+        self.shake_amount = 0.0   # 0..1; follows the target's damage pulse
         
     def follow(self, target, delta_time=0.016):  
         """Follow target based on current camera mode"""
+        self.shake_amount = float(getattr(target, "damage_pulse", 0.0))
         camera_mode = game_settings.camera_mode
         
         if camera_mode == CameraMode.CENTERED:
@@ -88,7 +92,10 @@ class Camera:
                 self.position += direction * move_amount
     
     def get_offset(self):
-        """Get camera offset for rendering"""
+        """Get camera offset for rendering, jolted a little right after the
+        player takes a hit."""
+        if self.shake_amount > 0.02:
+            return self.position + Vector2(random.uniform(-1, 1), random.uniform(-1, 1)) * self.shake_amount * 7
         return self.position
     
     def screen_to_world(self, screen_pos):

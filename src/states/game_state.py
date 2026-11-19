@@ -1359,6 +1359,10 @@ class PlayingState(State):
                              self.game.universe.stations,
                              self.game.universe.planets)
 
+        # Red edge flash right after the player is hit
+        from ..ui import gfx as _gfx
+        _gfx.draw_edge_flash(screen, (255, 40, 30), getattr(self.game.ship, 'damage_pulse', 0.0) * 0.9)
+
         # Draw enhanced HUD (on top of everything)
         self.enhanced_hud.render(screen, self.game)
 

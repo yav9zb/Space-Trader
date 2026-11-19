@@ -5,6 +5,8 @@ from enum import Enum
 import pygame
 from pygame import Vector2
 
+from ..ui import gfx
+
 # Import StationMarket - handle circular import
 StationMarket = None
 
@@ -149,48 +151,149 @@ class Station:
             ]
         
     def draw(self, screen, camera_offset):
-        # Calculate screen position by subtracting camera offset
         screen_pos = self.position - camera_offset
-
-        # Rotate shape points
         self.rotation += self.rotation_speed
-        rotated_points = []
-        for point in self.shape_points:
-            rotated = point.rotate(self.rotation)
-            final_pos = rotated + screen_pos
-            rotated_points.append(final_pos)
 
-        # Draw main structure - the type-specific silhouette (octagon/
-        # triangle/rectangle from _generate_shape) was previously drawn
-        # here and then immediately painted over by a same-size filled
-        # circle further down, so every station rendered as a plain
-        # circle regardless of type. Removed that circle; the polygon
-        # (with a lighter tint of its own color as the outline, instead
-        # of flat white) is the station now.
-        outline_color = tuple(min(255, c + 90) for c in self.color)
-        pygame.draw.polygon(screen, self.color, rotated_points)
-        pygame.draw.polygon(screen, outline_color, rotated_points, 2)
+        # Soft halo in the station's own colour, then the type's own structure
+        gfx.draw_glow(screen, screen_pos, self.size * 2.1, self.color, 0.30)
+        art = {
+            StationType.TRADING: self._art_trading,
+            StationType.MILITARY: self._art_military,
+            StationType.MINING: self._art_mining,
+            StationType.RESEARCH: self._art_research,
+            StationType.SHIPYARD: self._art_shipyard,
+        }.get(self.station_type, self._art_trading)
+        art(screen, screen_pos)
 
-        # Small powered core light at the center
-        pygame.draw.circle(screen, outline_color, (int(screen_pos.x), int(screen_pos.y)), max(2, self.size // 8))
-
-        # Draw docking port indicator
+        # Docking port indicator
         dock_pos = Vector2(0, -self.size - 10).rotate(self.rotation) + screen_pos
         pygame.draw.circle(screen, (0, 255, 0), (int(dock_pos.x), int(dock_pos.y)), 5)
+        gfx.draw_glow(screen, dock_pos, 12, (0, 200, 0), 0.6)
 
-        # Draw station type indicator
-        if self.station_type == StationType.MILITARY:
-            self._draw_military_features(screen, screen_pos)
-        elif self.station_type == StationType.MINING:
-            self._draw_mining_features(screen, screen_pos)
-        # Add more specific features for other types...
-
-        # Draw docking zone (slightly larger than station)
+        # Docking zone (slightly larger than the station)
         pygame.draw.circle(screen, (100, 100, 100),
                            (int(screen_pos.x), int(screen_pos.y)),
                            self.size + 10,
                            1)
-        
+
+    # Station art ---------------------------------------------------------------
+    # Each type is built from a few shapes in unit coordinates (1.0 = the
+    # station's size), rotated with the station.
+
+    def _p(self, pos, x, y):
+        return Vector2(x * self.size, y * self.size).rotate(self.rotation) + pos
+
+    def _poly(self, screen, pos, points, fill, outline=None, width=2):
+        pts = [self._p(pos, x, y) for x, y in points]
+        pygame.draw.polygon(screen, fill, pts)
+        if outline:
+            pygame.draw.polygon(screen, outline, pts, width)
+
+    def _circle(self, screen, pos, x, y, radius, fill, outline=None, width=1):
+        c = self._p(pos, x, y)
+        r = max(1, int(radius * self.size))
+        pygame.draw.circle(screen, fill, (int(c.x), int(c.y)), r)
+        if outline:
+            pygame.draw.circle(screen, outline, (int(c.x), int(c.y)), r, width)
+
+    def _line(self, screen, pos, a, b, color, width=2):
+        pygame.draw.line(screen, color, self._p(pos, *a), self._p(pos, *b), width)
+
+    def _blink(self, screen, pos, x, y, color, seed=0.0, size=0.07):
+        """A small warning light that pulses."""
+        c = self._p(pos, x, y)
+        level = gfx.flicker(seed + self.position.x * 0.01, speed=0.18, low=0.15)
+        lit = tuple(int(v * level) for v in color)
+        pygame.draw.circle(screen, lit, (int(c.x), int(c.y)), max(2, int(size * self.size)))
+        gfx.draw_glow(screen, c, max(6, int(size * self.size * 3.2)), color, 0.6 * level)
+
+    def _art_trading(self, screen, pos):
+        """A hub ringed by a wheel of cargo pods."""
+        base = self.color
+        edge = gfx.lighten(base, 0.45)
+        ring_r = 0.82
+        pygame.draw.circle(screen, gfx.darken(base, 0.35), (int(pos.x), int(pos.y)),
+                           int(ring_r * self.size), max(3, int(0.12 * self.size)))
+        pygame.draw.circle(screen, edge, (int(pos.x), int(pos.y)), int(ring_r * self.size), 1)
+        for k in range(4):
+            a = math.radians(90 * k)
+            outer = (math.cos(a) * ring_r, math.sin(a) * ring_r)
+            self._line(screen, pos, (math.cos(a) * 0.3, math.sin(a) * 0.3), outer,
+                       gfx.darken(base, 0.2), max(2, int(0.08 * self.size)))
+            self._circle(screen, pos, outer[0], outer[1], 0.17, gfx.lighten(base, 0.12), edge)
+        octagon = [(math.cos(math.radians(45 * i + 22.5)) * 0.42,
+                    math.sin(math.radians(45 * i + 22.5)) * 0.42) for i in range(8)]
+        self._poly(screen, pos, octagon, base, edge)
+        self._circle(screen, pos, 0, 0, 0.12, gfx.lighten(base, 0.6))
+        for k in range(4):
+            a = math.radians(90 * k + 45)
+            self._blink(screen, pos, math.cos(a) * 0.62, math.sin(a) * 0.62, (120, 220, 255), seed=k)
+
+    def _art_military(self, screen, pos):
+        """An armoured, angular fortress with gun turrets."""
+        base = self.color
+        edge = gfx.lighten(base, 0.5)
+        spikes = [(0, -1.0), (0.28, -0.5), (0.5, -0.28), (1.0, 0), (0.5, 0.28), (0.28, 0.5),
+                  (0, 1.0), (-0.28, 0.5), (-0.5, 0.28), (-1.0, 0), (-0.5, -0.28), (-0.28, -0.5)]
+        self._poly(screen, pos, spikes, gfx.darken(base, 0.3), edge)
+        self._poly(screen, pos, [(0, -0.55), (0.55, 0), (0, 0.55), (-0.55, 0)], base, edge)
+        self._poly(screen, pos, [(0, -0.28), (0.28, 0), (0, 0.28), (-0.28, 0)], gfx.darken(base, 0.55),
+                   gfx.lighten(base, 0.2))
+        for x, y in ((0.72, 0), (-0.72, 0), (0, 0.72), (0, -0.72)):
+            self._circle(screen, pos, x, y, 0.09, gfx.darken(base, 0.7), edge)
+            self._line(screen, pos, (x, y), (x * 1.22, y * 1.22), edge, 2)
+        self._blink(screen, pos, 0, 0, (255, 70, 60), size=0.1)
+
+    def _art_mining(self, screen, pos):
+        """A rugged core with two drill arms and ore pods."""
+        base = self.color
+        edge = gfx.lighten(base, 0.4)
+        for side in (-1, 1):
+            self._poly(screen, pos, [(side * 0.45, -0.14), (side * 0.92, -0.14), (side * 0.92, 0.14),
+                                     (side * 0.45, 0.14)], gfx.darken(base, 0.3), edge)
+            self._poly(screen, pos, [(side * 0.92, -0.2), (side * 1.2, 0), (side * 0.92, 0.2)],
+                       (200, 170, 70), (255, 230, 130))
+        hexagon = [(math.cos(math.radians(60 * i)) * 0.55, math.sin(math.radians(60 * i)) * 0.55)
+                   for i in range(6)]
+        self._poly(screen, pos, hexagon, base, edge)
+        for x, y in ((0, -0.8), (0, 0.8), (0.3, -0.72), (-0.3, 0.72)):
+            self._circle(screen, pos, x, y, 0.13, gfx.darken(base, 0.45), edge)
+        self._circle(screen, pos, 0, 0, 0.16, gfx.lighten(base, 0.55))
+        self._blink(screen, pos, 0.62, 0.34, (255, 190, 60), seed=1)
+        self._blink(screen, pos, -0.62, -0.34, (255, 190, 60), seed=2)
+
+    def _art_research(self, screen, pos):
+        """A bright sphere inside a tilted ring, with a dish and antenna."""
+        base = self.color
+        edge = gfx.lighten(base, 0.5)
+        ring = [(math.cos(math.radians(a)) * 1.0, math.sin(math.radians(a)) * 0.36) for a in range(0, 360, 20)]
+        pts = [self._p(pos, x, y) for x, y in ring]
+        pygame.draw.polygon(screen, gfx.darken(base, 0.4), pts, max(3, int(0.1 * self.size)))
+        pygame.draw.polygon(screen, edge, pts, 1)
+        self._circle(screen, pos, 0, 0, 0.52, base, edge, 2)
+        self._circle(screen, pos, -0.14, -0.14, 0.18, gfx.lighten(base, 0.7))
+        self._line(screen, pos, (0, -0.5), (0, -1.0), edge, 2)
+        self._line(screen, pos, (-0.22, -0.82), (0.22, -0.82), edge, 2)
+        self._line(screen, pos, (0, 0.5), (0, 0.9), gfx.darken(base, 0.1), 2)
+        self._blink(screen, pos, 0, -1.0, (150, 255, 255), size=0.08)
+        self._blink(screen, pos, 1.0, 0, (255, 255, 255), seed=3, size=0.06)
+
+    def _art_shipyard(self, screen, pos):
+        """A long gantry with docking arms and lit bays."""
+        base = self.color
+        edge = gfx.lighten(base, 0.45)
+        self._poly(screen, pos, [(-1.0, -0.17), (1.0, -0.17), (1.0, 0.17), (-1.0, 0.17)],
+                   gfx.darken(base, 0.3), edge)
+        self._poly(screen, pos, [(-0.3, -0.75), (0.3, -0.75), (0.3, 0.75), (-0.3, 0.75)], base, edge)
+        for k in range(-3, 4):
+            self._line(screen, pos, (-0.3, k * 0.2), (0.3, k * 0.2), gfx.darken(base, 0.35), 1)
+        for x in (-0.85, 0.85):
+            self._poly(screen, pos, [(x - 0.1, -0.3), (x + 0.1, -0.3), (x + 0.1, 0.3), (x - 0.1, 0.3)],
+                       gfx.darken(base, 0.45), edge)
+        for x, y in ((-0.85, -0.25), (-0.85, 0.25), (0.85, -0.25), (0.85, 0.25)):
+            self._blink(screen, pos, x, y, (255, 240, 150), seed=x + y, size=0.06)
+        self._circle(screen, pos, 0, 0, 0.14, gfx.lighten(base, 0.55))
+
     def _draw_military_features(self, screen, pos):
         """Draw military-specific features"""
         # Radar visualization removed for cleaner visuals
