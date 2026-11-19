@@ -1,5 +1,15 @@
 # Changelog
 
+## Beta 11
+
+### Added
+- **Smuggling.** Military goods (laser cells, plasma cartridges, missiles, railgun slugs) are contraband in Trade Guild space. Docking at a Guild station while carrying any risks an inspection: the cargo is seized, you are fined half its value, your Guild standing drops, and a mission carrying it fails. The risk is 60%; it halves once the Guild favors you (standing 25+) and disappears at 60+. Pirate stations pay a 60% premium for the same goods.
+- **Smuggling Run missions** (Mining Stations and Shipyards): deliver contraband, usually to a Pirate station, for about double the usual pay. Avoid Guild stations on the way.
+- **Market events.** Every few minutes near you, a pirate raid raises prices in a region, a shortage spikes one commodity, or the Trade Guild embargoes one (it disappears from that region's markets). Each lasts ten minutes and appears as "Market news" on screen and in the Logbook's Factions page.
+
+### Fixed
+- **Markets never recovered.** Station stock and demand were only ever depleted by trading and never restored, and prices never moved. Markets now refresh every 30 seconds of play.
+
 ## Beta 10
 
 ### Added

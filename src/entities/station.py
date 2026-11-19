@@ -67,6 +67,7 @@ class Station:
         
         market_type = market_type_mapping.get(self.station_type, MarketStationType.TRADING)
         self.market = StationMarket(market_type, self.name)
+        self.market.station = self
 
     def _get_size_for_type(self):
         """Get appropriate size range based on station type"""

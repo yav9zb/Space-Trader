@@ -158,6 +158,7 @@ class SaveSystem:
             "universe": self._save_universe_data(game_engine),
             "missions": self._save_mission_data(game_engine),
             "story": self._save_story_data(game_engine),
+            "economy": self._save_economy_data(),
             "game_state": self._save_game_state_data(game_engine)
         }
         
@@ -237,6 +238,11 @@ class SaveSystem:
             return game_engine.story_state.to_dict()
         return {}
 
+    def _save_economy_data(self) -> Dict[str, Any]:
+        """Save active market events."""
+        from .economy_events import economy_events
+        return economy_events.to_dict()
+
     def _save_game_state_data(self, game_engine) -> Dict[str, Any]:
         """Save general game state."""
         return {
@@ -259,6 +265,11 @@ class SaveSystem:
         # Load story state (missing in saves from before the campaign existed)
         self._load_story_data(save_data.get("story", {}), game_engine)
         
+        # Market events (absent in older saves, which start with none)
+        from .economy_events import economy_events
+        economy_events.world_seed = getattr(game_engine, "world_seed", None)
+        economy_events.from_dict(save_data.get("economy", {}))
+
         # Load game state
         self._load_game_state_data(save_data.get("game_state", {}), game_engine)
 
@@ -338,6 +349,7 @@ class SaveSystem:
             # Restore market state
             market_data = station_data.get("market", {})
             station.market = StationMarket(station_type, station.name)
+            station.market.station = station
             self._load_market_data(market_data, station.market)
             
             game_engine.universe.stations.append(station)

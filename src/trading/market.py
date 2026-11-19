@@ -32,6 +32,7 @@ class StationMarket:
     def __init__(self, station_type: StationType, station_name: str = "Unknown Station"):
         self.station_type = station_type
         self.station_name = station_name
+        self.station = None     # set by the owning Station, so economy events can find its region
         self.prices: Dict[str, MarketPrice] = {}
         self._initialize_market()
     
@@ -149,21 +150,36 @@ class StationMarket:
         
         return buy_price, sell_price, stock, demand
     
+    def _event_effect(self, commodity_id: str):
+        """(price multiplier, embargoed) from economy events and black-market
+        premiums at this station."""
+        if self.station is None:
+            return 1.0, False
+        try:
+            from ..economy_events import economy_events
+        except ImportError:
+            from economy_events import economy_events
+        return economy_events.effect_for(self.station, commodity_id)
+
     def get_buy_price(self, commodity_id: str) -> Optional[int]:
         """Get the price for buying a commodity from the station."""
         if commodity_id not in self.prices:
             return None
-        return self.prices[commodity_id].buy_price
+        multiplier, _ = self._event_effect(commodity_id)
+        return max(1, int(round(self.prices[commodity_id].buy_price * multiplier)))
     
     def get_sell_price(self, commodity_id: str) -> Optional[int]:
         """Get the price for selling a commodity to the station."""
         if commodity_id not in self.prices:
             return None
-        return self.prices[commodity_id].sell_price
+        multiplier, _ = self._event_effect(commodity_id)
+        return max(1, int(round(self.prices[commodity_id].sell_price * multiplier)))
     
     def can_buy_from_station(self, commodity_id: str, quantity: int = 1) -> bool:
         """Check if player can buy commodity from station."""
         if commodity_id not in self.prices:
+            return False
+        if self._event_effect(commodity_id)[1]:
             return False
         market_price = self.prices[commodity_id]
         return market_price.available and market_price.stock >= quantity
@@ -171,6 +187,8 @@ class StationMarket:
     def can_sell_to_station(self, commodity_id: str, quantity: int = 1) -> bool:
         """Check if player can sell commodity to station."""
         if commodity_id not in self.prices:
+            return False
+        if self._event_effect(commodity_id)[1]:
             return False
         market_price = self.prices[commodity_id]
         return market_price.available and market_price.demand >= quantity
@@ -199,7 +217,8 @@ class StationMarket:
         """Get list of commodities available for purchase."""
         available = []
         for commodity_id, market_price in self.prices.items():
-            if market_price.available and market_price.stock > 0:
+            if (market_price.available and market_price.stock > 0
+                    and not self._event_effect(commodity_id)[1]):
                 try:
                     commodity = commodity_registry.get_commodity(commodity_id)
                     available.append(commodity)

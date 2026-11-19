@@ -8,6 +8,7 @@ from typing import Dict, List, Tuple
 from ..factions import (
     get_controlling_faction, FACTION_TRADE_GUILD, FACTION_INDEPENDENT, FACTION_PIRATE,
 )
+from ..economy_events import economy_events
 from .director import find_station_by_name
 from .chapters import STORY_MISSIONS
 from .lore import CHAPTERS, LEDGER_ENTRIES, FACTION_BLURBS, PROLOGUE_DONE_SUMMARY
@@ -82,6 +83,16 @@ def _factions_page(game) -> List[Line]:
         lines.append(("heading", f"{faction}: {standing.get(faction, 0):+d}"))
         lines.append(("dim", FACTION_BLURBS[faction]))
         lines.append(("gap", ""))
+
+    lines.append(("heading", "Market news"))
+    now = getattr(game, "play_time", 0)
+    if economy_events.events:
+        for event in economy_events.events:
+            minutes = max(1, int((event.ends_at - now) // 60))
+            lines.append(("body", event.headline))
+            lines.append(("dim", f"About {minutes} more minutes"))
+    else:
+        lines.append(("dim", "Nothing unusual."))
     return lines
 
 

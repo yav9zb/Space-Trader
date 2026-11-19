@@ -30,7 +30,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Market Dynamics**: Station-specific pricing and supply/demand mechanics
 
 #### Mission System
-- **7 Mission Types**: Delivery, Trading Contracts, Supply Runs, Emergency Delivery, Exploration, Escort (guard a trader past a pirate ambush), and Bounty (hunt a named pirate captain)
+- **8 Mission Types**: Delivery, Trading Contracts, Supply Runs, Emergency Delivery, Exploration, Escort (guard a trader past a pirate ambush), Bounty (hunt a named pirate captain), and Smuggling Run (move contraband without being inspected)
 - **Mission Generation**: Dynamic mission creation based on station types and universe state
 - **Mission Tracking**: Progress tracking, time limits, and completion rewards
 - **Mission Cargo**: Special tracking for mission-related commodities
@@ -67,6 +67,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Factions**: Space is divided into Trade Guild, Independent, and Pirate Territory sectors, shown in the Navigation HUD, with different trader and bandit density. The starting area is always safe.
 - **Reputation and Ranks**: Overall reputation (Rookie to Legend) gates the top tier of ship upgrades; separate standing with each faction gates some missions and adjusts upgrade prices.
 - **Neutral Traders**: Unarmed ships fly between stations. Attacking one plunders credits but costs reputation.
+- **Patrols, Hostility and Contraband**: Guild patrols hunt bandits and can be called as backup at Captain rank; at -60 standing a faction's patrols attack you and its stations bar you. Trade Guild stations inspect for contraband; pirate markets pay a premium for it. Market events (raids, shortages, embargoes) move prices regionally.
 - **Station Contacts**: Named characters wait at some stations; dock and press the Talk key to start a conversation. The Logbook (pause menu) tracks the story, contacts you have met, and faction standing. The prologue of a story campaign is playable: talk to Dock Master Hale to begin; more chapters are in progress.
 
 #### User Interface
@@ -186,6 +187,7 @@ Produces a standalone build in `dist/` (`Space Trader.app` on macOS, an exe + fo
 
 ### Story and Factions
 - **Factions** (`src/factions.py`): Deterministic faction control over the sector grid, plus price/spawn multipliers
+- **Economy Events** (`src/economy_events.py`) and **Smuggling** (`src/smuggling.py`): Timed regional market effects, and Guild cargo inspections
 - **Story State** (`src/story/story_state.py`): Saved campaign flags, chapter, contact placements, and event counts
 - **Dialogue** (`src/story/dialogue.py`, `src/story/dialogue_data.py`): Choice/requirement/effect engine and the authored conversations
 - **Story Missions** (`src/story/chapters.py`, `objectives.py`, `story_missions.py`): Authored missions as data (stages, waypoints, effects) run as normal missions

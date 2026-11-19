@@ -20,12 +20,16 @@ from .factions import (
     FACTION_BANDIT_SPAWN_MULTIPLIER,
 )
 
+MARKET_REFRESH_SECONDS = 30.0
+
+
 class Universe:
     def __init__(self, width=10000, height=10000, seed=None):
         self.width = width
         self.height = height
         self.sectors = {}  # Grid-based sector system
         self.sector_size = 1000  # Size of each sector
+        self._market_timer = 0.0
         self.generated_chunks = set()  # Track which chunks have been generated
         
         # World seed for deterministic generation
@@ -333,6 +337,14 @@ class Universe:
     
     def update(self, delta_time):
         """Update all dynamic objects in the universe"""
+        # Markets slowly recover stock and demand and drift in price; without
+        # this a station that has been bought out stays empty forever
+        self._market_timer += delta_time
+        if self._market_timer >= MARKET_REFRESH_SECONDS:
+            self._market_timer = 0.0
+            for station in self.stations:
+                station.market.refresh_market()
+
         # Update debris field manager (handles all debris physics)
         debris_field_manager.update(delta_time)
         

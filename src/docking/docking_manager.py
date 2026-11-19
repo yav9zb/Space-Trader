@@ -27,6 +27,10 @@ class DockingManager:
         self.refusal_check = None
         self.refusal_message = ""
 
+        # Optional callable(station), run once docking completes. Used for
+        # cargo inspections, again supplied by the engine.
+        self.inspection_hook = None
+
         # Auto-docking settings (can be moved to settings later)
         self.auto_dock_enabled = True
         self.require_confirmation = False
@@ -238,6 +242,9 @@ class DockingManager:
         from ..story.story_state import story_state
         story_state.record_event("docked", station=self.target_station.name)
         story_state.bump(f"docked_at:{self.target_station.name}")
+
+        if self.inspection_hook:
+            self.inspection_hook(self.target_station)
 
     def _initiate_undocking(self, ship):
         """Begin the undocking sequence."""

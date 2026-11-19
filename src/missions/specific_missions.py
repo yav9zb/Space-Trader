@@ -819,3 +819,31 @@ class BountyMission(Mission):
             self.complete()
             return True
         return False
+
+
+class SmugglingRunMission(DeliveryMission):
+    """A delivery of contraband (military goods) that pays about double. Trade
+    Guild inspectors seize contraband when you dock at a Guild station, which
+    fails the mission, so the run is about picking a route that avoids Guild
+    stations. Progress works exactly like a delivery.
+    """
+
+    def __init__(self, origin_station_id: str, destination_station_id: str,
+                 commodity_id: str, quantity: int, mission_id: str = None):
+        super().__init__(origin_station_id, destination_station_id, commodity_id, quantity, mission_id)
+
+        self.mission_type = MissionType.SMUGGLING
+        try:
+            commodity_name = commodity_registry.get_commodity(commodity_id).name
+        except KeyError:
+            commodity_name = commodity_id
+
+        self.title = f"Smuggling Run: {commodity_name}"
+        self.description = (
+            f"Move {quantity} units of {commodity_name} from {origin_station_id} to "
+            f"{destination_station_id} without drawing attention. Trade Guild inspectors "
+            f"seize contraband, fine you, and fail the job if you dock at a Guild "
+            f"station while carrying it. Cargo will be provided at pickup."
+        )
+        self.reward.credits = int(self.reward.credits * 2.2)
+        self.requirements.min_reputation = max(self.requirements.min_reputation, 10)

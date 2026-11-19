@@ -68,10 +68,15 @@ class GameEngine:
         
         # Store the generated seed for display/saving
         self.world_seed = self.universe.world_seed
+
+        from src.economy_events import economy_events
+        economy_events.world_seed = self.world_seed
+        economy_events.reset()
         
         # Initialize docking system
         self.docking_manager = DockingManager()
         self.docking_manager.refusal_check = self._docking_refusal
+        self.docking_manager.inspection_hook = self._inspect_cargo
 
         # Game objects
         self.ship = Ship(400, 300)
@@ -366,6 +371,14 @@ class GameEngine:
         faction = get_station_faction(station, self.world_seed)
         return docking_refusal(faction, self.mission_manager.faction_standing.get(faction, 0))
 
+    def _inspect_cargo(self, station):
+        """Guild inspection on docking, if the player carries contraband."""
+        from src.smuggling import inspect
+        from src.ui.notifications import notifications
+        result = inspect(self.ship, station, self)
+        if result:
+            notifications.push(result.message(), duration=7.0, color=(255, 120, 120))
+
     def start_dialogue(self, start_id: str) -> None:
         """Open a conversation at the given dialogue node."""
         self.pending_dialogue = start_id
@@ -485,6 +498,10 @@ class GameEngine:
         self.universe = Universe(seed=seed)
         self.universe.generate_universe()
         self.world_seed = self.universe.world_seed
+
+        from src.economy_events import economy_events
+        economy_events.world_seed = self.world_seed
+        economy_events.reset()
         
         # Reset ship position to first station
         if self.universe.stations:

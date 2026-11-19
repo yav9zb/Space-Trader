@@ -7,7 +7,7 @@ from .mission_types import Mission, MissionStatus, MissionType
 from .specific_missions import (
     DeliveryMission, TradingContractMission, SupplyRunMission,
     EmergencyDeliveryMission, ExplorationMission, EscortMission, BountyMission,
-    BOUNTY_FIRST_NAMES, BOUNTY_LAST_NAMES
+    SmugglingRunMission, BOUNTY_FIRST_NAMES, BOUNTY_LAST_NAMES
 )
 
 try:
@@ -70,10 +70,11 @@ class MissionManager:
                 MissionType.BOUNTY: 0.35
             },
             StationType.MINING: {
-                MissionType.DELIVERY: 0.35,
-                MissionType.SUPPLY_RUN: 0.35,
+                MissionType.DELIVERY: 0.3,
+                MissionType.SUPPLY_RUN: 0.3,
                 MissionType.TRADING_CONTRACT: 0.15,
-                MissionType.ESCORT: 0.15
+                MissionType.ESCORT: 0.15,
+                MissionType.SMUGGLING: 0.1
             },
             StationType.RESEARCH: {
                 MissionType.EXPLORATION: 0.4,
@@ -81,10 +82,11 @@ class MissionManager:
                 MissionType.SUPPLY_RUN: 0.3
             },
             StationType.SHIPYARD: {
-                MissionType.SUPPLY_RUN: 0.35,
-                MissionType.DELIVERY: 0.25,
-                MissionType.TRADING_CONTRACT: 0.25,
-                MissionType.BOUNTY: 0.15
+                MissionType.SUPPLY_RUN: 0.3,
+                MissionType.DELIVERY: 0.2,
+                MissionType.TRADING_CONTRACT: 0.2,
+                MissionType.BOUNTY: 0.15,
+                MissionType.SMUGGLING: 0.15
             }
         }
     
@@ -261,6 +263,8 @@ class MissionManager:
                 return self._generate_escort_mission(origin_station, stations)
             elif mission_type == MissionType.BOUNTY:
                 return self._generate_bounty_mission(origin_station)
+            elif mission_type == MissionType.SMUGGLING:
+                return self._generate_smuggling_mission(origin_station, stations)
         except Exception as e:
             logger.warning(f"Failed to generate {mission_type} mission: {e}")
             return None
@@ -283,6 +287,24 @@ class MissionManager:
             return None
         destination = random.choice(possible_destinations)
         return EscortMission(origin_station.name, destination.name)
+
+    def _generate_smuggling_mission(self, origin_station, stations) -> Optional[SmugglingRunMission]:
+        """Generate a contraband delivery, preferably to a Pirate station."""
+        from ..factions import get_station_faction, FACTION_PIRATE
+        from ..trading.commodity import CommodityCategory
+
+        others = [s for s in stations if s is not origin_station]
+        if not others:
+            return None
+        seed = self._world_seed
+        pirate = [s for s in others if seed is not None and get_station_faction(s, seed) == FACTION_PIRATE]
+        destination = random.choice(pirate or others)
+
+        contraband = [c for c in commodity_registry.get_all_commodities()
+                      if c.category == CommodityCategory.MILITARY]
+        commodity = random.choice(contraband)
+        return SmugglingRunMission(origin_station.name, destination.name, commodity.id,
+                                   random.randint(5, 12))
 
     def _generate_bounty_mission(self, origin_station) -> Optional[BountyMission]:
         """Generate a bounty on a named pirate captain, preferably in Pirate

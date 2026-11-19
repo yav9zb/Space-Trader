@@ -15,6 +15,7 @@ class MissionType(Enum):
     STORY = "Story"
     ESCORT = "Escort"
     BOUNTY = "Bounty"
+    SMUGGLING = "Smuggling"
 
 
 class MissionStatus(Enum):

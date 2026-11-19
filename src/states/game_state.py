@@ -1178,6 +1178,8 @@ class PlayingState(State):
         self.onboarding_hints.update(delta_time)
         from ..ui.notifications import notifications
         notifications.update(delta_time)
+        from ..economy_events import economy_events
+        economy_events.update(self.game)
 
         if self.game.docking_manager.is_docked():
             from ..story.director import get_contact_at
