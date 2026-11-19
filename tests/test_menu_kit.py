@@ -658,12 +658,25 @@ def board(engine):
     engine.create_new_universe(seed=4)
     manager.available_missions, manager.active_missions = [], []
     manager.visited_stations, manager.station_mission_seeds = set(), {}
+    engine.ship.cargo_hold.capacity = 500           # no mission here is limited by hold size
     manager.reputation = 80
     manager.faction_standing = {name: 80 for name in manager.faction_standing}
     engine.change_state(GameStates.MISSIONS, engine.universe.stations[0])
     engine.fade_remaining = 0
     state = engine.states[GameStates.MISSIONS]
+    # Which missions get generated depends on the process's hash seed; make
+    # three that can all be accepted so the tests do not.
     assert state.available_missions
+    while len(state.available_missions) < 3:
+        clone = copy.deepcopy(state.available_missions[0])
+        clone.id = f"{clone.id}-copy{len(state.available_missions)}"
+        manager.available_missions.append(clone)
+        state.refresh_missions()
+    for mission in state.available_missions:
+        mission.requirements.required_items = {}
+        mission.requirements.min_cargo_capacity = 0
+        mission.requirements.min_reputation = 0
+        mission.requirements.min_faction_standing = 0
     yield state
     vars(manager).clear()
     vars(manager).update(saved)
@@ -756,7 +769,7 @@ def test_long_mission_text_wraps_inside_the_panel_and_scrolls(engine, board):
     ui = board._ui
     lines = board._detail_lines(ui, mission, 900)
     assert len(lines) > 12
-    assert all(ui.font(role).size(text)[0] <= 900 for text, role, _, _ in lines)
+    assert all(ui.font(line.role).size(line.text)[0] <= 900 for line in lines)
     start = board.detail_scroll
     board.handle_input(key(pygame.K_DOWN))
     board.handle_input(key(pygame.K_DOWN))
@@ -770,3 +783,83 @@ def test_long_mission_text_wraps_inside_the_panel_and_scrolls(engine, board):
     assert board.detail_scroll == last                                         # clamped, not running away
     board.handle_input(key(pygame.K_PAGEUP))
     assert board.detail_scroll < last
+
+
+# --- the whole game --------------------------------------------------------------------------
+
+def test_flight_is_drawn_at_the_real_window_size(engine):
+    from src.states.game_state import GameStates
+
+    pygame.display.set_mode((2560, 1440), pygame.RESIZABLE)
+    engine._on_window_resized()
+    engine.create_new_universe(seed=4)
+    engine.change_state(GameStates.PLAYING)
+    engine.render()
+    assert engine.states[GameStates.PLAYING].enhanced_hud.screen_width == 2560
+
+
+def test_the_pause_menu_leaves_the_world_behind_it_at_window_size_and_clicks_through(engine):
+    from src.states.game_state import GameStates
+
+    pygame.display.set_mode((1512, 945), pygame.RESIZABLE)
+    engine._on_window_resized()
+    engine.create_new_universe(seed=4)
+    engine.change_state(GameStates.PLAYING)
+    engine.change_state(GameStates.PAUSED)
+    engine.render()
+    pause = engine.states[GameStates.PAUSED]
+    assert engine.states[GameStates.PLAYING].enhanced_hud.screen_width == 1512
+    assert len(pause.option_rects) == 5
+    pygame.event.clear()
+    pygame.event.post(click(pause.option_rects[4].center))                      # Main Menu
+    engine.handle_events()
+    assert engine.current_state == GameStates.MAIN_MENU
+
+
+def test_every_menu_screen_renders_at_every_window_size(engine):
+    """Each screen the engine draws natively, at the sizes Macs and monitors use."""
+    from src.engine.game_engine import NATIVE_STATES
+    from src.states.game_state import GameStates
+
+    engine.create_new_universe(seed=4)
+    station = engine.universe.stations[0]
+    for size in SIZES:
+        pygame.display.set_mode(size, pygame.RESIZABLE)
+        engine._on_window_resized()
+        for state in NATIVE_STATES:
+            if state in (GameStates.TRADING, GameStates.UPGRADES, GameStates.MISSIONS):
+                engine.change_state(state, station)
+            elif state == GameStates.DIALOGUE:
+                engine.start_dialogue("hale_intro")
+            else:
+                engine.change_state(state)
+            engine.fade_remaining = 0
+            engine.render()
+            assert engine.screen.get_size() == size
+            assert engine.screen.get_at((size[0] // 2, size[1] // 2)) is not None
+
+
+def test_dialogue_logbook_and_victory_choices_take_clicks_at_any_size(engine):
+    from src.states.game_state import GameStates
+
+    pygame.display.set_mode((1728, 1117), pygame.RESIZABLE)
+    engine._on_window_resized()
+    engine.create_new_universe(seed=4)
+    engine.start_dialogue("hale_intro")
+    engine.fade_remaining = 0
+    engine.render()
+    state = engine.states[GameStates.DIALOGUE]
+    assert state.choice_rects
+    index, rect = state.choice_rects[0]
+    before = state.session.current
+    pygame.event.clear()
+    pygame.event.post(click(rect.center))
+    engine.handle_events()
+    assert state.session.current is not before or engine.current_state != GameStates.DIALOGUE
+
+    engine.change_state(GameStates.LOGBOOK)
+    engine.render()
+    logbook = engine.states[GameStates.LOGBOOK]
+    pygame.event.post(click(logbook.tab_rects[2].center))
+    engine.handle_events()
+    assert logbook.tab == 2

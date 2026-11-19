@@ -14,7 +14,7 @@ produces a correct layout at 1024x640, 1512x945, 3440x1440, or on a surface
 with twice the pixels of the window.
 """
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple
 
 import pygame
 
@@ -365,6 +365,62 @@ class MenuList:
         if enabled:
             from ..audio.sound_manager import sound_manager
             sound_manager.play(name)
+
+
+class TextLine(NamedTuple):
+    text: str
+    role: object
+    color: tuple
+    indent: int          # design units
+    height: int          # surface pixels
+
+
+def build_lines(ui: Ui, items, width: int) -> List[TextLine]:
+    """Wrap (text, role, color, indent_units) items into lines that fit `width`
+    pixels. An empty text is a half-height gap."""
+    lines: List[TextLine] = []
+    for text, role, color, indent in items:
+        height = ui.line_height(role) + ui.px(3)
+        if text == "":
+            lines.append(TextLine("", role, color, 0, height // 2))
+            continue
+        for piece in ui.wrap(text, role, width - ui.px(indent)):
+            lines.append(TextLine(piece, role, color, indent, height))
+    return lines
+
+
+def max_scroll(lines: Sequence[TextLine], available: int) -> int:
+    """The largest first line for which every line after it still fits."""
+    total, start = 0, len(lines)
+    while start > 0 and total + lines[start - 1].height <= available:
+        start -= 1
+        total += lines[start].height
+    return start
+
+
+def draw_lines(ui: Ui, screen, area: pygame.Rect, lines: Sequence[TextLine], scroll: int):
+    """Draw lines from `scroll` down to the bottom of area, with arrows when
+    there is more above or below. Returns (scroll clamped to range, one past
+    the last line drawn, the largest scroll)."""
+    limit = max_scroll(lines, area.height)
+    scroll = max(0, min(scroll, limit))
+    y, last = area.top, scroll
+    for index in range(scroll, len(lines)):
+        line = lines[index]
+        if y + line.height > area.bottom + ui.px(2):
+            break
+        if line.text:
+            ui.text(screen, line.text, line.role, line.color, topleft=(area.x + ui.px(line.indent), y))
+        y += line.height
+        last = index + 1
+    size = ui.px(6)
+    x = area.right - size * 2
+    if scroll > 0:
+        pygame.draw.polygon(screen, TEXT_DIM, [(x - size, area.top + size), (x + size, area.top + size), (x, area.top)])
+    if scroll < limit:
+        pygame.draw.polygon(screen, TEXT_DIM, [(x - size, area.bottom - size), (x + size, area.bottom - size),
+                                               (x, area.bottom)])
+    return scroll, last, limit
 
 
 class RowList:

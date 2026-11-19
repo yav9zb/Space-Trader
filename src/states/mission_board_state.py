@@ -43,7 +43,6 @@ class MissionBoardState(State):
         self.tab_rects = {}
         self._ui = menu_kit.Ui(menu_kit.BASE_SIZE)
         self._detail_rows_visible = 1
-        self._detail_line_count = 0
 
     def refresh_missions(self):
         """Refresh the mission lists."""
@@ -190,18 +189,14 @@ class MissionBoardState(State):
             ui.text(screen, line, "small", INFO, max_width=inner_width, midleft=(rect.x + pad, rect.bottom - ui.px(15)))
 
     def _detail_lines(self, ui, mission, width):
-        """The mission's full description as (text, role, color, indent) lines, wrapped to width."""
-        lines = []
+        """The mission's full description, wrapped to width pixels."""
+        items = []
 
         def add(text, role="body", color=TEXT_PRIMARY, indent=0):
-            if text == "":
-                lines.append(("", role, color, 0))
-                return
-            for piece in ui.wrap(text, role, width - ui.px(indent)):
-                lines.append((piece, role, color, indent))
+            items.append((text, role, color, indent))
 
         add(mission.title, 26)
-        lines.append(("", "small", TEXT_DIM, 0))
+        add("", "small", TEXT_DIM)
         add(f"Type: {mission.mission_type.value}")
         add(f"Priority: {mission.priority.value}", color=self._get_priority_color(mission.priority))
         add(f"Status: {mission.status.value}")
@@ -248,48 +243,15 @@ class MissionBoardState(State):
                 add(text, "small", TEXT_PRIMARY, 16)
             if req.min_cargo_capacity > 0:
                 add(f"Minimum Cargo Space: {req.min_cargo_capacity}", "small", TEXT_PRIMARY, 16)
-        return lines
+        return menu_kit.build_lines(ui, items, width)
 
     def _render_details(self, ui, screen, area):
         missions = self.missions
         if not missions or self.selected_mission_index >= len(missions):
             return
         lines = self._detail_lines(ui, missions[self.selected_mission_index], area.width - ui.px(16))
-        heights = [ui.line_height(role) + ui.px(3) for _, role, _, _ in lines]
-        # How many lines fit from the current scroll position
-        self._detail_line_count = len(lines)
-        max_scroll = self._max_scroll(lines, heights, area.height)
-        self.detail_scroll = max(0, min(self.detail_scroll, max_scroll))
-        y = area.top
-        shown = 0
-        for index in range(self.detail_scroll, len(lines)):
-            text, role, color, indent = lines[index]
-            if y + heights[index] > area.bottom + ui.px(2):
-                break
-            if text:
-                ui.text(screen, text, role, color, topleft=(area.x + ui.px(indent), y))
-            y += heights[index]
-            shown += 1
-        self._detail_rows_visible = max(1, shown)
-        if self.detail_scroll > 0:
-            self._scroll_arrow(ui, screen, area.right, area.top, up=True)
-        if self.detail_scroll < max_scroll:
-            self._scroll_arrow(ui, screen, area.right, area.bottom, up=False)
-
-    def _max_scroll(self, lines, heights, available):
-        """The largest first line that still lets the last line be visible."""
-        total = 0
-        start = len(lines)
-        while start > 0 and total + heights[start - 1] <= available:
-            start -= 1
-            total += heights[start]
-        return start
-
-    @staticmethod
-    def _scroll_arrow(ui, screen, x, y, up):
-        size = ui.px(6)
-        tip = -size if up else size
-        pygame.draw.polygon(screen, TEXT_DIM, [(x - size * 2, y), (x - size * 2 + size * 2, y), (x - size, y + tip)])
+        self.detail_scroll, last, _ = menu_kit.draw_lines(ui, screen, area, lines, self.detail_scroll)
+        self._detail_rows_visible = max(1, last - self.detail_scroll)
 
     def _get_priority_color(self, priority):
         """Get color for mission priority."""

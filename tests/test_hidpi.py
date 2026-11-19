@@ -253,8 +253,6 @@ def test_the_sharp_panels_never_overlap_or_leave_the_window(engine, size):
 
 def test_pausing_dims_the_sharp_frame_and_the_menu_works_with_point_mouse_coordinates(engine, monkeypatch):
     from src.states.game_state import GameStates
-    from src.ui import screen_scaler as ss
-
     engine.update()
     engine.render()
     playing_px = engine.presenter.pixel_surface.copy()
@@ -266,11 +264,9 @@ def test_pausing_dims_the_sharp_frame_and_the_menu_works_with_point_mouse_coordi
     assert sum(paused_px.get_at(probe)[:3]) <= sum(playing_px.get_at(probe)[:3])
 
     pause = engine.states[GameStates.PAUSED]
-    scale = ss.scale_for(engine.WINDOW_SIZE)
     rect = pause.option_rects[4]                                            # Main Menu, in pixels
     ratio = engine.presenter.ratio
     window_pos = (int(rect.centerx / ratio), int(rect.centery / ratio))     # points, as the mouse reports
-    monkeypatch.setattr(ss, "_real_get_pos", lambda: window_pos)
     pygame.event.clear()
     pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=window_pos, button=1))
     engine.handle_events()
@@ -284,6 +280,44 @@ def test_menus_still_render_through_the_presenter(engine):
         engine.change_state(state)
         engine.render()
     assert engine.presenter.window.flips >= 3
+
+
+def test_menus_are_drawn_at_pixel_resolution_and_take_clicks_in_points(engine):
+    """A menu laid out in points but drawn into the pixel surface: its rectangles
+    are in pixels (twice the window's points here), and the mouse, which reports
+    points, still lands on the right row."""
+    from src.states.game_state import GameStates
+
+    engine.change_state(GameStates.MAIN_MENU)
+    engine.fade_remaining = 0
+    engine.render()
+    ratio = engine.presenter.ratio
+    assert ratio == 2.0
+    menu = engine.states[GameStates.MAIN_MENU]
+    pixels = engine.presenter.pixel_surface
+    assert all(pixels.get_rect().contains(r) for r in menu.option_rects)
+    assert max(r.bottom for r in menu.option_rects) > engine.WINDOW_SIZE[1] * 0.6 * ratio
+
+    rect = menu.option_rects[2]                                              # Settings
+    point = (rect.centerx / ratio, rect.centery / ratio)
+    pygame.event.clear()
+    pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=point, button=1))
+    engine.handle_events()
+    assert engine.current_state == GameStates.SETTINGS
+
+
+def test_menu_text_is_rendered_with_real_pixels_not_scaled_up(engine):
+    """At twice the ratio the same screen's text is drawn with a font twice as
+    tall, not a half-size bitmap stretched to fit."""
+    from src.states.game_state import GameStates
+    from src.ui import menu_kit
+
+    engine.change_state(GameStates.MAIN_MENU)
+    engine.fade_remaining = 0
+    engine.render()
+    sharp = engine.states[GameStates.MAIN_MENU]._ui
+    plain = menu_kit.Ui(engine.WINDOW_SIZE, 1.0)
+    assert sharp.font("option").get_height() >= plain.font("option").get_height() * 1.8
 
 
 # --- the pieces at full resolution -------------------------------------------------------------------

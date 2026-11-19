@@ -10,8 +10,9 @@ try:
     from ..legacy import PERKS, legacy
     from ..missions.rank_system import get_rank_name
     from ..story.endings import build_ending
+    from ..ui import menu_kit
     from ..ui.menu_style import (
-        MenuBackground, draw_title, draw_panel, wrap_text,
+        MenuBackground, wrap_text,
         ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM,
     )
 except ImportError:
@@ -19,8 +20,9 @@ except ImportError:
     from legacy import PERKS, legacy
     from missions.rank_system import get_rank_name
     from story.endings import build_ending
+    from ui import menu_kit
     from ui.menu_style import (
-        MenuBackground, draw_title, draw_panel, wrap_text,
+        MenuBackground, wrap_text,
         ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM,
     )
 
@@ -43,7 +45,8 @@ def stats_lines(game):
 
 
 class VictoryState(State):
-    PADDING = 28
+    BODY_SIZES = (23, 20, 17)         # design units; the largest that fits without scrolling is used
+    OPTION_ROLE = 24
 
     def __init__(self, game):
         super().__init__(game)
@@ -54,9 +57,7 @@ class VictoryState(State):
         self.option_rects = []
         self.text_overflows = False
         self.background = MenuBackground()
-        self.body_font = pygame.font.Font(None, 30)
-        self.option_font = pygame.font.Font(None, 34)
-        self.small_font = pygame.font.Font(None, 26)
+        self._ui = menu_kit.Ui(menu_kit.BASE_SIZE)
 
     # Options ----------------------------------------------------------------
 
@@ -104,12 +105,14 @@ class VictoryState(State):
         elif event.type == pygame.MOUSEWHEEL:
             self.scroll = max(0, self.scroll - event.y)
         elif event.type == pygame.MOUSEMOTION:
+            point = self._ui.to_px(event.pos)
             for i, rect in enumerate(self.option_rects):
-                if rect.collidepoint(event.pos):
+                if rect.collidepoint(point):
                     self.selected = i
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            point = self._ui.to_px(event.pos)
             for i, rect in enumerate(self.option_rects):
-                if rect.collidepoint(event.pos):
+                if rect.collidepoint(point):
                     self.selected = i
                     self.activate(i)
                     break
@@ -117,41 +120,45 @@ class VictoryState(State):
     # Rendering --------------------------------------------------------------
 
     def render(self, screen):
+        ui = self._ui = menu_kit.ui_for(screen, self.game)
         self.background.draw(screen)
-        width, height = screen.get_size()
-        pad = self.PADDING
+        pad = ui.px(28)
 
-        title_bottom = draw_title(screen, self.ending.title.upper(),
-                                  "Campaign complete" if self.phase == "ending"
-                                  else "Choose a legacy perk", y=55)
-        panel = pygame.Rect(40, title_bottom + 14, width - 80, height - title_bottom - 70)
-        draw_panel(screen, panel)
+        top = ui.header(screen, self.ending.title.upper(),
+                        "Campaign complete" if self.phase == "ending" else "Choose a legacy perk")
+        footer_top = ui.footer(screen, "UP / DOWN: choose  |  ENTER: select" + ("  |  ESC: back" if self.phase == "perk" else ""))
+        width = ui.content_width(1100)
+        panel = pygame.Rect((ui.width - width) // 2, top, width, max(ui.px(120), footer_top - ui.px(6) - top))
+        ui.panel(screen, panel)
         inner_w = panel.width - pad * 2
 
         # The options sit at the bottom of the panel; the text gets the rest
         options = self.options()
-        option_lines = [wrap_text(f"{i + 1}. {text}", self.option_font, inner_w - 30)
-                        for i, text in enumerate(options)]
-        option_lh = self.option_font.get_linesize()
-        options_h = sum(len(lines) * option_lh + 10 for lines in option_lines)
+        option_font = ui.font(self.OPTION_ROLE)
+        option_lh = option_font.get_linesize()
+        gap = ui.px(10)
+        marker = ui.px(30)
+        option_lines = [wrap_text(f"{i + 1}. {text}", option_font, inner_w - marker) for i, text in enumerate(options)]
+        options_h = sum(len(lines) * option_lh + gap for lines in option_lines)
         options_top = panel.bottom - pad - options_h
 
+        small = ui.font("small")
         if self.phase == "ending":
             paragraphs = self.ending.paragraphs
-            stats = wrap_text("  |  ".join(stats_lines(self.game)), self.small_font, inner_w)
+            stats = wrap_text("  |  ".join(stats_lines(self.game)), small, inner_w)
         else:
             paragraphs = ["Pick one perk to carry into your next game. It applies once, to "
                           "the new game you are about to start. Your current save is not "
                           "touched."]
             stats = []
 
-        stats_h = (len(stats) * self.small_font.get_linesize() + 12) if stats else 0
-        body_bottom = options_top - stats_h - 10
+        stats_h = (len(stats) * small.get_linesize() + ui.px(12)) if stats else 0
+        body_bottom = options_top - stats_h - ui.px(10)
         available = body_bottom - (panel.y + pad)
 
         # Largest text size that fits without scrolling; the smallest scrolls
-        for size in (30, 26, 23):
-            font = self.body_font if size == 30 else pygame.font.Font(None, size)
+        for units in self.BODY_SIZES:
+            font = ui.font(units)
             lines = []
             for paragraph in paragraphs:
                 lines.extend(wrap_text(paragraph, font, inner_w))
@@ -169,32 +176,32 @@ class VictoryState(State):
             screen.blit(font.render(line, True, TEXT_PRIMARY), (panel.x + pad, y))
             y += lh
         if max_scroll > 0:
-            hint = self.small_font.render("PGUP/PGDN: more", True, TEXT_DIM)
-            screen.blit(hint, (panel.right - pad - hint.get_width(), body_bottom - 4))
+            ui.text(screen, "PGUP / PGDN: more", "tiny", TEXT_DIM, bottomright=(panel.right - pad, body_bottom))
 
-        y = options_top - stats_h + 4
+        y = options_top - stats_h + ui.px(4)
         for line in stats:
-            screen.blit(self.small_font.render(line, True, TEXT_DIM), (panel.x + pad, y))
-            y += self.small_font.get_linesize()
+            screen.blit(small.render(line, True, TEXT_DIM), (panel.x + pad, y))
+            y += small.get_linesize()
 
         self.option_rects = []
         self.selected = min(self.selected, len(options) - 1)
         y = options_top
         for index, wrapped in enumerate(option_lines):
             height_i = len(wrapped) * option_lh
-            rect = pygame.Rect(panel.x + pad - 8, y - 4, inner_w + 16, height_i + 8)
+            rect = pygame.Rect(panel.x + pad - ui.px(8), y - ui.px(4), inner_w + ui.px(16), height_i + ui.px(8))
             self.option_rects.append(rect)
             selected = index == self.selected
             if selected:
-                pygame.draw.rect(screen, (40, 55, 90), rect, border_radius=6)
-                pygame.draw.rect(screen, ACCENT_BLUE, rect, 2, border_radius=6)
-                screen.blit(self.option_font.render(">", True, ACCENT_GOLD), (panel.x + pad, y))
+                fill = pygame.Surface(rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(fill, (50, 70, 115, 200), fill.get_rect(), border_radius=ui.px(7))
+                screen.blit(fill, rect.topleft)
+                pygame.draw.rect(screen, ACCENT_BLUE, rect, max(1, ui.px(2)), border_radius=ui.px(7))
+                size = max(4, option_lh // 3)
+                cx, cy = panel.x + pad + size // 2, y + option_lh // 2
+                pygame.draw.polygon(screen, ACCENT_GOLD, [(cx - size // 2, cy - size), (cx + size, cy), (cx - size // 2, cy + size)])
             ly = y
             for line in wrapped:
-                screen.blit(self.option_font.render(line, True, ACCENT_GOLD if selected else TEXT_PRIMARY),
-                            (panel.x + pad + 30, ly))
+                screen.blit(option_font.render(line, True, ACCENT_GOLD if selected else TEXT_PRIMARY),
+                            (panel.x + pad + marker, ly))
                 ly += option_lh
-            y += height_i + 10
-
-        footer = "UP/DOWN: choose | ENTER: select" + (" | ESC: back" if self.phase == "perk" else "")
-        screen.blit(pygame.font.Font(None, 22).render(footer, True, TEXT_DIM), (40, height - 42))
+            y += height_i + gap

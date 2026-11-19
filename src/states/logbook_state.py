@@ -1,5 +1,6 @@
 """Logbook screen: Story, Contacts and Factions pages, opened from the pause
-menu. Content comes from story.logbook.build_pages; this just lays it out.
+menu. Content comes from story.logbook.build_pages; this just lays it out
+with the menu kit, so it fits any window and scrolls when a page is long.
 """
 
 import pygame
@@ -7,35 +8,39 @@ import pygame
 try:
     from ..states.game_state import State, GameStates
     from ..story.logbook import build_pages, TABS
-    from ..ui.menu_style import (
-        MenuBackground, draw_title, draw_panel, wrap_text,
-        ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM,
-    )
+    from ..ui import menu_kit
+    from ..ui.menu_style import MenuBackground, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
 except ImportError:
     from states.game_state import State, GameStates
     from story.logbook import build_pages, TABS
-    from ui.menu_style import (
-        MenuBackground, draw_title, draw_panel, wrap_text,
-        ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM,
-    )
+    from ui import menu_kit
+    from ui.menu_style import MenuBackground, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
 
 KIND_COLORS = {"heading": ACCENT_GOLD, "body": TEXT_PRIMARY, "dim": TEXT_DIM}
+KIND_ROLES = {"heading": 24, "body": "body", "dim": "body"}
 
 
 class LogbookState(State):
-    PADDING = 24
-
     def __init__(self, game):
         super().__init__(game)
         self.tab = 0
         self.scroll = {name: 0 for name in TABS}
         self.pages = build_pages(game)
         self.background = MenuBackground()
-        self.heading_font = pygame.font.Font(None, 34)
-        self.body_font = pygame.font.Font(None, 28)
-        self.tab_font = pygame.font.Font(None, 40)
+        self.tab_rects = []
+        self._ui = menu_kit.Ui(menu_kit.BASE_SIZE)
 
     def handle_input(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            point = self._ui.to_px(event.pos)
+            for index, rect in enumerate(self.tab_rects):
+                if rect.collidepoint(point):
+                    self.tab = index
+            return
+        if event.type == pygame.MOUSEWHEEL:
+            name = TABS[self.tab]
+            self.scroll[name] = max(0, self.scroll[name] - event.y * 2)
+            return
         if event.type != pygame.KEYDOWN:
             return
         name = TABS[self.tab]
@@ -54,61 +59,46 @@ class LogbookState(State):
         elif event.key == pygame.K_PAGEDOWN:
             self.scroll[name] += 8
 
-    def _layout(self, name, inner_w):
-        """Wrap a page into (font, color, text, height) rows."""
-        rows = []
+    def _lines(self, ui, name, width):
+        items = []
         for kind, text in self.pages[name]:
             if kind == "gap":
-                rows.append((self.body_font, TEXT_DIM, "", self.body_font.get_linesize() // 2))
-                continue
-            font = self.heading_font if kind == "heading" else self.body_font
-            for line in wrap_text(text, font, inner_w):
-                rows.append((font, KIND_COLORS[kind], line, font.get_linesize()))
-        return rows
+                items.append(("", "body", TEXT_DIM, 0))
+            else:
+                items.append((text, KIND_ROLES[kind], KIND_COLORS[kind], 0))
+        return menu_kit.build_lines(ui, items, width)
 
     def render(self, screen):
+        ui = self._ui = menu_kit.ui_for(screen, self.game)
         self.background.draw(screen)
-        width, height = screen.get_size()
-        title_bottom = draw_title(screen, "LOGBOOK", y=55)
+        top = ui.header(screen, "LOGBOOK")
+        width = ui.content_width(1200)
+        left = (ui.width - width) // 2
 
         # Tabs
-        x = 50
-        tab_y = title_bottom + 12
-        for i, name in enumerate(TABS):
-            color = ACCENT_GOLD if i == self.tab else TEXT_DIM
-            surface = self.tab_font.render(name, True, color)
-            screen.blit(surface, (x, tab_y))
-            if i == self.tab:
-                pygame.draw.line(screen, ACCENT_GOLD, (x, tab_y + surface.get_height() + 2),
-                                 (x + surface.get_width(), tab_y + surface.get_height() + 2), 2)
-            x += surface.get_width() + 30
+        font = ui.font("heading")
+        x = left
+        self.tab_rects = []
+        for index, name in enumerate(TABS):
+            selected = index == self.tab
+            surface = font.render(name, True, ACCENT_GOLD if selected else TEXT_DIM)
+            rect = surface.get_rect(topleft=(x, top))
+            screen.blit(surface, rect)
+            self.tab_rects.append(rect.inflate(ui.px(16), ui.px(8)))
+            if selected:
+                pygame.draw.line(screen, ACCENT_GOLD, (rect.left, rect.bottom + ui.px(2)),
+                                 (rect.right, rect.bottom + ui.px(2)), max(1, ui.px(2)))
+            x = rect.right + ui.px(34)
+        top += font.get_linesize() + ui.px(12)
 
-        panel = pygame.Rect(40, tab_y + 50, width - 80, height - tab_y - 50 - 60)
-        draw_panel(screen, panel)
-
-        pad = self.PADDING
         name = TABS[self.tab]
-        rows = self._layout(name, panel.width - pad * 2)
-        available = panel.height - pad * 2
-
-        # Largest start row for which everything after it still fits
-        max_scroll = len(rows)
-        while max_scroll > 0 and sum(r[3] for r in rows[max_scroll - 1:]) <= available:
-            max_scroll -= 1
-        self.scroll[name] = min(self.scroll[name], max_scroll)
-
-        y = panel.y + pad
-        shown_to = self.scroll[name]
-        for index in range(self.scroll[name], len(rows)):
-            font, color, text, height = rows[index]
-            if y + height > panel.bottom - pad:
-                break
-            if text:
-                screen.blit(font.render(text, True, color), (panel.x + pad, y))
-            y += height
-            shown_to = index + 1
-
-        footer = "LEFT/RIGHT: tab | UP/DOWN: scroll | ESC: back"
-        if max_scroll > 0:
-            footer += f"   (lines {self.scroll[name] + 1}-{shown_to} of {len(rows)})"
-        screen.blit(pygame.font.Font(None, 22).render(footer, True, TEXT_DIM), (40, height - 42))
+        footer_hint = "LEFT / RIGHT or click: tab  |  UP / DOWN or wheel: scroll  |  ESC: back"
+        footer_top = ui.footer(screen, footer_hint)
+        panel = pygame.Rect(left, top, width, max(ui.px(80), footer_top - ui.px(6) - top))
+        ui.panel(screen, panel)
+        area = panel.inflate(-ui.px(40), -ui.px(32))
+        lines = self._lines(ui, name, area.width - ui.px(16))
+        self.scroll[name], last, limit = menu_kit.draw_lines(ui, screen, area, lines, self.scroll[name])
+        if limit > 0:
+            ui.text(screen, f"lines {self.scroll[name] + 1}-{last} of {len(lines)}", "tiny", TEXT_DIM,
+                    bottomright=(panel.right - ui.px(14), panel.bottom - ui.px(5)))

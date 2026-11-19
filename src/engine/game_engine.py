@@ -14,7 +14,6 @@ from ..states.game_state import GameStates
 from ..entities.ship import Ship
 from ..entities.station import Station
 from ..ui.minimap import Minimap
-from ..ui.screen_scaler import scaler as screen_scaler, install as install_screen_scaler
 from ..entities.starfield import StarField
 
 
@@ -26,18 +25,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Screens drawn at a logical size and scaled to the window (see ui/screen_scaler.py).
-# Flight is drawn at real window pixels; pause and base building are overlays on it.
-SCALED_STATES = frozenset({
+# Menu screens are laid out with ui/menu_kit.py: they measure themselves from the
+# window and draw at its real pixels (a Retina display's physical pixels when
+# available), so they need no scaling. Flight is drawn the same way; the pause
+# menu is a menu drawn over the flight view.
+NATIVE_STATES = frozenset({
+    GameStates.MAIN_MENU, GameStates.GAME_OVER, GameStates.SAVE_GAME, GameStates.LOAD_GAME,
+    GameStates.TRADING, GameStates.UPGRADES, GameStates.SETTINGS, GameStates.MISSIONS,
     GameStates.DIALOGUE, GameStates.LOGBOOK, GameStates.VICTORY,
 })
-# Screens laid out with ui/menu_kit.py: they measure themselves and draw at the
-# window's real pixels (a Retina display's physical pixels when available), so
-# they need no scaling. The pause menu is one of them, drawn over the world.
-NATIVE_STATES = frozenset({GameStates.MAIN_MENU, GameStates.GAME_OVER, GameStates.SAVE_GAME, GameStates.LOAD_GAME,
-                           GameStates.TRADING, GameStates.UPGRADES, GameStates.SETTINGS,
-                           GameStates.MISSIONS})
-MOUSE_SCALED_STATES = SCALED_STATES
 
 
 FADE_SECONDS = 0.22
@@ -57,7 +53,6 @@ class GameEngine:
         # The game's font (Exo 2); must come before any screen creates a font
         from src.ui import fonts
         fonts.install()
-        install_screen_scaler()
 
         # Initialize Steamworks if running under Steam - safe no-op otherwise
         from src.steam.steam_manager import steam_manager
@@ -219,11 +214,9 @@ class GameEngine:
                 # pygame has already resized the surface; just re-lay-out.
                 self._on_window_resized()
             
-            # Let the current state handle the event first (mouse positions are
-            # mapped into the logical coordinates scaled screens draw in)
+            # Let the current state handle the event first
             current_state = self.states[self.current_state]
-            screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
-            current_state.handle_input(screen_scaler.map_event(event))
+            current_state.handle_input(event)
 
             # Handle other keys globally (ESC is handled by individual states)
             if event.type == KEYDOWN and event.key != K_ESCAPE:
@@ -268,7 +261,6 @@ class GameEngine:
         """Update game logic based on current state"""
         self.delta_time = self.clock.get_time() / 1000.0  # Convert to seconds
         self.fade_remaining = max(0.0, getattr(self, "fade_remaining", 0.0) - self.delta_time)
-        screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
         
         # Update play time when playing
         if self.current_state == GameStates.PLAYING:
@@ -336,11 +328,7 @@ class GameEngine:
         
         # Get current state and render it
         current_state = self.states[self.current_state]
-        if self.current_state in SCALED_STATES:
-            screen_scaler.prepare(self.screen, True)
-            screen_scaler.render(current_state, self.screen)
-        elif self.current_state in NATIVE_STATES:
-            screen_scaler.prepare(self.screen, False)
+        if self.current_state in NATIVE_STATES:
             presenter = self.presenter
             if presenter is not None:
                 self.screen.fill((0, 0, 0))
@@ -348,7 +336,6 @@ class GameEngine:
             else:
                 current_state.render(self.screen)
         else:
-            screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
             current_state.render(self.screen)
 
         self._draw_fade()

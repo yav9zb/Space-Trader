@@ -10,21 +10,24 @@ import pygame
 try:
     from ..states.game_state import State, GameStates
     from ..story.dialogue import DialogueSession
+    from ..ui import menu_kit
     from ..ui.menu_style import (
-        MenuBackground, draw_title, draw_panel, wrap_text,
+        MenuBackground, wrap_text,
         ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM,
     )
 except ImportError:
     from states.game_state import State, GameStates
     from story.dialogue import DialogueSession
+    from ui import menu_kit
     from ui.menu_style import (
-        MenuBackground, draw_title, draw_panel, wrap_text,
+        MenuBackground, wrap_text,
         ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM,
     )
 
 
 class DialogueState(State):
-    PADDING = 24
+    BODY_ROLE = 23
+    CHOICE_ROLE = 21
 
     def __init__(self, game, start_id, nodes=None, return_state=None):
         super().__init__(game)
@@ -39,8 +42,7 @@ class DialogueState(State):
         self.choice_rects = []
         self.choice_range = None
         self.background = MenuBackground()
-        self.body_font = pygame.font.Font(None, 30)
-        self.choice_font = pygame.font.Font(None, 28)
+        self._ui = menu_kit.Ui(menu_kit.BASE_SIZE)
 
     # Input ----------------------------------------------------------------
 
@@ -69,15 +71,19 @@ class DialogueState(State):
                 if index < len(choices):
                     self._choose(index)
         elif event.type == pygame.MOUSEMOTION:
+            point = self._ui.to_px(event.pos)
             for index, rect in self.choice_rects:
-                if rect.collidepoint(event.pos):
+                if rect.collidepoint(point):
                     self.selected = index
                     break
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            point = self._ui.to_px(event.pos)
             for index, rect in self.choice_rects:
-                if rect.collidepoint(event.pos):
+                if rect.collidepoint(point):
                     self._choose(index)
                     break
+        elif event.type == pygame.MOUSEWHEEL:
+            self.body_scroll = max(0, self.body_scroll - event.y)
 
     def _choose(self, index):
         if not self.session.choose(index):
@@ -99,68 +105,65 @@ class DialogueState(State):
     # Rendering -------------------------------------------------------------
 
     def render(self, screen):
+        ui = self._ui = menu_kit.ui_for(screen, self.game)
         self.background.draw(screen)
-        width, height = screen.get_size()
         node = self.session.current
         if node is None:
             return
 
-        title_bottom = draw_title(screen, node.speaker.upper(), y=55)
-        panel = pygame.Rect(40, title_bottom + 10, width - 80, height - title_bottom - 70)
-        draw_panel(screen, panel)
+        top = ui.header(screen, node.speaker.upper())
+        footer_top = ui.footer(screen, "UP / DOWN or 1-9: choose  |  ENTER: select  |  ESC: leave")
+        width = ui.content_width(1100)
+        panel = pygame.Rect((ui.width - width) // 2, top, width, max(ui.px(120), footer_top - ui.px(6) - top))
+        ui.panel(screen, panel)
 
-        pad = self.PADDING
+        pad = ui.px(24)
         inner_w = panel.width - pad * 2
-        body_lh = self.body_font.get_linesize()
+        body_font = ui.font(self.BODY_ROLE)
+        body_lh = body_font.get_linesize()
 
         # Body text, pageable. Takes only the height it needs (up to 55% of
         # the panel) so short lines leave the rest for choices.
-        lines = wrap_text(self.session.current_text(), self.body_font, inner_w)
+        lines = wrap_text(self.session.current_text(), body_font, inner_w)
         visible_lines = max(1, min(len(lines), int(panel.height * 0.55) // body_lh))
         body_h = visible_lines * body_lh
         max_scroll = max(0, len(lines) - visible_lines)
         self.body_scroll = min(self.body_scroll, max_scroll)
         y = panel.y + pad
         for line in lines[self.body_scroll:self.body_scroll + visible_lines]:
-            screen.blit(self.body_font.render(line, True, TEXT_PRIMARY), (panel.x + pad, y))
+            screen.blit(body_font.render(line, True, TEXT_PRIMARY), (panel.x + pad, y))
             y += body_lh
         if max_scroll > 0:
-            hint = "PGUP/PGDN: more text"
-            hint_surface = pygame.font.Font(None, 20).render(hint, True, TEXT_DIM)
-            screen.blit(hint_surface, (panel.right - pad - hint_surface.get_width(), panel.y + body_h + pad // 2))
+            ui.text(screen, "PGUP / PGDN: more text", "tiny", TEXT_DIM,
+                    topright=(panel.right - pad, panel.y + body_h + pad // 2))
 
         # Choices, scrolled so the selection stays visible
-        choices_top = panel.y + body_h + pad + 14
+        choices_top = panel.y + body_h + pad + ui.px(14)
         choices_bottom = panel.bottom - pad // 2
-        self._render_choices(screen, panel, choices_top, choices_bottom, inner_w, pad)
-
-        footer = "UP/DOWN or 1-9: choose | ENTER: select | ESC: leave"
-        footer_surface = pygame.font.Font(None, 22).render(footer, True, TEXT_DIM)
-        screen.blit(footer_surface, (40, height - 42))
+        self._render_choices(ui, screen, panel, choices_top, choices_bottom, inner_w, pad)
 
         if self.choice_range:
             first, last, total = self.choice_range
             if total > last - first + 1:
-                more = pygame.font.Font(None, 22).render(
-                    f"Choices {first}-{last} of {total}", True, TEXT_DIM)
-                screen.blit(more, (width - 40 - more.get_width(), height - 42))
+                ui.text(screen, f"Choices {first}-{last} of {total}", "tiny", TEXT_DIM,
+                        bottomright=(panel.right - ui.px(14), panel.bottom - ui.px(4)))
 
-    def _render_choices(self, screen, panel, top, bottom, inner_w, pad):
+    def _render_choices(self, ui, screen, panel, top, bottom, inner_w, pad):
         self.choice_rects = []
         self.choice_range = None
         choices = self.session.visible_choices()
-        lh = self.choice_font.get_linesize()
-        gap = 8
-        marker_w = self.choice_font.size("> ")[0]
+        font = ui.font(self.CHOICE_ROLE)
+        lh = font.get_linesize()
+        gap = ui.px(8)
+        marker_w = ui.px(22)
 
         if not choices:
-            prompt = self.choice_font.render("[ENTER] Continue", True, ACCENT_GOLD)
-            screen.blit(prompt, (panel.x + pad, top))
+            ui.text(screen, "[ENTER] Continue", self.CHOICE_ROLE, ACCENT_GOLD, topleft=(panel.x + pad, top))
             return
 
         self.selected = min(self.selected, len(choices) - 1)
         wrapped = [
-            wrap_text(f"{i + 1}. {choice.text}", self.choice_font, inner_w - marker_w)
+            wrap_text(f"{i + 1}. {choice.text}", font, inner_w - marker_w)
             for i, choice in enumerate(choices)
         ]
         heights = [len(w) * lh + gap for w in wrapped]
@@ -175,17 +178,21 @@ class DialogueState(State):
         for index in range(self.choice_scroll, len(choices)):
             if y + heights[index] - gap > bottom:
                 break
-            rect = pygame.Rect(panel.x + pad - 8, y - 4, inner_w + 16, heights[index] - gap + 8)
+            rect = pygame.Rect(panel.x + pad - ui.px(8), y - ui.px(4), inner_w + ui.px(16), heights[index] - gap + ui.px(8))
             self.choice_rects.append((index, rect))
             is_selected = index == self.selected
             if is_selected:
-                pygame.draw.rect(screen, (40, 55, 90), rect, border_radius=6)
-                pygame.draw.rect(screen, ACCENT_BLUE, rect, 2, border_radius=6)
-                screen.blit(self.choice_font.render(">", True, ACCENT_GOLD), (panel.x + pad, y))
+                fill = pygame.Surface(rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(fill, (50, 70, 115, 200), fill.get_rect(), border_radius=ui.px(7))
+                screen.blit(fill, rect.topleft)
+                pygame.draw.rect(screen, ACCENT_BLUE, rect, max(1, ui.px(2)), border_radius=ui.px(7))
+                size = max(4, lh // 3)
+                cx, cy = panel.x + pad + size // 2, y + lh // 2
+                pygame.draw.polygon(screen, ACCENT_GOLD, [(cx - size // 2, cy - size), (cx + size, cy), (cx - size // 2, cy + size)])
             color = ACCENT_GOLD if is_selected else TEXT_PRIMARY
             ly = y
             for line in wrapped[index]:
-                screen.blit(self.choice_font.render(line, True, color), (panel.x + pad + marker_w, ly))
+                screen.blit(font.render(line, True, color), (panel.x + pad + marker_w, ly))
                 ly += lh
             y += heights[index]
 
