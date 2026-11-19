@@ -78,3 +78,38 @@ def test_the_ending_starts_victory_and_the_perk_applies_to_the_next_game(engine)
     assert engine.mission_manager.reputation == 15
     assert legacy.pending_perk is None
     engine.change_state(GameStates.PLAYING)
+
+
+def test_the_mission_tracker_does_not_sit_on_top_of_the_minimap(engine):
+    """Both live in the top-right corner; with an active mission the tracker
+    used to be drawn across the minimap."""
+    import pygame
+    from src.story import director
+    from src.story.story_missions import start_story_mission
+    from src.states.game_state import GameStates
+
+    engine.create_new_universe()
+    engine.story_state.chapter = "act_4"
+    director.ensure_npcs_placed(engine)
+    assert start_story_mission("act1_2", engine)
+
+    class Clock:
+        def get_time(self): return 16
+        def tick(self, *a): return 16
+        def get_fps(self): return 60.0
+    real_clock = engine.clock
+    engine.clock = Clock()
+    try:
+        engine.change_state(GameStates.PLAYING)
+        engine.update()
+        engine.render()
+    finally:
+        engine.clock = real_clock
+
+    reserved = {a["name"]: a for a in engine.states[GameStates.PLAYING].enhanced_hud.ui_layout.reserved_areas}
+    tracker = reserved["mission_tracker"]
+    tracker_rect = pygame.Rect(tracker["x"], tracker["y"], tracker["width"], tracker["height"])
+    minimap = engine.minimap
+    minimap_rect = pygame.Rect(int(minimap.position.x), int(minimap.position.y),
+                               minimap.map_size, minimap.map_size)
+    assert not tracker_rect.colliderect(minimap_rect), (tracker_rect, minimap_rect)

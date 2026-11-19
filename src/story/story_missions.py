@@ -13,6 +13,7 @@ from ..missions.mission_types import Mission, MissionType, MissionStatus, Missio
 from .chapters import STORY_MISSIONS, StoryMissionDef
 from .objectives import (
     is_stage_complete, is_stage_failed, stage_baseline_counters, stage_needed,
+    stage_destination,
 )
 
 
@@ -49,6 +50,15 @@ class StoryMission(Mission):
         """Record where each counter stands now, so only progress made from
         here on counts toward the stage."""
         self._set_baseline(story)
+        self._update_destination(story)
+
+    def _update_destination(self, story):
+        """Point the mission tracker at wherever the current stage happens."""
+        stages = self.definition.stages
+        if self.stage_index >= len(stages):
+            return
+        self.destination_station_id = stage_destination(
+            stages[self.stage_index], self.resolved, story.npc_stations.get(self.definition.giver))
 
     def _stage_key(self, index=None) -> str:
         return f"{self.story_id}:{self.stage_index if index is None else index}"
@@ -80,6 +90,7 @@ class StoryMission(Mission):
             self.objectives[self.stage_index].completed = True
             self.stage_index += 1
             self._set_baseline(story)
+            self._update_destination(story)
 
         self.completion_percentage = self.stage_index / len(stages)
         if self.stage_index >= len(stages):
@@ -237,7 +248,6 @@ def create_story_mission(story_id: str, game_engine) -> Optional[StoryMission]:
     for stage, objective in zip(definition.stages, mission.objectives):
         if stage.kind == "dock_at":
             objective.target_station_id = resolved[stage.params["waypoint"]]
-            mission.destination_station_id = mission.destination_station_id or objective.target_station_id
     return mission
 
 

@@ -309,3 +309,46 @@ def test_a_fleet_and_an_escort_survive_a_reload_mid_mission():
     c.talk("kestrel", "I have Dross's receipts.", "They will believe it now.")
     c.update()
     assert c.done("act2_2")
+
+
+def test_the_mission_tracker_points_at_wherever_the_current_stage_happens():
+    c = Campaign()
+    prologue(c)
+
+    c.talk("rourke", "What do you need?", "I will do it.", "On my way.")
+    freighter = c.mission("act1_1")
+    assert freighter.destination_station_id == freighter.resolved["b"]       # escort: where it is going
+    c.escort_arrives("act1_1")
+    c.engine.opened.clear()
+
+    c.talk("voss", "What do you want from me?", "I will collect them.", "On my way.")
+    manifests = c.mission("act1_2")
+    voss_station = story_state.npc_stations["voss"]
+    assert manifests.destination_station_id == manifests.resolved["a"]       # first, the annex
+    c.dock("act1_2", "a")
+    assert manifests.destination_station_id == voss_station                  # then back to Voss
+
+    c.talk("voss", "I have the manifests.", "I will tell him.")
+    c.update()
+    c.talk("kestrel", "What do you want?", "Six raiders. Done.", "I will be back.")
+    assert c.mission("act1_3").destination_station_id is None                # bandits: no place
+    c.kill_bandits(6)
+    assert c.mission("act1_3").destination_station_id == story_state.npc_stations["kestrel"]
+
+
+def test_fleet_and_sector_stages_show_where_to_go_and_it_survives_a_reload():
+    c = Campaign()
+    c.engine.mission_manager.reputation = 200
+    story_state.chapter = "act_4"
+    director.ensure_npcs_placed(c.engine)
+    from src.story.story_missions import start_story_mission
+
+    assert start_story_mission("act2_2", c.engine)
+    fleet = c.mission("act2_2")
+    assert fleet.destination_station_id == fleet.resolved["a"]               # the paymaster's station
+    c.update()
+    c.save_and_reload()
+    assert c.mission("act2_2").destination_station_id == fleet.resolved["a"]
+
+    assert start_story_mission("act4_2", c.engine)
+    assert c.mission("act4_2").destination_station_id == "Sector (%d, %d)" % SIGNAL_SECTOR

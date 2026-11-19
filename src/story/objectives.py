@@ -79,3 +79,24 @@ def is_stage_complete(stage: Stage, resolved: Dict[str, str], baselines: Dict[st
                 and abs(y - stage.params["y"]) <= radius)
 
     raise ValueError(f"Unknown stage kind: {stage.kind}")
+
+
+def stage_destination(stage: Stage, resolved: Dict[str, str], giver_station: Optional[str]) -> Optional[str]:
+    """Where the player should head for this stage, as shown in the mission
+    tracker: a station name, a sector, or None when there is no particular
+    place (killing bandits, earning rank). A counter stage is always a
+    conversation, so it points back at the contact who gave the mission."""
+    if stage.kind == "dock_at":
+        return resolved[stage.params["waypoint"]]
+    if stage.kind == "escort":
+        return resolved[stage.params["to"]]
+    if stage.kind == "counter":
+        return giver_station
+    if stage.kind == "fleet":
+        if "at" in stage.params:
+            return resolved[stage.params["at"]]
+        x, y = stage.params["sector"]
+        return f"Sector ({x}, {y})"
+    if stage.kind == "reach_sector":
+        return f"Sector ({stage.params['x']}, {stage.params['y']})"
+    return None

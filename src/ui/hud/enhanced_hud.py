@@ -425,7 +425,10 @@ class EnhancedHUD:
         
         # Panel dimensions using responsive sizing
         panel_width, panel_height = self.ui_layout.get_panel_size(280, base_height, 0.35, 0.6)
-        panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_RIGHT, panel_width, panel_height)
+        # Sit below the minimap, which owns the top-right corner (60px down)
+        minimap = getattr(game_engine, 'minimap', None)
+        below_minimap = (60 + minimap.map_size + 10) if minimap is not None else 0
+        panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_RIGHT, panel_width, panel_height, 0, below_minimap)
         
         # Panel background and border using theme
         panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
@@ -451,6 +454,16 @@ class EnhancedHUD:
                 dest_text = f"-> {mission.destination_station_id}"
                 dest_surface = self.font_small.render(dest_text, True, (150, 200, 255))
                 surface.blit(dest_surface, (panel_x + self.ui_layout.padding, y_offset + 15))
+
+                # Where that is, when it is a station and the panel has room
+                coords = mission_manager.get_station_coordinates(
+                    mission.destination_station_id, game_engine.universe.stations)
+                if coords:
+                    coords_surface = self.font_small.render(coords.replace("Sector ", ""), True, (120, 150, 190))
+                    free = panel_width - 2 * self.ui_layout.padding - dest_surface.get_width()
+                    if coords_surface.get_width() + 12 <= free:
+                        surface.blit(coords_surface, (panel_x + panel_width - self.ui_layout.padding
+                                                      - coords_surface.get_width(), y_offset + 15))
                 progress_y_offset = self.ui_layout.get_responsive_spacing(30)
             else:
                 progress_y_offset = self.ui_layout.get_responsive_spacing(15)
