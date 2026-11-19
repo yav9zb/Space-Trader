@@ -104,7 +104,7 @@ Five difficulty levels (Peaceful, Easy, Normal, Hard, Extreme) are selectable in
 Settings > Display lets you change:
 - **Resolution**: cycles through the resolutions your monitor reports (only applies in Windowed mode - Fullscreen/Borderless always match your desktop resolution).
 - **Display Mode**: Windowed / Fullscreen / Borderless Fullscreen. On macOS, Fullscreen and Borderless both render as a large windowed mode instead, to avoid a known SDL multi-monitor blackout issue.
-- **HUD Scale** (0.75x-1.75x): scales the flight HUD panels' text and layout (Ship Status, Navigation, Local Map). Other screens (menus, Trading, Mission Board) are unaffected.
+- **HUD Scale** (0.75x-1.75x): scales the flight HUD panels' text and layout (Ship Status, Navigation, Local Map). Menu screens (Trading, Mission Board and the rest) size themselves from the window and are unaffected.
 
 Changes apply immediately and are saved to `settings.json`.
 

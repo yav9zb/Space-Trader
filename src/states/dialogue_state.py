@@ -138,7 +138,7 @@ class DialogueState(State):
                     topright=(panel.right - pad, panel.y + body_h + pad // 2))
 
         # Choices, scrolled so the selection stays visible
-        choices_top = panel.y + body_h + pad + ui.px(14)
+        choices_top = panel.y + body_h + pad + ui.px(24)
         choices_bottom = panel.bottom - pad // 2
         self._render_choices(ui, screen, panel, choices_top, choices_bottom, inner_w, pad)
 

@@ -4,7 +4,12 @@
 
 ### Changed
 - **Moved from pygame to pygame-ce** (a drop-in fork; the install line is the only change for you: run `pip install -r requirements.txt`).
-- **Sharp HUD on Retina Macs.** On a high-density display the HUD panels, radar, mission tracker and notifications are drawn at the screen's full pixel resolution. The world and menus are still drawn at point resolution and scaled up, so they look as before. Standard displays, headless runs and `SPACETRADER_HIDPI=0` use the plain path.
+- **Sharp HUD on Retina Macs.** On a high-density display the HUD panels, radar, mission tracker and notifications are drawn at the screen's full pixel resolution. The world is still drawn at point resolution and scaled up, so it looks as before. Standard displays, headless runs and `SPACETRADER_HIDPI=0` use the plain path.
+- **Every menu screen was rebuilt to fit the window.** The main menu, pause menu, game over, Save, Load, Trading, Ship Upgrades, Settings, Mission Board, dialogue, logbook and ending screens measure themselves from the window size instead of being drawn on a fixed grid and enlarged. Text is drawn at the screen's real pixels, so it is sharp on Retina displays, and big windows get bigger text and roomier layouts instead of a small picture in a corner. Everything fits from 1024x640 up to ultrawide.
+  - Trading, Ship Upgrades and the Mission Board have clickable rows, tabs and Buy / Sell / Accept / Leave buttons next to the keys.
+  - Settings is one page per category with a value on each row (click the left or right half of a row to lower or raise it), and the Controls and Help pages show a reference panel beside the list.
+  - Mission details wrap and scroll, so a long briefing is no longer cut off at the bottom of the panel.
+  - Load and Save lists scroll and can be clicked.
 
 ### Fixed
 - **Debris simulation was the biggest cost of every frame.** Up to 500 pieces collided and attracted each other every frame, even far from the player. Pieces beyond 2,500 units now update every fourth frame with the time they missed. Update time dropped from about 13 ms to about 7 ms in a headless run.
