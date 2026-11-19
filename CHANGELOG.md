@@ -1,6 +1,6 @@
 # Changelog
 
-## Beta 14
+## Beta 15
 
 ### Added
 - **Your own outpost.** After you break the warband on the new frontier in Act 3, Hale offers you the station it held. Claim it and it earns 25 credits a minute while you play, up to 4,000, paid out whenever you dock there. The Logbook's Story page shows where it is and what is waiting. There is a new "Home Port" achievement (19 in all).

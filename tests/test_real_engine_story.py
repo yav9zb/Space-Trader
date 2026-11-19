@@ -50,33 +50,34 @@ def press(game, key):
     frames(game)
 
 
+def clear_hazards_near(position, radius=3000):
+    """Bandits, patrols, asteroids and black holes are random and can knock
+    the ship away or shoot it. These tests are about the story wiring, not
+    about surviving, so keep the approach quiet."""
+    from src.combat.combat_manager import combat_manager
+    for group in (combat_manager.active_bandits, combat_manager.active_patrols,
+                  combat_manager.active_asteroids, combat_manager.active_black_holes):
+        group[:] = [x for x in group if (x.position - position).length() > radius]
+
+
 def dock_at(game, station):
     """Fly up to a station slowly, the way a player does, and let the real
-    docking manager take over."""
+    docking manager take over. If something nudges the ship away, fly back."""
     assert game.current_state == GameStates.PLAYING
     manager = game.docking_manager
     distance = station.size + game.ship.size + manager.docking_range_buffer - 10
-    game.ship.position = Vector2(station.position.x - distance, station.position.y)
-    game.ship.velocity = Vector2(0, 0)
-    for _ in range(600):
-        frames(game, render=False)
-        if manager.is_docked():
-            return
-    from src.combat.combat_manager import combat_manager
-    from src.factions import get_station_faction
-    nearby = [(type(x).__name__, round((x.position - game.ship.position).length()))
-              for group in (combat_manager.active_bandits, combat_manager.active_patrols,
-                            combat_manager.active_black_holes, combat_manager.active_asteroids)
-              for x in group if (x.position - game.ship.position).length() < 1500]
-    raise AssertionError(
-        f"never docked at {station.name} "
-        f"(faction {get_station_faction(station, game.world_seed)}, "
-        f"in universe: {station in game.universe.stations}): "
-        f"state={manager.docking_state}, target={getattr(manager.target_station, 'name', None)}, "
-        f"message={manager.get_status_message()!r}, game_state={game.current_state}, "
-        f"distance={(game.ship.position - station.position).length():.0f}, "
-        f"speed={game.ship.velocity.length():.1f}, hull={game.ship.current_hull}, "
-        f"standing={dict(game.mission_manager.faction_standing)}, nearby={nearby[:8]}")
+    approach = Vector2(station.position.x - distance, station.position.y)
+
+    for attempt in range(5):
+        clear_hazards_near(station.position)
+        game.ship.position = Vector2(approach)
+        game.ship.velocity = Vector2(0, 0)
+        game.ship.current_hull = game.ship.get_effective_stats().get_effective_hull_points()
+        for _ in range(150):
+            frames(game, render=False)
+            if manager.is_docked():
+                return
+    raise AssertionError(f"never docked at {station.name}: {manager.get_status_message()!r}")
 
 
 def undock(game):
