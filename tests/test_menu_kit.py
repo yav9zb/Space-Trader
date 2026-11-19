@@ -629,3 +629,16 @@ def test_the_control_scheme_can_be_cycled_and_the_reference_panel_follows(engine
     engine.render()                                                             # draws the new bindings
     state.handle_input(key(pygame.K_LEFT))
     assert control_scheme_manager.get_current_scheme() == first
+
+
+def test_up_and_down_move_through_a_pages_rows_and_wrap(engine, settings_screen):
+    state = settings_screen
+    state.page = "camera"
+    state.selected["camera"] = 0
+    state.handle_input(key(pygame.K_DOWN))
+    assert state.selected["camera"] == 1
+    state.handle_input(key(pygame.K_UP))
+    state.handle_input(key(pygame.K_UP))
+    assert state.selected["camera"] == len(state.rows("camera")) - 1          # wrapped to Back
+    state.handle_input(key(pygame.K_RETURN))
+    assert state.page is None
