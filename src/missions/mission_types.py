@@ -13,6 +13,8 @@ class MissionType(Enum):
     EXPLORATION = "Exploration"
     EMERGENCY_DELIVERY = "Emergency Delivery"
     STORY = "Story"
+    ESCORT = "Escort"
+    BOUNTY = "Bounty"
 
 
 class MissionStatus(Enum):
@@ -117,6 +119,11 @@ class Mission:
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         Mission.REGISTRY[cls.__name__] = cls
+
+    def on_update(self, game_engine):
+        """Called every frame while the mission is active, before progress is
+        checked. Missions that put things into the world (escorts, bounty
+        targets) use it to spawn or respawn them; most do nothing."""
 
     def get_extra_state(self) -> Dict[str, Any]:
         return {name: getattr(self, name) for name in self.EXTRA_STATE_FIELDS}

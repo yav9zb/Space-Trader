@@ -1,5 +1,14 @@
 # Changelog
 
+## Beta 10
+
+### Added
+- **Escort missions.** Guard a trader on its run to another station. It is spawned when you accept, with a pirate ambush waiting beside the route. Pirates now go after an escorted trader if it is closer than you are. The mission succeeds if the trader docks and fails if it is destroyed. Escorted traders never flee, so they keep heading for their destination. Offered at Trading Posts and Mining Stations.
+- **Bounty missions.** Hunt a named pirate captain (shown with a name label) in a given sector, usually in Pirate Territory. Heavier captains lurk farther out. Offered at Military Bases and Shipyards.
+
+### Fixed
+- **Most mission types could not be accepted, even with enough reputation.** Supply runs (reputation 5), trading contracts (10), exploration (15), and emergency deliveries (20) passed the reputation check, then failed a second check that ignored your reputation and reported "Failed to accept mission". Only reputation-free missions could be taken. Reputation-gated missions now accept normally.
+
 ## Beta 9
 
 ### Added

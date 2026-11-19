@@ -5,6 +5,8 @@ from enum import Enum
 import pygame
 from pygame import Vector2
 
+from ..story.story_state import story_state
+
 
 class TraderState(Enum):
     TRAVELING = "traveling"
@@ -31,6 +33,10 @@ class TraderShip:
         self.faction = faction
         self.destination_station = destination_station
         self.alive = True
+        # Set by an escort mission: an escorted trader never flees (it keeps
+        # heading for its destination), is a target for bandits, and reports
+        # arrival or loss to the mission through story counters.
+        self.escort_id = None
 
         self.size = 14
         self.max_hull = 40
@@ -64,6 +70,8 @@ class TraderShip:
                 return
             distance = (self.destination_station.position - self.position).length()
             if distance <= self.destination_station.size + 40:
+                if self.escort_id:
+                    story_state.bump(f"escort_arrived:{self.escort_id}")
                 self.alive = False  # arrived - simulated docking, despawn
                 return
             self._move_toward(self.destination_station.position, delta_time)
@@ -87,11 +95,13 @@ class TraderShip:
     def take_damage(self, damage: float) -> bool:
         """Apply damage. Returns True if destroyed."""
         self.current_hull -= damage
-        if self.state != TraderState.FLEEING:
+        if self.state != TraderState.FLEEING and not self.escort_id:
             self.state = TraderState.FLEEING
             self.flee_timer = 0.0
         if self.current_hull <= 0:
             self.alive = False
+            if self.escort_id:
+                story_state.bump(f"escort_lost:{self.escort_id}")
             return True
         return False
 

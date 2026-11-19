@@ -6,7 +6,8 @@ from typing import List, Dict, Optional, Any
 from .mission_types import Mission, MissionStatus, MissionType
 from .specific_missions import (
     DeliveryMission, TradingContractMission, SupplyRunMission,
-    EmergencyDeliveryMission, ExplorationMission
+    EmergencyDeliveryMission, ExplorationMission, EscortMission, BountyMission,
+    BOUNTY_FIRST_NAMES, BOUNTY_LAST_NAMES
 )
 
 try:
@@ -49,20 +50,23 @@ class MissionManager:
         # Station mission preferences based on type
         self.station_mission_preferences = {
             StationType.TRADING: {
-                MissionType.DELIVERY: 0.4,
-                MissionType.TRADING_CONTRACT: 0.4,
-                MissionType.SUPPLY_RUN: 0.2
+                MissionType.DELIVERY: 0.35,
+                MissionType.TRADING_CONTRACT: 0.35,
+                MissionType.SUPPLY_RUN: 0.15,
+                MissionType.ESCORT: 0.15
             },
             StationType.MILITARY: {
-                MissionType.EMERGENCY_DELIVERY: 0.3,
-                MissionType.SUPPLY_RUN: 0.3,
-                MissionType.EXPLORATION: 0.2,
-                MissionType.DELIVERY: 0.2
+                MissionType.EMERGENCY_DELIVERY: 0.2,
+                MissionType.SUPPLY_RUN: 0.2,
+                MissionType.EXPLORATION: 0.1,
+                MissionType.DELIVERY: 0.15,
+                MissionType.BOUNTY: 0.35
             },
             StationType.MINING: {
-                MissionType.DELIVERY: 0.4,
-                MissionType.SUPPLY_RUN: 0.4,
-                MissionType.TRADING_CONTRACT: 0.2
+                MissionType.DELIVERY: 0.35,
+                MissionType.SUPPLY_RUN: 0.35,
+                MissionType.TRADING_CONTRACT: 0.15,
+                MissionType.ESCORT: 0.15
             },
             StationType.RESEARCH: {
                 MissionType.EXPLORATION: 0.4,
@@ -70,9 +74,10 @@ class MissionManager:
                 MissionType.SUPPLY_RUN: 0.3
             },
             StationType.SHIPYARD: {
-                MissionType.SUPPLY_RUN: 0.4,
-                MissionType.DELIVERY: 0.3,
-                MissionType.TRADING_CONTRACT: 0.3
+                MissionType.SUPPLY_RUN: 0.35,
+                MissionType.DELIVERY: 0.25,
+                MissionType.TRADING_CONTRACT: 0.25,
+                MissionType.BOUNTY: 0.15
             }
         }
     
@@ -87,6 +92,10 @@ class MissionManager:
         
         # Update active missions
         for mission in self.active_missions[:]:  # Copy list to avoid modification during iteration
+            try:
+                mission.on_update(game_engine)
+            except Exception:
+                logger.exception(f"on_update failed for mission {mission.title}")
             if mission.update_progress(game_engine.ship, self.get_current_station(game_engine)):
                 # Mission completed
                 self.complete_mission(mission, game_engine.ship, game_engine)
@@ -109,6 +118,7 @@ class MissionManager:
         
         # Mark station as visited
         self.visited_stations.add(station.name)
+        self._world_seed = getattr(game_engine, "world_seed", None)
         
         # Use station name as seed for deterministic mission generation
         station_seed = hash(f"{game_engine.universe.world_seed}_{station.name}") & 0x7FFFFFFF
@@ -144,6 +154,7 @@ class MissionManager:
             return
         
         logger.info(f"Refreshing missions for {len(self.visited_stations)} visited stations")
+        self._world_seed = getattr(game_engine, "world_seed", None)
         
         # Remove old missions from visited stations
         self.available_missions = [
@@ -219,6 +230,10 @@ class MissionManager:
                 return self._generate_emergency_delivery_mission(origin_station, stations)
             elif mission_type == MissionType.EXPLORATION:
                 return self._generate_exploration_mission(origin_station)
+            elif mission_type == MissionType.ESCORT:
+                return self._generate_escort_mission(origin_station, stations)
+            elif mission_type == MissionType.BOUNTY:
+                return self._generate_bounty_mission(origin_station)
         except Exception as e:
             logger.warning(f"Failed to generate {mission_type} mission: {e}")
             return None
@@ -234,6 +249,40 @@ class MissionManager:
         origin_station = random.choice(stations)
         return self.generate_station_specific_mission(origin_station, stations)
     
+    def _generate_escort_mission(self, origin_station, stations) -> Optional[EscortMission]:
+        """Generate an escort mission to another station."""
+        possible_destinations = [s for s in stations if s is not origin_station]
+        if not possible_destinations:
+            return None
+        destination = random.choice(possible_destinations)
+        return EscortMission(origin_station.name, destination.name)
+
+    def _generate_bounty_mission(self, origin_station) -> Optional[BountyMission]:
+        """Generate a bounty on a named pirate captain, preferably in Pirate
+        Territory a few sectors out."""
+        from ..factions import get_controlling_faction, FACTION_PIRATE
+
+        world_seed = getattr(self, "_world_seed", None)
+        sector = None
+        for _ in range(60):
+            cx = random.randint(-8, 8)
+            cy = random.randint(-8, 8)
+            ring = max(abs(cx), abs(cy))
+            if ring < 3:
+                continue
+            if world_seed is not None and get_controlling_faction(cx, cy, world_seed) != FACTION_PIRATE:
+                continue
+            sector = (cx, cy, ring)
+            break
+        if sector is None:
+            # No pirate sector found nearby (or no seed known): any distant sector
+            cx, cy = random.choice([(4, 0), (-4, 0), (0, 4), (0, -4), (5, 5), (-5, -5)])
+            sector = (cx, cy, max(abs(cx), abs(cy)))
+
+        name = f"{random.choice(BOUNTY_FIRST_NAMES)} {random.choice(BOUNTY_LAST_NAMES)}"
+        target_type = "boss" if sector[2] >= 6 else "heavy"
+        return BountyMission(name, sector[0], sector[1], target_type, origin_station.name)
+
     def _generate_delivery_mission(self, origin_station, stations) -> Optional[DeliveryMission]:
         """Generate a delivery mission."""
         # Choose destination station (not the same as origin)

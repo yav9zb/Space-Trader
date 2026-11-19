@@ -19,6 +19,7 @@ This document tracks what's actually implemented versus genuinely still planned.
 
 - **Story foundations** - saved campaign state, event tracking, a dialogue engine and conversation screen, named station contacts (Talk key when docked), and a Logbook (pause menu). Mission save/load was also fixed so in-progress missions keep working after loading.
 - **Story prologue** - a three-mission opening chapter driven by authored mission data, conversation choices, and automatic scenes; story missions save and load like any other mission.
+- **Escort and bounty missions** - escorts spawn a trader plus an ambush and bandits will attack the escorted trader; bounties spawn a named, labeled pirate captain. Both recover if loaded mid-mission.
 - **Left-handed controls fix** - the default scheme shared keys between dock/trading and undock/upgrades, so a docked player could not undock; station services moved to Z/X/C/V.
 
 ## Planned / Not Yet Implemented

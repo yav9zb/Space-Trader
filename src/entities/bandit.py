@@ -28,6 +28,16 @@ class BanditType(Enum):
     BOSS = "boss"
 
 
+_NAME_FONT = None
+
+
+def _name_font():
+    global _NAME_FONT
+    if _NAME_FONT is None:
+        _NAME_FONT = pygame.font.Font(None, 22)
+    return _NAME_FONT
+
+
 class BanditShip:
     """AI-controlled bandit ship with combat capabilities."""
     
@@ -41,6 +51,11 @@ class BanditShip:
         # Initialize stats based on type
         self._init_stats()
         
+        # Set for bounty targets: a displayed name, and the mission that
+        # wants this ship dead (reported through a story counter on death)
+        self.name = None
+        self.bounty_id = None
+
         # AI state
         self.state = BanditState.PATROLLING
         self.target = None
@@ -191,13 +206,16 @@ class BanditShip:
         # Update weapon system
         self.weapon_system.update(delta_time)
         
+        # Who to go after: the player, or an escorted trader that is closer
+        focus = self._select_focus(player_ship)
+
         # AI decision making
         if self.state_timer >= self.decision_interval:
-            self._make_decision(player_ship)
+            self._make_decision(focus)
             self.state_timer = 0.0
         
         # Execute current behavior
-        self._execute_behavior(delta_time, player_ship)
+        self._execute_behavior(delta_time, focus, player_ship)
         
         # Update physics
         self._update_physics(delta_time)
@@ -205,6 +223,21 @@ class BanditShip:
         # Check for state transitions
         self._check_state_transitions(player_ship)
     
+    def _select_focus(self, player_ship):
+        """The nearest thing worth attacking: the player, or an escorted
+        trader within detection range that is closer than the player.
+        Ordinary traders are left alone."""
+        from ..combat.combat_manager import combat_manager
+
+        focus = player_ship
+        best = (player_ship.position - self.position).length()
+        for trader in combat_manager.active_traders:
+            if trader.escort_id and trader.alive:
+                distance = (trader.position - self.position).length()
+                if distance < best and distance <= self.detection_range:
+                    focus, best = trader, distance
+        return focus
+
     def _make_decision(self, player_ship):
         """Make AI decisions based on current situation."""
         distance_to_player = (player_ship.position - self.position).length()
@@ -232,14 +265,16 @@ class BanditShip:
                 self.state = BanditState.PATROLLING
                 self.target = None
     
-    def _execute_behavior(self, delta_time: float, player_ship):
-        """Execute behavior based on current state."""
+    def _execute_behavior(self, delta_time: float, focus, player_ship):
+        """Execute behavior based on current state. Hunting and attacking go
+        after the focus (player or escorted trader); fleeing is always from
+        the player."""
         if self.state == BanditState.PATROLLING:
             self._patrol_behavior(delta_time)
         elif self.state == BanditState.HUNTING:
-            self._hunt_behavior(delta_time, player_ship)
+            self._hunt_behavior(delta_time, focus)
         elif self.state == BanditState.ATTACKING:
-            self._attack_behavior(delta_time, player_ship)
+            self._attack_behavior(delta_time, focus)
         elif self.state == BanditState.FLEEING:
             self._flee_behavior(delta_time, player_ship)
     
@@ -421,6 +456,11 @@ class BanditShip:
             if fill_width > 0:
                 pygame.draw.rect(screen, health_color,
                                (bar_x, bar_y, fill_width, bar_height))
+        
+        if self.name and self.state != BanditState.DISABLED:
+            label = _name_font().render(self.name, True, (255, 210, 130))
+            screen.blit(label, (screen_pos.x - label.get_width() // 2,
+                                screen_pos.y - self.base_size - 28))
         
         # Draw weapon projectiles
         self.weapon_system.draw(screen, camera_offset)

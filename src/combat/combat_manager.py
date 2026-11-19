@@ -174,12 +174,16 @@ class CombatManager:
     
     def _check_bandit_combat(self, bandit: BanditShip, ship, game_engine):
         """Check bandit combat interactions."""
-        # Check bandit weapon hits on player
-        hits = bandit.weapon_system.check_hits([ship])
+        # Check bandit weapon hits on the player and on escorted traders
+        escorted = [t for t in self.active_traders if t.escort_id and t.alive]
+        hits = bandit.weapon_system.check_hits([ship] + escorted)
         for projectile, target in hits:
             damage = projectile.damage
-            ship.take_damage(damage)
-            self.damage_taken += damage
+            if target is ship:
+                ship.take_damage(damage)
+                self.damage_taken += damage
+            elif target.take_damage(damage):
+                self._create_explosion(target.position, target.size * 2)
             
         # Check collisions between bandit and ship
         distance = (bandit.position - ship.position).length()
@@ -291,6 +295,8 @@ class CombatManager:
         self._create_explosion(bandit.position, bandit.base_size * 2)
 
         from ..story.story_state import story_state
+        if bandit.bounty_id:
+            story_state.bump(f"bounty_killed:{bandit.bounty_id}")
         story_state.record_event(
             "bandit_destroyed",
             bandit_type=bandit.bandit_type.value,

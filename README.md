@@ -30,7 +30,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Market Dynamics**: Station-specific pricing and supply/demand mechanics
 
 #### Mission System
-- **5 Mission Types**: Delivery, Trading Contracts, Supply Runs, Emergency Delivery, Exploration
+- **7 Mission Types**: Delivery, Trading Contracts, Supply Runs, Emergency Delivery, Exploration, Escort (guard a trader past a pirate ambush), and Bounty (hunt a named pirate captain)
 - **Mission Generation**: Dynamic mission creation based on station types and universe state
 - **Mission Tracking**: Progress tracking, time limits, and completion rewards
 - **Mission Cargo**: Special tracking for mission-related commodities

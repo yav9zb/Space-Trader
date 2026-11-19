@@ -615,3 +615,207 @@ class ExplorationMission(Mission):
         self.progress_description = f"Explored {completed_objectives}/{len(self.target_sectors)} sectors"
         
         return False
+
+class EscortMission(Mission):
+    """Escort a trader from the origin station to a destination. The trader
+    is spawned when the mission becomes active, with an ambush waiting along
+    the route; the mission succeeds if the trader arrives and fails if it is
+    destroyed. Outcomes are reported through story counters (see
+    TraderShip), so progress needs no live references and survives loading:
+    if the trader is missing after a load it is respawned beside the player.
+    """
+
+    EXTRA_STATE_FIELDS = ("escort_spawned", "ambush_spawned")
+
+    def __init__(self, origin_station_id: str, destination_station_id: str,
+                 mission_id: str = None):
+        super().__init__(mission_id)
+
+        self.mission_type = MissionType.ESCORT
+        self.origin_station_id = origin_station_id
+        self.destination_station_id = destination_station_id
+        self.escort_spawned = False
+        self.ambush_spawned = False
+
+        self.title = f"Escort Trader to {destination_station_id}"
+        self.description = (
+            f"A trader at {origin_station_id} needs protection on the run to "
+            f"{destination_station_id}. Pirates have been seen along the route. "
+            f"Keep the trader alive until it docks."
+        )
+
+        base_reward = random.randint(800, 1500)
+        self.requirements = MissionRequirement(min_reputation=5)
+        self.reward = MissionReward(credits=base_reward, reputation_bonus=random.randint(6, 14))
+        self.penalty = MissionPenalty(credits=int(base_reward * 0.2),
+                                      reputation_loss=random.randint(3, 8))
+        self.time_limit = 7200
+
+        self.objectives = [MissionObjective(
+            description=f"Escort the trader safely to {destination_station_id}",
+            target_station_id=destination_station_id,
+        )]
+        self.progress_description = "Meet the trader at the origin station"
+
+    def on_update(self, game_engine):
+        if self.status not in (MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS):
+            return
+
+        from ..combat.combat_manager import combat_manager
+        from ..story.story_state import story_state
+
+        if (story_state.count_events(f"escort_arrived:{self.id}")
+                or story_state.count_events(f"escort_lost:{self.id}")):
+            return  # settled; update_progress will resolve it
+
+        stations = game_engine.universe.stations
+        origin = next((s for s in stations if s.name == self.origin_station_id), None)
+        destination = next((s for s in stations if s.name == self.destination_station_id), None)
+        if origin is None or destination is None:
+            return
+
+        has_trader = any(t.escort_id == self.id and t.alive for t in combat_manager.active_traders)
+        if not has_trader:
+            self._spawn_trader(game_engine, origin, destination, combat_manager)
+        if not self.ambush_spawned:
+            self._spawn_ambush(origin, destination, combat_manager)
+
+    def _spawn_trader(self, game_engine, origin, destination, combat_manager):
+        from pygame import Vector2
+        from ..entities.trader import TraderShip
+        from ..factions import get_station_faction
+
+        if self.escort_spawned:
+            # Lost without being destroyed (e.g. after loading a save): bring
+            # it back beside the player rather than failing the mission
+            position = game_engine.ship.position + Vector2(80, 0)
+        else:
+            position = origin.position + Vector2(origin.size + 40, 0)
+
+        trader = TraderShip(position, destination, get_station_faction(origin, game_engine.world_seed))
+        trader.escort_id = self.id
+        combat_manager.add_trader(trader)
+        self.escort_spawned = True
+        self.status = MissionStatus.IN_PROGRESS
+        self.progress_description = f"Escort the trader to {self.destination_station_id}"
+
+    def _spawn_ambush(self, origin, destination, combat_manager):
+        from pygame import Vector2
+        from ..entities.bandit import create_bandit_encounter
+
+        route = destination.position - origin.position
+        midpoint = (origin.position + destination.position) / 2
+        if route.length() > 0:
+            midpoint += Vector2(-route.y, route.x).normalize() * 250
+        kind = "scout_patrol" if route.length() < 2000 else "fighter_squad"
+        for bandit in create_bandit_encounter(midpoint, kind):
+            combat_manager.add_bandit(bandit)
+        self.ambush_spawned = True
+
+    def update_progress(self, ship, current_station=None) -> bool:
+        if self.status not in (MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS):
+            return False
+
+        if self.is_expired():
+            self.status = MissionStatus.EXPIRED
+            return False
+
+        from ..story.story_state import story_state
+
+        if story_state.count_events(f"escort_lost:{self.id}"):
+            self.status = MissionStatus.FAILED
+            self.progress_description = "The trader was destroyed"
+            return False
+        if story_state.count_events(f"escort_arrived:{self.id}"):
+            self.objectives[0].completed = True
+            self.completion_percentage = 1.0
+            self.complete()
+            return True
+        return False
+
+
+BOUNTY_FIRST_NAMES = ["Red", "Iron", "Black", "One-Eye", "Silent", "Mad", "Gutter", "Sable"]
+BOUNTY_LAST_NAMES = ["Vask", "Dray", "Korr", "Mallow", "Thane", "Quill", "Rook", "Skarn"]
+
+
+class BountyMission(Mission):
+    """Hunt a named pirate captain in a given sector. The target is spawned
+    when the mission becomes active and respawned if it is missing (for
+    example after loading a save) until it has been killed; the kill is
+    reported through a story counter.
+    """
+
+    EXTRA_STATE_FIELDS = ("target_name", "sector_x", "sector_y", "target_type")
+
+    def __init__(self, target_name: str, sector_x: int, sector_y: int,
+                 target_type: str = "heavy", origin_station_id: str = None,
+                 mission_id: str = None):
+        super().__init__(mission_id)
+
+        self.mission_type = MissionType.BOUNTY
+        self.origin_station_id = origin_station_id
+        self.target_name = target_name
+        self.sector_x = sector_x
+        self.sector_y = sector_y
+        self.target_type = target_type
+
+        # Shown the same way the Navigation HUD shows sectors
+        display_x = int(self._spawn_position().x // 1000)
+        display_y = int(-self._spawn_position().y // 1000)
+        self.title = f"Bounty: {target_name}"
+        self.description = (
+            f"{target_name} is a wanted pirate captain operating in Sector "
+            f"({display_x}, {display_y}). Hunt them down and destroy their ship."
+        )
+
+        is_boss = target_type == "boss"
+        base_reward = random.randint(2600, 3600) if is_boss else random.randint(1500, 2400)
+        self.requirements = MissionRequirement(min_reputation=10)
+        self.reward = MissionReward(credits=base_reward,
+                                    reputation_bonus=random.randint(12, 22) if is_boss else random.randint(8, 15))
+        self.penalty = MissionPenalty(credits=int(base_reward * 0.1), reputation_loss=random.randint(2, 5))
+        self.time_limit = 10800
+
+        self.objectives = [MissionObjective(
+            description=f"Destroy {target_name} in Sector ({display_x}, {display_y})")]
+        self.progress_description = f"Find {target_name} in Sector ({display_x}, {display_y})"
+
+    def _spawn_position(self):
+        from pygame import Vector2
+        return Vector2(self.sector_x * 1000 + 500, self.sector_y * 1000 + 500)
+
+    def on_update(self, game_engine):
+        if self.status not in (MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS):
+            return
+
+        from ..combat.combat_manager import combat_manager
+        from ..story.story_state import story_state
+
+        if story_state.count_events(f"bounty_killed:{self.id}"):
+            return
+        if any(b.bounty_id == self.id for b in combat_manager.active_bandits):
+            return
+
+        from ..entities.bandit import BanditShip, BanditType
+        target = BanditShip(self._spawn_position(), BanditType(self.target_type))
+        target.name = self.target_name
+        target.bounty_id = self.id
+        combat_manager.add_bandit(target)
+        self.status = MissionStatus.IN_PROGRESS
+
+    def update_progress(self, ship, current_station=None) -> bool:
+        if self.status not in (MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS):
+            return False
+
+        if self.is_expired():
+            self.status = MissionStatus.EXPIRED
+            return False
+
+        from ..story.story_state import story_state
+
+        if story_state.count_events(f"bounty_killed:{self.id}"):
+            self.objectives[0].completed = True
+            self.completion_percentage = 1.0
+            self.complete()
+            return True
+        return False
