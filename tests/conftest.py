@@ -8,7 +8,18 @@ import os
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
+import tempfile
+
 import pytest
+
+# Point every user-data path (settings.json, saves, legacy.json, the log) at a
+# throwaway folder BEFORE any game module is imported: the settings singleton
+# reads and later writes settings.json as soon as src.settings is imported, and
+# without this the suite rewrote the developer's real settings on every run.
+from src import paths as _paths
+
+_TEST_USER_DATA = tempfile.mkdtemp(prefix="spacetrader_tests_")
+_paths.get_user_data_dir = lambda: _TEST_USER_DATA
 
 
 @pytest.fixture(autouse=True, scope="session")

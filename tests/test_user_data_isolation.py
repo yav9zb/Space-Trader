@@ -19,3 +19,13 @@ def test_an_autosave_from_the_real_engine_lands_in_the_isolated_folder(tmp_path)
     engine._auto_save()
     assert (save_system.save_directory / "autosave.json").exists()
     assert os.path.abspath(str(save_system.save_directory)) != os.path.abspath("saves")
+
+
+def test_settings_are_read_from_and_written_to_the_isolated_folder():
+    from src.paths import get_user_data_path
+    from src.settings import game_settings
+
+    path = get_user_data_path("settings.json")
+    assert os.path.abspath(path) != os.path.abspath("settings.json")
+    game_settings.save()
+    assert os.path.exists(path)
