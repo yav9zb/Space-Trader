@@ -1,3 +1,4 @@
+import logging
 import pygame
 import math
 import time
@@ -17,6 +18,9 @@ except ImportError:
     from dev_view import DevView
     from ui_layout import UILayout, Anchor
     from ui_theme import ui_theme, UIElementType, UIState
+
+
+logger = logging.getLogger(__name__)
 
 
 class HUDPosition(Enum):
@@ -208,6 +212,13 @@ class EnhancedHUD:
         if game_settings.show_fps:
             self._render_fps(surface, game_engine)
         
+        # Arrow toward the current mission objective
+        try:
+            from .. import objective_pointer
+            objective_pointer.draw(surface, game_engine, self.font_small)
+        except Exception:
+            logger.exception("Objective pointer failed")
+
         # Render dev view overlay
         self.dev_view.render(surface, game_engine)
         

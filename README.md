@@ -83,6 +83,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Story Campaign**: A prologue and four acts (the ledger, the Guild's secret, a border war, and the signal) across 16 missions and six contacts, with six endings depending on your choices
 - **New Game+**: Finish the campaign and carry one legacy perk into your next game
 - **Achievements**: 19 achievements tracked across games and listed in the Logbook
+- **Objective pointer**: an arrow around your ship points at the current mission's destination
 - **Visual Effects**: Enhanced explosions, particle systems, and environmental effects
 
 ## Controls
