@@ -109,3 +109,34 @@ def test_long_text_and_many_choices_stay_within_the_panel():
     # The selected (last) choice must be one of the drawn, clickable ones
     assert any(index == 11 for index, _ in state.choice_rects)
     assert all(rect.bottom <= 668 for _, rect in state.choice_rects)
+
+
+def test_an_effect_that_moves_the_game_on_is_not_overridden_by_leaving():
+    """The ending is triggered by a choice's effect; the dialogue closing
+    afterwards must not drag the game back to flight."""
+    game = make_game()
+    game.current_state = GameStates.DIALOGUE
+
+    def start_victory():
+        game.current_state = GameStates.VICTORY
+        game.changed_to.append(GameStates.VICTORY)
+    game.start_victory = start_victory
+
+    nodes = {"end": Node("end", "Signal", "Decide.", choices=[
+        Choice("Open it.", next=None, effects=[{"type": "complete_campaign"}])])}
+    state = DialogueState(game, "end", nodes)
+    game.states = {GameStates.DIALOGUE: state}
+
+    state.handle_input(key(pygame.K_RETURN))
+
+    assert game.changed_to == [GameStates.VICTORY]
+    assert game.story_state.has_flag("campaign_complete")
+
+
+def test_leaving_still_returns_to_play_when_nothing_else_happened():
+    game = make_game()
+    game.current_state = GameStates.DIALOGUE
+    state = DialogueState(game, "start", NODES)
+    game.states = {GameStates.DIALOGUE: state}
+    state.handle_input(key(pygame.K_ESCAPE))
+    assert game.changed_to == [GameStates.PLAYING]

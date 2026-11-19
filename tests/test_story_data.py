@@ -119,6 +119,61 @@ def test_dialogue_effects_reference_real_missions_and_scenes():
 def test_station_tokens_refer_to_real_waypoints():
     import re
     valid = {f"{mid}.{key}" for mid, d in STORY_MISSIONS.items() for key in d.waypoints}
+    valid |= set(NPCS)                       # a contact's own station
     for node in NODES.values():
         for token in re.findall(r"\{station:([^}]+)\}", node.text):
             assert token in valid, (node.id, token)
+
+
+def _choices():
+    for node in NODES.values():
+        for choice in node.choices:
+            yield node, choice
+
+
+def test_story_mission_requirements_point_at_real_missions_and_stages():
+    for node, choice in _choices():
+        req = choice.requires
+        for key in ("story_active", "story_done", "not_story_started"):
+            if key in req:
+                assert req[key] in STORY_MISSIONS, (node.id, req[key])
+        for mission_id in req.get("story_done_all", []):
+            assert mission_id in STORY_MISSIONS, (node.id, mission_id)
+        if "story_stage" in req:
+            mission_id, stage = req["story_stage"]
+            assert mission_id in STORY_MISSIONS, (node.id, mission_id)
+            assert 0 <= stage < len(STORY_MISSIONS[mission_id].stages), (node.id, req)
+
+
+def test_every_waiting_counter_stage_is_fed_by_a_conversation():
+    """A counter stage named story:x is only ever advanced by a node that
+    bumps story:x; otherwise the mission could never finish."""
+    bumped = {e["name"] for e in _all_effects() if e["type"] == "bump_counter"}
+    for mission_id, definition in STORY_MISSIONS.items():
+        for stage in definition.stages:
+            if stage.kind == "counter":
+                assert stage.params["counter"] in bumped, (mission_id, stage.params["counter"])
+
+
+def test_every_story_mission_has_a_real_giver_and_something_that_starts_it():
+    """The contact named as giver must exist, and some node or an earlier
+    mission's completion must start the mission."""
+    started = {e["mission_id"] for e in _all_effects() if e["type"] == "start_story_mission"}
+    for mission_id, definition in STORY_MISSIONS.items():
+        assert definition.giver in NPCS, mission_id
+        assert mission_id in started, mission_id
+
+
+def test_ledger_entries_added_by_missions_and_dialogue_are_all_read_somewhere():
+    added = {e["id"] for e in _all_effects() if e["type"] == "add_ledger_entry"}
+    assert set(LEDGER_ENTRIES) <= added, set(LEDGER_ENTRIES) - added
+
+
+def test_every_campaign_chapter_is_entered_by_a_set_chapter_effect():
+    entered = {e["chapter"] for e in _all_effects() if e["type"] == "set_chapter"}
+    assert set(CHAPTER_ORDER) - {"prologue"} <= entered
+
+
+def test_the_campaign_has_the_planned_size():
+    assert len(STORY_MISSIONS) == 16
+    assert len(NPCS) == 6

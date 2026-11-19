@@ -113,3 +113,27 @@ def test_prologue_summary_updates_once_the_prologue_is_complete():
     text = text_of(build_pages(game)["Story"])
     assert "Courier Reyes confirmed it" in text
     assert "Earn a trader's license" not in text
+
+
+def story_text(game):
+    return " ".join(text for _, text in build_pages(game)["Story"])
+
+
+def test_story_page_says_what_comes_next_when_an_act_is_finished():
+    game = make_game()
+    game.story_state.chapter = "act_1"
+    assert "Hear all three" in story_text(game)
+
+    game.story_state.completed_story_missions = ["act1_1", "act1_2", "act1_3"]
+    text = story_text(game)
+    assert "Hale will want to hear it" in text
+    assert "Hear all three" not in text
+
+
+def test_every_ledger_entry_shows_once_discovered():
+    game = make_game()
+    from src.story.lore import LEDGER_ENTRIES
+    game.story_state.ledger_entries = list(LEDGER_ENTRIES)
+    text = story_text(game)
+    for title, _ in LEDGER_ENTRIES.values():
+        assert title in text

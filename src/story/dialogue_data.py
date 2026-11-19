@@ -142,11 +142,17 @@ _add(Node(
     "Reyes told you that? Then Jessup was right to be afraid, and so are we. "
     "I have been a dock master for forty years and I have never wanted so "
     "badly to be wrong.\n\n"
-    "That is all I can ask of you for now. When the ledger gives up its next "
-    "secret, I will find you. Fly safe, captain.",
-    on_enter=[{"type": "set_flag", "name": "prologue_epilogue_seen"}],
+    "The ledger's next lines point three ways, and I know someone at the end "
+    "of each. Captain Rourke flew with Jessup, at {station:rourke}. An "
+    "auditor named Voss, who keeps her head down inside the Guild, at "
+    "{station:voss}. And Kestrel, who sells what pirates know, at "
+    "{station:kestrel}. Hear what each has to say, then come back to me.",
+    on_enter=[
+        {"type": "set_flag", "name": "prologue_epilogue_seen"},
+        {"type": "set_chapter", "chapter": "act_1"},
+    ],
     choices=[
-        Choice("I will be ready.", next=None),
+        Choice("I will hear them out.", next=None),
     ],
 ))
 
@@ -180,3 +186,10 @@ _add(Node(
         Choice("I will find out who did this.", next=None),
     ],
 ))
+
+
+# The campaign proper (Acts 1 to 4) is authored in dialogue_acts.py and
+# registers its nodes through add_node above.
+add_node = _add
+
+from . import dialogue_acts  # noqa: E402,F401

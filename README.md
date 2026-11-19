@@ -68,7 +68,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Reputation and Ranks**: Overall reputation (Rookie to Legend) gates the top tier of ship upgrades; separate standing with each faction gates some missions and adjusts upgrade prices.
 - **Neutral Traders**: Unarmed ships fly between stations. Attacking one plunders credits but costs reputation.
 - **Patrols, Hostility and Contraband**: Guild patrols hunt bandits and can be called as backup at Captain rank; at -60 standing a faction's patrols attack you and its stations bar you. Trade Guild stations inspect for contraband; pirate markets pay a premium for it. Market events (raids, shortages, embargoes) move prices regionally.
-- **Station Contacts**: Named characters wait at some stations; dock and press the Talk key to start a conversation. The Logbook (pause menu) tracks the story, contacts you have met, and faction standing. The prologue of a story campaign is playable: talk to Dock Master Hale to begin; more chapters are in progress.
+- **Station Contacts**: Named characters wait at some stations; dock and press the Talk key to start a conversation. The Logbook (pause menu) tracks the story, contacts you have met, and faction standing. A full story campaign is playable: talk to Dock Master Hale to begin.
 
 #### User Interface
 - **Minimap**: Real-time minimap showing nearby objects and ship position
@@ -80,7 +80,8 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 
 - **Advanced AI**: Improved enemy tactics and faction-based behaviors
 - **Multiplayer**: Cooperative and competitive multiplayer modes
-- **Story Campaign**: The prologue is playable; Acts 1-4 (the Guild's secret, a border war, and the signal) are in progress
+- **Story Campaign**: A prologue and four acts (the ledger, the Guild's secret, a border war, and the signal) across 16 missions and six contacts, with six endings depending on your choices
+- **New Game+**: Finish the campaign and carry one legacy perk into your next game
 - **Visual Effects**: Enhanced explosions, particle systems, and environmental effects
 
 ## Controls
@@ -192,6 +193,8 @@ Produces a standalone build in `dist/` (`Space Trader.app` on macOS, an exe + fo
 - **Dialogue** (`src/story/dialogue.py`, `src/story/dialogue_data.py`): Choice/requirement/effect engine and the authored conversations
 - **Story Missions** (`src/story/chapters.py`, `objectives.py`, `story_missions.py`): Authored missions as data (stages, waypoints, effects) run as normal missions
 - **Contacts** (`src/story/npcs.py`, `src/story/director.py`): Named station contacts and where they are placed
+- **Campaign content** (`src/story/chapters_acts.py`, `src/story/dialogue_acts.py`, `src/story/lore.py`): Acts 1-4 as data
+- **Endings and New Game+** (`src/story/endings.py`, `src/states/victory_state.py`, `src/legacy.py`): The ending screen and legacy perks
 - **Logbook** (`src/story/logbook.py`): Content for the Logbook screen
 
 ### Ship Systems

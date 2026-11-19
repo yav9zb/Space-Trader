@@ -14,3 +14,4 @@ settings.json
 saves/
 build/
 dist/
+legacy.json

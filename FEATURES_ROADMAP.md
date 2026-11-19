@@ -23,6 +23,7 @@ This document tracks what's actually implemented versus genuinely still planned.
 - **Patrols, backup, and hostile standing** - Guild patrols hunt bandits; Captains can call backup (H); at -60 standing a faction's patrols attack you and Guild/Pirate stations refuse docking, with ways back (bandit kills in its space, slow cooling off).
 - **Smuggling and market events** - contraband inspections at Guild stations, a pirate-market premium, Smuggling Run missions, and timed regional raids/shortages/embargoes shown as market news. Markets now actually refresh over time.
 - **Shifting borders and Liberation missions** - region control can change permanently (persisted); destroying a pirate stronghold frees its region. Player outposts are deferred until base building is integrated and saved.
+- **The full campaign** - four acts and 16 story missions across six station contacts, three paths (expose, join, stay independent), six endings, and New Game+ legacy perks. Starting a new game now gives a fresh ship in a clean universe.
 - **Left-handed controls fix** - the default scheme shared keys between dock/trading and undock/upgrades, so a docked player could not undock; station services moved to Z/X/C/V.
 
 ## Planned / Not Yet Implemented
@@ -33,8 +34,6 @@ This document tracks what's actually implemented versus genuinely still planned.
 
 ### Longer-term / Concept
 - **Advanced AI** - formation flying, tactical retreat, adaptive behavior, faction-aware coordination.
-- **Faction System** - reputation and relationships with trading guilds, military, pirates, corporations; faction-exclusive missions and territory control.
-- **Story Mode** - a narrative campaign with scripted events, distinct from the current sandbox gameplay loop.
 - **Multiplayer** - cooperative and competitive modes, a shared universe, guilds. This would be a substantial architectural change (the game is currently single-player/local-state only) and isn't scoped in any detail yet.
 - **Visual Effects** - particle systems for explosions/thrust beyond the current layered-polygon effects, environmental effects (nebulae, dust clouds).
 

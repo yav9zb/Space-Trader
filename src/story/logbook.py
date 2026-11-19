@@ -11,7 +11,9 @@ from ..factions import (
 from ..economy_events import economy_events
 from .director import find_station_by_name
 from .chapters import STORY_MISSIONS
-from .lore import CHAPTERS, LEDGER_ENTRIES, FACTION_BLURBS, PROLOGUE_DONE_SUMMARY
+from .lore import (
+    CHAPTERS, LEDGER_ENTRIES, FACTION_BLURBS, PROLOGUE_DONE_SUMMARY, ACT_DONE_SUMMARIES,
+)
 from .npcs import NPCS, is_available
 
 TABS = ["Story", "Contacts", "Factions"]
@@ -24,6 +26,13 @@ def _story_page(game) -> List[Line]:
     title, summary = CHAPTERS.get(story.chapter, CHAPTERS["prologue"])
     if story.chapter == "prologue" and story.has_flag("prologue_complete"):
         summary = PROLOGUE_DONE_SUMMARY
+    # Once a chapter's missions are all done, say what comes next
+    chapter_missions = {
+        "act_1": ["act1_1", "act1_2", "act1_3"],
+        "act_2": ["act2_1", "act2_2", "act2_3", "act2_4"],
+    }.get(story.chapter)
+    if chapter_missions and all(m in story.completed_story_missions for m in chapter_missions):
+        summary = ACT_DONE_SUMMARIES[story.chapter]
     lines: List[Line] = [("heading", title), ("body", summary), ("gap", "")]
 
     lines.append(("heading", "Story missions"))

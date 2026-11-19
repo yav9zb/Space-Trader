@@ -1,5 +1,22 @@
 # Changelog
 
+## Beta 13
+
+### Added
+- **The full campaign.** The story now runs from the prologue through four acts, 16 story missions in all, told through six contacts you find at stations:
+  - **Act 1, The Ledger:** Captain Rourke, Auditor Voss of the Trade Guild and Kestrel, a broker in Pirate Territory, each hold a piece of what Jessup Vane found. Hale ties it together.
+  - **Act 2, The Guild's Secret:** the Archivist copies the Guild's sealed ledgers, you hunt down the pirate paymaster Dross, escort a witness to safety, and hear what Director Marrow has to offer.
+  - **Act 3, Border War:** you choose what to do with the evidence. Expose the Guild, accept Marrow's offer, or broker a truce. Each choice moves faction standing and redraws the borders differently, and the frontier warbands that follow must be broken.
+  - **Act 4, The Signal:** Dr. Okoye decodes Vane's last page. Earn the rank of Captain, fly to a sector far past the charted stations, and break the fleet guarding the source.
+- **Six endings.** The ending depends on the path you took in Act 3 and on whether you open or seal the Signal. The ending screen shows a summary of your run.
+- **New Game+.** After the ending you can start a new game with one legacy perk: Veteran's Name (15 reputation), Old Money (20% more credits) or Friends in Every Port (+10 standing with every faction). The perk is kept in its own file, applies once, and survives restarts.
+- **New mission steps for the story:** destroy a named fleet at a station or in a sector, escort a trader past an ambush, and reach a far sector. Fleets and escorted traders come back as needed after loading a save.
+- The Logbook shows what to do next when an act's missions are all done, and lists every ledger entry you uncover.
+
+### Fixed
+- **Starting a new game kept your old ship.** Credits, cargo and upgrades carried over from the previous game, and ships from the old universe stayed in the world. A new game now starts with a fresh ship in a clean universe.
+- Story missions that depend on your rank now read the same reputation the rest of the game uses.
+
 ## Beta 12
 
 ### Added

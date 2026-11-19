@@ -17,6 +17,8 @@ from ..missions.rank_system import RANKS
 REQUIREMENT_KEYS = {
     "min_rank", "min_reputation", "min_standing", "flag", "not_flag",
     "story_active", "story_done", "not_story_started",
+    "story_done_all",      # list of story mission ids, all completed
+    "story_stage",         # [mission id, stage index]: that mission is on exactly that stage
 }
 
 EFFECT_TYPES = {
@@ -31,6 +33,7 @@ EFFECT_TYPES = {
     "bump_counter",
     "show_dialogue",
     "flip_region",
+    "complete_campaign",
 }
 
 
@@ -79,6 +82,14 @@ def evaluate_requirements(requires: Dict[str, Any], game_engine) -> bool:
         elif key == "story_done":
             if value not in story.completed_story_missions:
                 return False
+        elif key == "story_done_all":
+            if not all(item in story.completed_story_missions for item in value):
+                return False
+        elif key == "story_stage":
+            mission_id, stage = value
+            if not any(getattr(m, "story_id", None) == mission_id and m.stage_index == stage
+                       for m in mission_manager.active_missions):
+                return False
         elif key == "not_story_started":
             if value in story.active_story_missions or value in story.completed_story_missions:
                 return False
@@ -116,6 +127,9 @@ def apply_effects(effects: List[Dict[str, Any]], game_engine):
         elif kind == "flip_region":
             from .borders import flip_nearest_region
             flip_nearest_region(game_engine, effect["from"], effect["faction"])
+        elif kind == "complete_campaign":
+            story.set_flag("campaign_complete")
+            game_engine.start_victory()
         elif kind == "add_ledger_entry":
             story.add_ledger_entry(effect["id"])
         elif kind == "set_chapter":

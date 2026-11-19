@@ -141,6 +141,7 @@ class GameEngine:
             GameStates.BASE_CONSTRUCTION: None,  # Will be created dynamically
             GameStates.DIALOGUE: None,  # Will be created dynamically with a start node
             GameStates.LOGBOOK: None,  # Created fresh each time it is opened
+            GameStates.VICTORY: None,  # Created when the campaign is completed
             GameStates.SAVE_GAME: None,  # Will be created dynamically
             GameStates.LOAD_GAME: LoadGameState(self),
             GameStates.GAME_OVER: GameOverState(self)
@@ -384,6 +385,15 @@ class GameEngine:
         self.pending_dialogue = start_id
         self.change_state(GameStates.DIALOGUE)
 
+    def start_victory(self) -> None:
+        """The campaign is complete: remember it and show the ending."""
+        from src.legacy import legacy
+        from src.story.endings import build_ending
+
+        self.story_state.record_event("campaign_completed")
+        legacy.record_completion(build_ending(self.story_state.flags).title)
+        self.change_state(GameStates.VICTORY)
+
     def toggle_fullscreen(self):
         """Toggle fullscreen mode."""
         self.settings.toggle_fullscreen()
@@ -477,6 +487,9 @@ class GameEngine:
             # Create a dialogue screen for the node set by start_dialogue()
             from src.states.dialogue_state import DialogueState
             self.states[GameStates.DIALOGUE] = DialogueState(self, self.pending_dialogue)
+        elif new_state == GameStates.VICTORY:
+            from src.states.victory_state import VictoryState
+            self.states[GameStates.VICTORY] = VictoryState(self)
         elif new_state == GameStates.LOGBOOK:
             from src.states.logbook_state import LogbookState
             self.states[GameStates.LOGBOOK] = LogbookState(self)
@@ -503,6 +516,14 @@ class GameEngine:
         economy_events.world_seed = self.world_seed
         economy_events.reset()
         
+        # Nothing from the old universe may follow the player into the new one
+        from src.combat.combat_manager import combat_manager
+        combat_manager.clear_all()
+
+        # A new game starts with a new ship. It is re-initialised in place so
+        # everything already holding a reference to it stays valid.
+        self.ship.__init__(self.ship.position.x, self.ship.position.y)
+
         # Reset ship position to first station
         if self.universe.stations:
             first_station = self.universe.stations[0]
@@ -526,6 +547,13 @@ class GameEngine:
         for faction in self.mission_manager.faction_standing:
             self.mission_manager.faction_standing[faction] = 0
         self.story_state.reset()
+
+        from src.legacy import legacy, PERKS
+        from src.ui.notifications import notifications
+        perk = legacy.apply_pending(self)
+        if perk:
+            notifications.push(f"Legacy perk applied: {PERKS[perk][0]}", duration=8.0,
+                               color=(255, 215, 120))
 
         from src.story.director import ensure_npcs_placed
         ensure_npcs_placed(self)

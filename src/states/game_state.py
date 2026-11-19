@@ -31,6 +31,7 @@ class GameStates(Enum):
     GAME_OVER = auto()
     DIALOGUE = auto()  # Added for story/NPC conversations
     LOGBOOK = auto()  # Added for the story/contacts/factions logbook
+    VICTORY = auto()  # Campaign complete
 
 class State:
     def __init__(self, game):

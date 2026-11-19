@@ -8,7 +8,16 @@ mission starts. Text may use {key} for a waypoint's station name.
 from dataclasses import dataclass, field
 from typing import Dict, Tuple
 
-STAGE_KINDS = {"counter", "dock_at", "destroy_bandits", "reach_sector", "earn_rank"}
+STAGE_KINDS = {"counter", "dock_at", "destroy_bandits", "reach_sector", "earn_rank",
+               "fleet", "escort"}
+
+# fleet: spawn the listed bandit types (params "ships") at a waypoint station
+#   ("at") or a displayed sector ("sector": (x, y)); done when all are destroyed.
+#   Optional "boss_name" labels the boss-type ship.
+# escort: spawn a trader at waypoint "from" (or "giver") that flies to waypoint
+#   "to"; done on arrival, failed if it is destroyed. Optional "ambush" is a
+#   bandit encounter type placed beside the route.
+# reach_sector: be in the displayed sector (x, y), within optional "radius".
 
 
 @dataclass(frozen=True)
@@ -108,3 +117,7 @@ _add(StoryMissionDef(
         {"type": "show_dialogue", "node": "courier_meeting"},
     ),
 ))
+
+
+# The four acts live in their own module; importing it registers them above.
+from . import chapters_acts  # noqa: E402,F401

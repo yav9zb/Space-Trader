@@ -88,6 +88,12 @@ class DialogueState(State):
         self.choice_scroll = 0
 
     def _leave(self):
+        # An effect may already have moved the game on (the ending, or a scene
+        # that opened another conversation); do not drag it back.
+        current = getattr(self.game, "current_state", GameStates.DIALOGUE)
+        registered = getattr(self.game, "states", {}).get(GameStates.DIALOGUE, self)
+        if current != GameStates.DIALOGUE or registered is not self:
+            return
         self.game.change_state(self.return_state)
 
     # Rendering -------------------------------------------------------------
