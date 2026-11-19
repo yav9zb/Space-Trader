@@ -1,5 +1,12 @@
 # Changelog
 
+## Beta 14
+
+### Fixed
+- **The mission tracker now follows the current step.** A story mission's tracker entry used to point at its first station forever. It now points at wherever the current step happens (a station, the contact to report back to, or a sector) and shows its coordinates.
+- **The mission tracker no longer covers the minimap.** Both sit in the top-right corner; the tracker now sits below the minimap.
+- **Docs and the first-flight hint claimed docking was fully manual.** Approaching a station slowly docks automatically; the dock key is a manual shortcut.
+
 ## Beta 13
 
 ### Added
@@ -15,9 +22,6 @@
 - **Achievements.** 18 achievements, from your first pirate kill to seeing all six endings, are tracked across games and shown in a new Logbook page. Each unlock is announced on screen and passed to Steam when Steam is running (the Steam side is untested without the SDK).
 
 ### Fixed
-- **The mission tracker now follows the current step.** A story mission's tracker entry used to point at its first station forever. It now points at wherever the current step happens (a station, the contact to report back to, or a sector) and shows its coordinates.
-- **The mission tracker no longer covers the minimap.** Both sit in the top-right corner; the tracker now sits below the minimap.
-- **Docs and the first-flight hint claimed docking was fully manual.** Approaching a station slowly docks automatically; the dock key is a manual shortcut.
 - **Starting a new game kept your old ship.** Credits, cargo and upgrades carried over from the previous game, and ships from the old universe stayed in the world. A new game now starts with a fresh ship in a clean universe.
 - Story missions that depend on your rank now read the same reputation the rest of the game uses.
 
