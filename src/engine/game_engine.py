@@ -71,6 +71,7 @@ class GameEngine:
         
         # Initialize docking system
         self.docking_manager = DockingManager()
+        self.docking_manager.refusal_check = self._docking_refusal
 
         # Game objects
         self.ship = Ship(400, 300)
@@ -357,6 +358,13 @@ class GameEngine:
 
         self.steam_manager.shutdown()
         pygame.quit()
+
+    def _docking_refusal(self, station):
+        """Why this station won't let the player dock, if their standing with
+        its faction has fallen far enough."""
+        from src.factions import get_station_faction, docking_refusal
+        faction = get_station_faction(station, self.world_seed)
+        return docking_refusal(faction, self.mission_manager.faction_standing.get(faction, 0))
 
     def start_dialogue(self, start_id: str) -> None:
         """Open a conversation at the given dialogue node."""

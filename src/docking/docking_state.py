@@ -18,3 +18,4 @@ class DockingResult(Enum):
     NO_TARGET = "no_target"
     ALREADY_DOCKED = "already_docked"
     INVALID_STATE = "invalid_state"
+    REFUSED = "refused"

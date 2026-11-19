@@ -94,6 +94,7 @@ Two control schemes are available (Settings > Controls) - the exact bindings for
 | Dock / Undock | X / Z | F / G |
 | Trading / Upgrades / Missions / Talk (when docked) | T / U / M / N | X / C / V / Z |
 | Cloak / Repair | C / R | E / Q |
+| Call for backup (Captain rank) | H | H |
 | Base construction | B | B |
 | Toggle large map | Tab | Tab |
 | Pause | Esc | Esc |

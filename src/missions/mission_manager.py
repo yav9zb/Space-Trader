@@ -20,6 +20,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+# A faction you are on bad terms with slowly cools off: one point back toward
+# neutral per this many seconds of play
+STANDING_RECOVERY_SECONDS = 60.0
+
+
 class MissionManager:
     """Manages all missions in the game including generation, tracking, and completion."""
     
@@ -29,6 +34,8 @@ class MissionManager:
         self.completed_missions: List[Mission] = []
         self.failed_missions: List[Mission] = []
         self.reputation = 0
+        self._world_seed = None
+        self._last_recovery_time = None
 
         from ..factions import FACTION_TRADE_GUILD, FACTION_INDEPENDENT, FACTION_PIRATE
         self.faction_standing = {
@@ -84,6 +91,8 @@ class MissionManager:
     def update(self, game_engine):
         """Update mission system - generate new missions, check completions, etc."""
         current_time = time.time()
+
+        self._recover_standing(game_engine)
         
         # Refresh missions for visited stations periodically
         if (current_time - self.last_generation_time > self.mission_generation_interval):
@@ -111,6 +120,24 @@ class MissionManager:
         # No longer generate missions at startup - they will be generated on first visit
         logger.info("Mission system initialized - missions will be generated on first station visit")
     
+    def _recover_standing(self, game_engine):
+        """Negative faction standing creeps back toward zero while playing
+        (positive standing is left alone)."""
+        play_time = getattr(game_engine, "play_time", None)
+        if play_time is None:
+            return
+        last = self._last_recovery_time
+        if last is None or play_time < last:    # first call, or a load rewound play time
+            self._last_recovery_time = play_time
+            return
+        steps = int((play_time - last) // STANDING_RECOVERY_SECONDS)
+        if steps <= 0:
+            return
+        self._last_recovery_time = last + steps * STANDING_RECOVERY_SECONDS
+        for faction, value in self.faction_standing.items():
+            if value < 0:
+                self.faction_standing[faction] = min(0, value + steps)
+
     def generate_missions_for_station(self, station, game_engine):
         """Generate missions for a specific station on first visit."""
         if station.name in self.visited_stations:

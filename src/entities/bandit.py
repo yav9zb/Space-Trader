@@ -225,8 +225,8 @@ class BanditShip:
     
     def _select_focus(self, player_ship):
         """The nearest thing worth attacking: the player, or an escorted
-        trader within detection range that is closer than the player.
-        Ordinary traders are left alone."""
+        trader or faction patrol within detection range that is closer than
+        the player. Ordinary traders are left alone."""
         from ..combat.combat_manager import combat_manager
 
         focus = player_ship
@@ -236,6 +236,11 @@ class BanditShip:
                 distance = (trader.position - self.position).length()
                 if distance < best and distance <= self.detection_range:
                     focus, best = trader, distance
+        for patrol in combat_manager.active_patrols:
+            if patrol.alive:
+                distance = (patrol.position - self.position).length()
+                if distance < best and distance <= self.detection_range:
+                    focus, best = patrol, distance
         return focus
 
     def _make_decision(self, player_ship):

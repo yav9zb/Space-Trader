@@ -8,12 +8,14 @@ from .entities.asteroid import create_asteroid_field
 from .entities.bandit import create_bandit_encounter
 from .entities.black_hole import create_black_hole_field
 from .entities.trader import TraderShip
+from .entities.patrol import PatrolShip
 from .combat.combat_manager import combat_manager
 from .systems.debris_field_manager import debris_field_manager
 from .universe_generation import universe_generator, UniverseType
 from .difficulty.difficulty_manager import difficulty_manager
 from .factions import (
     get_controlling_faction,
+    FACTION_TRADE_GUILD,
     FACTION_TRADER_SPAWN_MULTIPLIER,
     FACTION_BANDIT_SPAWN_MULTIPLIER,
 )
@@ -264,6 +266,17 @@ class Universe:
                 trader = TraderShip(trader_pos, destination, controlling_faction)
                 combat_manager.add_trader(trader)
                 placed_objects.append((trader.position, trader.size))
+
+        # Generate faction patrols using layer 8 seed - only Trade Guild space
+        # is patrolled
+        patrol_seed = self._get_chunk_seed(chunk_x, chunk_y, 8)
+        random.seed(patrol_seed)
+        if controlling_faction == FACTION_TRADE_GUILD and random.random() < 0.30:
+            patrol_pos = self._find_safe_position(chunk_start_x, chunk_start_y, self.sector_size, placed_objects, min_distance=100)
+            if patrol_pos:
+                patrol = PatrolShip(patrol_pos, controlling_faction)
+                combat_manager.add_patrol(patrol)
+                placed_objects.append((patrol.position, patrol.size))
 
         # Generate black holes using layer 5 seed (very rare)
         black_hole_seed = self._get_chunk_seed(chunk_x, chunk_y, 5)

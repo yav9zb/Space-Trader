@@ -6,6 +6,12 @@
 - **Escort missions.** Guard a trader on its run to another station. It is spawned when you accept, with a pirate ambush waiting beside the route. Pirates now go after an escorted trader if it is closer than you are. The mission succeeds if the trader docks and fails if it is destroyed. Escorted traders never flee, so they keep heading for their destination. Offered at Trading Posts and Mining Stations.
 - **Bounty missions.** Hunt a named pirate captain (shown with a name label) in a given sector, usually in Pirate Territory. Heavier captains lurk farther out. Offered at Military Bases and Shipyards.
 
+- **Trade Guild patrols.** Armed patrols now roam Trade Guild space, hunt bandits they can see (but leave bounty targets for you), and are attacked by bandits in turn.
+- **Call for backup.** At Captain rank, press H to call two Trade Guild patrols to your position for 90 seconds (3 minute cooldown). The Guild won't answer if it is hostile to you.
+- **Consequences for making enemies.** When your standing with a faction drops to -60 it becomes hostile: Trade Guild and Pirate stations refuse you docking, and Guild patrols attack you on sight. Independent stations always let you dock, so you can always trade your way back. Firing on a patrol costs standing (more if you destroy it) and provokes it for two minutes.
+- **Ways back from hostile.** Destroying bandits in Trade Guild or Independent space earns +2 standing with that faction, and negative standing slowly cools off by one point per minute of play.
+- **On-screen notifications** for events like calling backup.
+
 ### Fixed
 - **Most mission types could not be accepted, even with enough reputation.** Supply runs (reputation 5), trading contracts (10), exploration (15), and emergency deliveries (20) passed the reputation check, then failed a second check that ignored your reputation and reported "Failed to accept mission". Only reputation-free missions could be taken. Reputation-gated missions now accept normally.
 

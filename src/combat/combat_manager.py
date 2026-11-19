@@ -1,5 +1,6 @@
 """Combat manager to handle all combat-related interactions."""
 
+import math
 import pygame
 import random
 from pygame import Vector2
@@ -10,6 +11,7 @@ try:
     from ..entities.bandit import BanditShip, BanditState
     from ..entities.black_hole import BlackHole
     from ..entities.trader import TraderShip, TraderState
+    from ..entities.patrol import PatrolShip
     from ..systems.respawn_system import respawn_system
     from .weapons import WeaponSystem
 except ImportError:
@@ -17,8 +19,15 @@ except ImportError:
     from entities.bandit import BanditShip, BanditState
     from entities.black_hole import BlackHole
     from entities.trader import TraderShip, TraderState
+    from entities.patrol import PatrolShip
     from systems.respawn_system import respawn_system
     from weapons import WeaponSystem
+
+
+# Calling in the Guild: how many patrols, how long they stay, how often
+BACKUP_COUNT = 2
+BACKUP_LIFETIME = 90.0
+BACKUP_COOLDOWN = 180.0
 
 
 class CombatManager:
@@ -29,6 +38,8 @@ class CombatManager:
         self.active_bandits: List[BanditShip] = []
         self.active_black_holes: List[BlackHole] = []
         self.active_traders: List[TraderShip] = []
+        self.active_patrols: List[PatrolShip] = []
+        self.last_backup_time = -BACKUP_COOLDOWN
         self.explosions: List[dict] = []
         
         # Combat statistics
@@ -72,6 +83,14 @@ class CombatManager:
             trader.update(delta_time, game_engine)
             if not trader.alive:
                 self.active_traders.remove(trader)
+
+        # Update patrols (they hunt bandits, and the player if hostile)
+        for patrol in self.active_patrols[:]:
+            patrol.update(delta_time, game_engine)
+            if not patrol.alive:
+                self.active_patrols.remove(patrol)
+                continue
+            self._check_patrol_combat(patrol, ship, game_engine)
 
         # Update explosions
         self._update_explosions(delta_time)
@@ -176,7 +195,7 @@ class CombatManager:
         """Check bandit combat interactions."""
         # Check bandit weapon hits on the player and on escorted traders
         escorted = [t for t in self.active_traders if t.escort_id and t.alive]
-        hits = bandit.weapon_system.check_hits([ship] + escorted)
+        hits = bandit.weapon_system.check_hits([ship] + escorted + self.active_patrols)
         for projectile, target in hits:
             damage = projectile.damage
             if target is ship:
@@ -205,6 +224,50 @@ class CombatManager:
             ship.velocity += separation_vec * 100
             bandit.velocity -= separation_vec * 50
     
+    def _check_patrol_combat(self, patrol: PatrolShip, ship, game_engine):
+        """Patrol fire hits bandits (never bounty targets, which are the
+        player's to collect) and, when the patrol is hostile, the player."""
+        targets = [b for b in self.active_bandits
+                   if b.state != BanditState.DISABLED and not b.bounty_id]
+        hostile = patrol.is_hostile_to_player(game_engine.mission_manager)
+        if hostile:
+            targets.append(ship)
+
+        for projectile, target in patrol.weapon_system.check_hits(targets):
+            damage = projectile.damage
+            if target is ship:
+                ship.take_damage(damage)
+                self.damage_taken += damage
+            elif target.take_damage(damage):
+                # A patrol kill: wreckage and an explosion, but no payout and
+                # no story credit - those belong to the player
+                self._create_explosion(target.position, target.base_size * 2)
+
+    def call_backup(self, game_engine):
+        """The player calls for the Trade Guild. Returns (success, message).
+        Needs Captain rank, a Guild that isn't hostile, and the cooldown to
+        have run down; sends a couple of patrols that stay for a while."""
+        from ..missions.rank_system import TIER_4_MIN_REPUTATION, get_rank_name
+        from ..factions import FACTION_TRADE_GUILD, is_hostile
+
+        mission_manager = game_engine.mission_manager
+        if mission_manager.reputation < TIER_4_MIN_REPUTATION:
+            return False, f"Calling for backup requires {get_rank_name(TIER_4_MIN_REPUTATION)} rank"
+        if is_hostile(mission_manager.faction_standing.get(FACTION_TRADE_GUILD, 0)):
+            return False, "The Trade Guild will not answer your call"
+        remaining = BACKUP_COOLDOWN - (game_engine.play_time - self.last_backup_time)
+        if remaining > 0:
+            return False, f"Backup is not ready ({int(remaining) + 1}s)"
+
+        from pygame import Vector2
+        self.last_backup_time = game_engine.play_time
+        for i in range(BACKUP_COUNT):
+            angle = (2 * math.pi * i) / BACKUP_COUNT + 0.5
+            offset = Vector2(math.cos(angle), math.sin(angle)) * 450
+            self.add_patrol(PatrolShip(game_engine.ship.position + offset,
+                                       FACTION_TRADE_GUILD, lifetime=BACKUP_LIFETIME))
+        return True, "Trade Guild backup is on the way"
+
     def _check_player_weapon_hits(self, weapon_system: WeaponSystem, game_engine):
         """Check player weapon hits on bandits and asteroids."""
         # Check hits on bandits
@@ -219,7 +282,7 @@ class CombatManager:
                 sound_manager.play("impact")
 
             if destroyed:
-                self._handle_bandit_destroyed(bandit, game_engine.ship)
+                self._handle_bandit_destroyed(bandit, game_engine.ship, game_engine)
 
         # Check hits on traders (piracy - real consequence via reputation)
         hits = weapon_system.check_hits(self.active_traders)
@@ -238,6 +301,17 @@ class CombatManager:
                 mission_manager.faction_standing[trader.faction] = (
                     mission_manager.faction_standing.get(trader.faction, 0) - 3
                 )
+
+        # Check hits on patrols (firing on a faction's patrol sours that faction)
+        hits = weapon_system.check_hits(self.active_patrols)
+        for projectile, patrol in hits:
+            self.damage_dealt += projectile.damage
+            destroyed = patrol.take_damage(projectile.damage, by_player=True)
+            standing = game_engine.mission_manager.faction_standing
+            penalty = 25 if destroyed else 5
+            standing[patrol.faction] = standing.get(patrol.faction, 0) - penalty
+            if destroyed:
+                self._create_explosion(patrol.position, patrol.size * 2)
 
         # Check hits on asteroids
         alive_asteroids = [a for a in self.active_asteroids if not a.destroyed]
@@ -284,9 +358,19 @@ class CombatManager:
                 # Remove destroyed debris
                 debris_field_manager.remove_debris(debris)
     
-    def _handle_bandit_destroyed(self, bandit: BanditShip, player_ship):
+    def _handle_bandit_destroyed(self, bandit: BanditShip, player_ship, game_engine=None):
         """Handle when a bandit is destroyed."""
         self.bandits_defeated += 1
+
+        # Clearing pirates out of a faction's space earns its goodwill, which
+        # is also how a player in its bad books can work their way back
+        if game_engine is not None:
+            from ..factions import get_controlling_faction, FACTION_PIRATE
+            faction = get_controlling_faction(
+                int(bandit.position.x // 1000), int(bandit.position.y // 1000), game_engine.world_seed)
+            if faction != FACTION_PIRATE:
+                standing = game_engine.mission_manager.faction_standing
+                standing[faction] = standing.get(faction, 0) + 2
 
         # Award credits to player
         player_ship.credits += bandit.credits_reward
@@ -360,7 +444,7 @@ class CombatManager:
                 destroyed = bandit.take_damage(damage)
                 
                 if destroyed:
-                    self._handle_bandit_destroyed(bandit, game_engine.ship)
+                    self._handle_bandit_destroyed(bandit, game_engine.ship, game_engine)
     
     def _update_explosions(self, delta_time: float):
         """Update explosion animations."""
@@ -395,6 +479,10 @@ class CombatManager:
     def add_trader(self, trader: TraderShip):
         """Add a trader to combat tracking."""
         self.active_traders.append(trader)
+
+    def add_patrol(self, patrol: PatrolShip):
+        """Add a patrol to combat tracking."""
+        self.active_patrols.append(patrol)
 
     def remove_asteroid(self, asteroid: Asteroid):
         """Remove an asteroid from combat tracking."""
@@ -464,6 +552,10 @@ class CombatManager:
         # Draw traders
         for trader in self.active_traders:
             trader.draw(screen, camera_offset)
+
+        # Draw patrols
+        for patrol in self.active_patrols:
+            patrol.draw(screen, camera_offset)
 
     def get_nearby_threats(self, position: Vector2, radius: float) -> dict:
         """Get information about nearby threats."""
@@ -537,7 +629,10 @@ class CombatManager:
         self.active_asteroids.clear()
         self.active_bandits.clear()
         self.active_black_holes.clear()
+        self.active_traders.clear()
+        self.active_patrols.clear()
         self.explosions.clear()
+        self.last_backup_time = -BACKUP_COOLDOWN
         
         # Reset stats
         self.bandits_defeated = 0

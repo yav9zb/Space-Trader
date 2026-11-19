@@ -21,6 +21,12 @@ class DockingManager:
         self.docking_range_buffer = 20.0  # Extra range beyond station size
         self.approach_detection_range = 100.0  # Range to detect approaching ships
         
+        # Optional callable(station) -> message or None. Set by the engine so
+        # factions can bar a hostile player from their stations without the
+        # docking system knowing anything about factions.
+        self.refusal_check = None
+        self.refusal_message = ""
+
         # Auto-docking settings (can be moved to settings later)
         self.auto_dock_enabled = True
         self.require_confirmation = False
@@ -152,6 +158,12 @@ class DockingManager:
         """Check if ship can dock with station."""
         if not station:
             return False, DockingResult.NO_TARGET
+
+        if self.refusal_check:
+            message = self.refusal_check(station)
+            if message:
+                self.refusal_message = message
+                return False, DockingResult.REFUSED
             
         # Check distance
         distance = (ship.position - station.position).length()
@@ -286,6 +298,8 @@ class DockingManager:
             self.last_status_message = f"Reduce speed to dock (Current: {int(self.max_docking_speed)}+ units/s)"
         elif reason == DockingResult.TOO_FAR:
             self.last_status_message = f"Move closer to {self.target_station.name} to dock"
+        elif reason == DockingResult.REFUSED:
+            self.last_status_message = self.refusal_message
             
     def get_status_message(self):
         """Get the current docking status message."""

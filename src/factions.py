@@ -85,3 +85,24 @@ def get_faction_price_multiplier(standing: int) -> float:
     if standing <= -25:
         return 1.10
     return 1.0
+
+
+# Standing at or below this makes a faction hostile: its patrols attack you
+# and, for factions that police their stations, docking is refused.
+HOSTILE_STANDING = -60
+
+# Independent stations always welcome you, so a hostile player always has a
+# safe place to trade and earn their way back.
+DOCKING_REFUSING_FACTIONS = (FACTION_TRADE_GUILD, FACTION_PIRATE)
+
+
+def is_hostile(standing: int) -> bool:
+    return standing <= HOSTILE_STANDING
+
+
+def docking_refusal(faction: str, standing: int):
+    """Message explaining why a station of this faction won't let you dock,
+    or None if docking is allowed."""
+    if faction in DOCKING_REFUSING_FACTIONS and is_hostile(standing):
+        return f"{faction} has barred you from its stations"
+    return None

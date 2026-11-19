@@ -59,6 +59,7 @@ Two control schemes are available (switch in Settings > Controls), each with its
 | Dock / Undock | X / Z | F / G |
 | Trading / Upgrades / Missions / Talk | T / U / M / N | X / C / V / Z |
 | Cloak / Repair | C / R | E / Q |
+| Call for backup (Captain rank) | H | H |
 | Toggle map | Tab | Tab |
 | Base construction | B | B |
 | Pause | Esc | Esc |

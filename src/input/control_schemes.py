@@ -47,6 +47,7 @@ class ControlSchemeManager:
                 "upgrades": pygame.K_u,
                 "missions": pygame.K_m,
                 "talk": pygame.K_n,
+                "hail": pygame.K_h,
                 "base_construction": pygame.K_b,
                 
                 # Menu navigation
@@ -87,6 +88,7 @@ class ControlSchemeManager:
                 "upgrades": pygame.K_c,
                 "missions": pygame.K_v,
                 "talk": pygame.K_z,
+                "hail": pygame.K_h,
                 "base_construction": pygame.K_b,
                 
                 # Menu navigation
@@ -198,7 +200,8 @@ class ControlSchemeManager:
             },
             "Ship Systems": {
                 "cloaking": "Toggle Cloaking",
-                "repair": "Repair Ship"
+                "repair": "Repair Ship",
+                "hail": "Call for Backup (Captain rank)"
             },
             "Navigation": {
                 "toggle_map": "Toggle Map",

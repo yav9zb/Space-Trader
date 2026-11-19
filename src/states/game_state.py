@@ -1176,6 +1176,8 @@ class PlayingState(State):
 
     def update(self, delta_time):
         self.onboarding_hints.update(delta_time)
+        from ..ui.notifications import notifications
+        notifications.update(delta_time)
 
         if self.game.docking_manager.is_docked():
             from ..story.director import get_contact_at
@@ -1369,6 +1371,9 @@ class PlayingState(State):
             target_station = self.game.docking_manager.get_target_station()
             repair_system.draw_repair_ui(screen, self.game.ship, target_station)
 
+        from ..ui.notifications import notifications
+        notifications.render(screen)
+
         # Draw onboarding hints last, on top of everything
         self.onboarding_hints.render(screen)
 
@@ -1556,6 +1561,11 @@ class PlayingState(State):
                         start_contact_dialogue(contact, self.game)
                     else:
                         self.game.docking_manager.last_status_message = "Nobody here wants to talk."
+            elif event.key == control_scheme_manager.get_key("hail"):
+                from ..combat.combat_manager import combat_manager as backup_combat
+                from ..ui.notifications import notifications
+                success, message = backup_combat.call_backup(self.game)
+                notifications.push(message, color=(120, 230, 140) if success else (255, 120, 120))
             elif event.key == control_scheme_manager.get_key("undock"):
                 if self.game.docking_manager.is_docked():
                     result = self.game.docking_manager.attempt_undocking(self.game.ship)
