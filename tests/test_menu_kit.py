@@ -481,3 +481,151 @@ def test_upgrades_by_mouse_open_a_category_then_buy_an_upgrade(engine):
     pygame.event.post(click(state.upgrade_buttons.rects[1].center))         # Back
     engine.handle_events()
     assert state.viewing_categories is True
+
+
+# --- settings --------------------------------------------------------------------------------
+
+@pytest.fixture
+def settings_screen(engine, monkeypatch):
+    """The settings screen with the real settings restored afterwards and no
+    window re-creation when display options change."""
+    from src.settings import game_settings
+    from src.states.game_state import GameStates
+
+    saved = dict(vars(game_settings))
+    monkeypatch.setattr(game_settings, "save", lambda *a, **k: None)
+    monkeypatch.setattr(engine, "_update_display", lambda: None)
+    engine.change_state(GameStates.SETTINGS)
+    engine.fade_remaining = 0
+    yield engine.states[GameStates.SETTINGS]
+    vars(game_settings).update(saved)
+
+
+def _open(engine, state, page):
+    state.page = page
+    engine.render()
+
+
+@pytest.mark.parametrize("size", SIZES)
+@pytest.mark.parametrize("page", [None, "camera", "display", "controls", "audio", "difficulty", "dev", "help"])
+def test_every_settings_page_fits_every_window_size(engine, settings_screen, size, page):
+    pygame.display.set_mode(size, pygame.RESIZABLE)
+    engine._on_window_resized()
+    window = pygame.Rect(0, 0, *size)
+    _open(engine, settings_screen, page)
+    rects = (settings_screen.category_menu.rects if page is None else settings_screen.list.rects).values()
+    assert rects and all(window.contains(r) for r in rects)
+    assert all(not a.colliderect(b) for a, b in zip(list(rects), list(rects)[1:]))
+
+
+def test_the_category_menu_opens_pages_by_keyboard_and_mouse(engine, settings_screen):
+    state = settings_screen
+    engine.render()
+    pygame.event.clear()
+    pygame.event.post(click(state.category_menu.rects[3].center))              # Audio
+    engine.handle_events()
+    assert state.page == "audio"
+    state.handle_input(key(pygame.K_ESCAPE))
+    assert state.page is None
+    state.selected_category = 1
+    state.handle_input(key(pygame.K_RETURN))
+    assert state.page == "display"
+
+
+def test_escape_leaves_settings_to_where_it_was_opened_from(engine, settings_screen):
+    from src.states.game_state import GameStates
+    settings_screen.previous_state = GameStates.PAUSED
+    settings_screen.handle_input(key(pygame.K_ESCAPE))
+    assert engine.current_state == GameStates.PAUSED
+
+
+def test_left_and_right_change_values_on_every_page(engine, settings_screen):
+    from src.settings import CameraMode
+    from src.difficulty.difficulty_manager import difficulty_manager
+    state, s = settings_screen, engine.settings
+    original_level = difficulty_manager.current_difficulty
+
+    state.page = "camera"
+    s.camera_mode = CameraMode.CENTERED
+    state.handle_input(key(pygame.K_RIGHT))
+    assert s.camera_mode != CameraMode.CENTERED
+    s.camera_mode = CameraMode.SMOOTH
+    state.selected["camera"] = 1
+    before = s.camera_smoothing
+    state.handle_input(key(pygame.K_RIGHT))
+    assert s.camera_smoothing == pytest.approx(before + 0.05) or s.camera_smoothing == 1.0
+    s.camera_mode = CameraMode.CENTERED
+    state.handle_input(key(pygame.K_RIGHT))                                    # smoothing is N/A now
+    assert s.camera_smoothing == pytest.approx(min(1.0, before + 0.05))
+
+    state.page, state.selected["audio"] = "audio", 0
+    s.master_volume = 0.5
+    state.handle_input(key(pygame.K_RIGHT))
+    assert s.master_volume == pytest.approx(0.55)
+    state.handle_input(key(pygame.K_LEFT))
+    state.handle_input(key(pygame.K_LEFT))
+    assert s.master_volume == pytest.approx(0.45)
+
+    state.page = "display"
+    state.selected["display"] = 2
+    s.hud_scale = 1.0
+    state.handle_input(key(pygame.K_RIGHT))
+    assert s.hud_scale == pytest.approx(1.1)
+
+    state.page = "difficulty"
+    state.handle_input(key(pygame.K_RIGHT))
+    assert difficulty_manager.current_difficulty != original_level
+    difficulty_manager.set_difficulty(original_level)
+
+    state.page = "dev"
+    s.dev_view_enabled = False
+    state.selected["dev"] = 0
+    state.handle_input(key(pygame.K_RETURN))
+    assert s.dev_view_enabled is True
+    state.selected["dev"] = 1
+    shown = s.dev_show_fps
+    state.handle_input(key(pygame.K_RETURN))
+    assert s.dev_show_fps is (not shown)
+    s.dev_view_enabled = False
+    state.handle_input(key(pygame.K_RETURN))                                   # disabled while dev view is off
+    assert s.dev_show_fps is (not shown)
+
+
+def test_clicking_a_value_row_changes_it_and_clicking_back_leaves_the_page(engine, settings_screen):
+    state, s = settings_screen, engine.settings
+    s.master_volume = 0.5
+    _open(engine, state, "audio")
+    rect = state.list.rects[0]
+    pygame.event.clear()
+    pygame.event.post(click((rect.right - 10, rect.centery)))                  # right half raises
+    engine.handle_events()
+    assert s.master_volume == pytest.approx(0.55)
+    pygame.event.post(click((rect.left + 10, rect.centery)))                   # left half lowers
+    engine.handle_events()
+    assert s.master_volume == pytest.approx(0.5)
+    engine.render()
+    pygame.event.post(click(state.list.rects[3].center))                       # Back
+    engine.handle_events()
+    assert state.page is None
+
+
+def test_a_disabled_row_ignores_clicks_and_keys(engine, settings_screen):
+    from src.settings import CameraMode
+    state, s = settings_screen, engine.settings
+    s.camera_mode = CameraMode.CENTERED
+    s.camera_deadzone_radius = 100
+    state.page, state.selected["camera"] = "camera", 2
+    state.handle_input(key(pygame.K_RIGHT))
+    assert s.camera_deadzone_radius == 100
+
+
+def test_the_control_scheme_can_be_cycled_and_the_reference_panel_follows(engine, settings_screen):
+    from src.input.control_schemes import control_scheme_manager
+    state = settings_screen
+    first = control_scheme_manager.get_current_scheme()
+    state.page = "controls"
+    state.handle_input(key(pygame.K_RIGHT))
+    assert control_scheme_manager.get_current_scheme() != first
+    engine.render()                                                             # draws the new bindings
+    state.handle_input(key(pygame.K_LEFT))
+    assert control_scheme_manager.get_current_scheme() == first

@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 # Screens drawn at a logical size and scaled to the window (see ui/screen_scaler.py).
 # Flight is drawn at real window pixels; pause and base building are overlays on it.
 SCALED_STATES = frozenset({
-    GameStates.SETTINGS,
     GameStates.MISSIONS,
     GameStates.DIALOGUE, GameStates.LOGBOOK, GameStates.VICTORY,
 })
@@ -37,7 +36,7 @@ SCALED_STATES = frozenset({
 # window's real pixels (a Retina display's physical pixels when available), so
 # they need no scaling. The pause menu is one of them, drawn over the world.
 NATIVE_STATES = frozenset({GameStates.MAIN_MENU, GameStates.GAME_OVER, GameStates.SAVE_GAME, GameStates.LOAD_GAME,
-                           GameStates.TRADING, GameStates.UPGRADES})
+                           GameStates.TRADING, GameStates.UPGRADES, GameStates.SETTINGS})
 MOUSE_SCALED_STATES = SCALED_STATES
 
 
