@@ -223,3 +223,110 @@ def test_escape_resumes_from_the_pause_menu(engine):
     engine.change_state(GameStates.PAUSED)
     engine.states[GameStates.PAUSED].handle_input(key(pygame.K_ESCAPE))
     assert engine.current_state == GameStates.PLAYING
+
+
+# --- save and load screens -----------------------------------------------------------------
+
+@pytest.fixture
+def saves(engine):
+    """A few real saved games, removed afterwards."""
+    from src.save_system import save_system
+
+    engine.create_new_universe(seed=4)
+    names = [f"Slot {i:02d} with a rather long descriptive name to test fitting" if i == 3 else f"Slot {i:02d}"
+             for i in range(14)]
+    for name in names:
+        assert save_system.save_game(engine, name)
+    yield names
+    for name in names:
+        save_system.delete_save(name)
+
+
+@pytest.mark.parametrize("size", [(1024, 640), (1512, 945), (3440, 1440)])
+def test_the_load_screen_lists_saves_inside_its_panel_and_scrolls(engine, saves, size):
+    from src.states.game_state import GameStates
+
+    pygame.display.set_mode(size, pygame.RESIZABLE)
+    engine._on_window_resized()
+    engine.change_state(GameStates.LOAD_GAME)
+    state = engine.states[GameStates.LOAD_GAME]
+    state.existing_saves = state.save_system.get_save_list()
+    engine.fade_remaining = 0
+    engine.render()
+    window = pygame.Rect(0, 0, *size)
+    assert state.list.rects and all(window.contains(r) for r in state.list.rects.values())
+    visible = len(state.list.rects)
+    assert visible <= len(saves)
+    state.selected_save_index = len(state.existing_saves) - 1
+    engine.render()
+    assert (len(state.existing_saves) - 1) in state.list.rects
+    assert state.list.counter() or visible == len(state.existing_saves)
+
+
+def test_clicking_a_save_on_the_load_screen_loads_it(engine, saves):
+    from src.states.game_state import GameStates
+
+    engine.change_state(GameStates.LOAD_GAME)
+    state = engine.states[GameStates.LOAD_GAME]
+    state.existing_saves = state.save_system.get_save_list()
+    engine.fade_remaining = 0
+    engine.render()
+    rect = state.list.rects[1]
+    wanted = state.existing_saves[1].save_name
+    loaded = []
+    state.save_system.load_game = lambda name, game: loaded.append(name) or True
+    pygame.event.clear()
+    pygame.event.post(click(rect.center))
+    engine.handle_events()
+    assert loaded == [wanted]
+    assert engine.current_state == GameStates.PLAYING
+
+
+def test_delete_still_removes_the_selected_save(engine, saves):
+    from src.states.game_state import GameStates
+
+    engine.change_state(GameStates.LOAD_GAME)
+    state = engine.states[GameStates.LOAD_GAME]
+    state.existing_saves = state.save_system.get_save_list()
+    before = len(state.existing_saves)
+    state.handle_input(key(pygame.K_DELETE))
+    assert len(state.existing_saves) == before - 1
+
+
+@pytest.mark.parametrize("size", [(1024, 640), (1512, 945), (3440, 1440)])
+def test_the_save_screen_fits_and_its_input_box_takes_a_click(engine, saves, size):
+    from src.states.game_state import GameStates
+
+    pygame.display.set_mode(size, pygame.RESIZABLE)
+    engine._on_window_resized()
+    engine.change_state(GameStates.SAVE_GAME)
+    state = engine.states[GameStates.SAVE_GAME]
+    state.existing_saves = state.save_system.get_save_list()
+    state.editing_name = False
+    engine.fade_remaining = 0
+    engine.render()
+    window = pygame.Rect(0, 0, *size)
+    assert window.contains(state.input_box)
+    assert state.list.rects and all(window.contains(r) for r in state.list.rects.values())
+    assert state.input_box.bottom < min(r.top for r in state.list.rects.values())
+
+    pygame.event.clear()
+    pygame.event.post(click(state.input_box.center))
+    engine.handle_events()
+    assert state.editing_name is True
+
+    rect = state.list.rects[2]
+    pygame.event.post(click(rect.center))
+    engine.handle_events()
+    assert state.editing_name is False and state.selected_save_index == 2
+
+
+def test_typing_a_name_on_the_save_screen_still_works(engine):
+    from src.states.game_state import GameStates
+
+    engine.change_state(GameStates.SAVE_GAME)
+    state = engine.states[GameStates.SAVE_GAME]
+    state.save_name = ""
+    for ch in "abc":
+        state.handle_input(pygame.event.Event(pygame.KEYDOWN, key=ord(ch), unicode=ch))
+    assert state.save_name == "abc"

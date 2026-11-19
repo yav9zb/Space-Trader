@@ -331,6 +331,110 @@ class MenuList:
             sound_manager.play(name)
 
 
+class RowList:
+    """A scrolling list whose rows the screen draws itself (a save with its
+    details, a mission, a market line). The list owns the geometry: how many
+    rows fit, which are visible, hit rectangles, scrolling and the mouse."""
+
+    def __init__(self, count: int = 0, wrap_keys: bool = True):
+        self.count = count
+        self.selected = 0
+        self.offset = 0
+        self.wrap_keys = wrap_keys
+        self.rects: Dict[int, pygame.Rect] = {}
+        self.rows_visible = 1
+        self.area = pygame.Rect(0, 0, 0, 0)
+
+    def set_count(self, count: int):
+        self.count = count
+        self.selected = max(0, min(self.selected, count - 1))
+        self.offset = scroll_window(count, self.selected, self.rows_visible, self.offset)
+
+    def layout(self, ui: Ui, area: pygame.Rect, row_units: int, gap_units: int = 4):
+        """Fit as many rows of row_units as the area holds, scrolled to keep
+        the selection in view."""
+        self.area = pygame.Rect(area)
+        row, gap = ui.px(row_units), ui.px(gap_units)
+        self.rows_visible = max(1, (self.area.height + gap) // (row + gap))
+        self.offset = scroll_window(self.count, self.selected, self.rows_visible, self.offset)
+        self.rects = {}
+        for slot in range(min(self.count, self.rows_visible)):
+            index = self.offset + slot
+            self.rects[index] = pygame.Rect(self.area.left, self.area.top + slot * (row + gap), self.area.width, row)
+
+    def draw_chrome(self, ui: Ui, screen, hovered: Optional[int] = None, fill_selected: bool = True):
+        """Highlight under the selected (and hovered) rows, and scroll arrows."""
+        for index, rect in self.rects.items():
+            if index == self.selected and fill_selected:
+                fill = pygame.Surface(rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(fill, (60, 70, 110, 190), fill.get_rect(), border_radius=ui.px(7))
+                screen.blit(fill, rect.topleft)
+                pygame.draw.rect(screen, ACCENT_BLUE, rect, max(1, ui.px(2)), border_radius=ui.px(7))
+            elif index == hovered:
+                fill = pygame.Surface(rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(fill, (80, 160, 255, 22), fill.get_rect(), border_radius=ui.px(7))
+                screen.blit(fill, rect.topleft)
+        if self.offset > 0:
+            self._arrow(ui, screen, self.area.top - ui.px(2), up=True)
+        if self.offset + self.rows_visible < self.count:
+            self._arrow(ui, screen, self.area.bottom + ui.px(2), up=False)
+
+    def counter(self) -> str:
+        if self.count <= self.rows_visible:
+            return ""
+        first = self.offset + 1
+        return f"{first}-{min(self.count, self.offset + self.rows_visible)} of {self.count}"
+
+    def _arrow(self, ui: Ui, screen, y: int, up: bool):
+        size = ui.px(6)
+        x = self.area.centerx
+        tip = -size if up else size
+        base = y
+        pygame.draw.polygon(screen, TEXT_DIM, [(x - size, base), (x + size, base), (x, base + tip)])
+
+    def index_at(self, ui: Ui, pos) -> Optional[int]:
+        point = ui.to_px(pos)
+        for index, rect in self.rects.items():
+            if rect.collidepoint(point):
+                return index
+        return None
+
+    def handle(self, event, ui: Ui, activate_on_click: bool = False, play_sounds: bool = True) -> Optional[int]:
+        """Navigation by arrows, wheel and mouse. Returns an index when a row
+        is activated (Enter, or a click if activate_on_click)."""
+        if not self.count:
+            return None
+        if event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_UP, pygame.K_DOWN):
+                step = -1 if event.key == pygame.K_UP else 1
+                if self.wrap_keys:
+                    self.selected = (self.selected + step) % self.count
+                else:
+                    self.selected = max(0, min(self.count - 1, self.selected + step))
+                self.offset = scroll_window(self.count, self.selected, self.rows_visible, self.offset)
+                MenuList._sound("ui_navigate", play_sounds)
+            elif event.key in (pygame.K_PAGEUP, pygame.K_PAGEDOWN):
+                step = -self.rows_visible if event.key == pygame.K_PAGEUP else self.rows_visible
+                self.selected = max(0, min(self.count - 1, self.selected + step))
+                self.offset = scroll_window(self.count, self.selected, self.rows_visible, self.offset)
+            elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                return self.selected
+        elif event.type == pygame.MOUSEMOTION:
+            index = self.index_at(ui, event.pos)
+            if index is not None:
+                self.selected = index
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            index = self.index_at(ui, event.pos)
+            if index is not None:
+                self.selected = index
+                MenuList._sound("ui_navigate", play_sounds)
+                return index if activate_on_click else None
+        elif event.type == pygame.MOUSEWHEEL:
+            self.selected = max(0, min(self.count - 1, self.selected - event.y))
+            self.offset = scroll_window(self.count, self.selected, self.rows_visible, self.offset)
+        return None
+
+
 def draw_background(background, screen):
     """The drifting starfield every menu sits on."""
     background.draw(screen)

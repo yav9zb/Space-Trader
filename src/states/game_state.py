@@ -2368,6 +2368,23 @@ class UpgradeState(State):
         self.message_timer = 3.0  # Show for 3 seconds
 
 
+def _draw_save_row(ui, screen, rect, meta, selected):
+    """One saved game: its name over a line of details."""
+    from ..ui.menu_style import ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+    from datetime import datetime
+    color = ACCENT_GOLD if selected else TEXT_PRIMARY
+    detail_color = (230, 200, 110) if selected else TEXT_DIM
+    try:
+        date_str = datetime.fromisoformat(meta.save_date).strftime("%Y-%m-%d %H:%M")
+    except (TypeError, ValueError):
+        date_str = str(meta.save_date)
+    pad = ui.px(16)
+    width = rect.width - 2 * pad
+    ui.text(screen, meta.save_name, 22, color, max_width=width, topleft=(rect.x + pad, rect.y + ui.px(7)))
+    ui.text(screen, f"Credits: {meta.credits}  |  Location: {meta.location}  |  {date_str}", "small",
+            detail_color, max_width=width, bottomleft=(rect.x + pad, rect.bottom - ui.px(7)))
+
+
 class SaveGameState(State):
     def __init__(self, game):
         super().__init__(game)
@@ -2381,8 +2398,12 @@ class SaveGameState(State):
         self.existing_saves = self.save_system.get_save_list()
         self.selected_save_index = 0
 
+        from ..ui.menu_kit import RowList, Ui, BASE_SIZE
         from ..ui.menu_style import MenuBackground
         self.background = MenuBackground()
+        self.list = RowList()
+        self._ui = Ui(BASE_SIZE)
+        self.input_box = pygame.Rect(0, 0, 0, 0)
 
     def update(self, delta_time):
         if self.message_timer > 0:
@@ -2391,70 +2412,61 @@ class SaveGameState(State):
                 self.message = ""
 
     def render(self, screen):
-        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+        from ..ui.menu_kit import ui_for
+        from ..ui.menu_style import ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
 
+        ui = self._ui = ui_for(screen, self.game)
         self.background.draw(screen)
-        title_bottom = draw_title(screen, "SAVE GAME", y=70)
+        top = ui.header(screen, "SAVE GAME")
+        footer_top = ui.footer(
+            screen, "Type a name, ENTER saves  |  TAB switches between name and list  |  UP / DOWN pick a save to overwrite  |  ESC back")
 
-        # Draw input field
-        input_font = pygame.font.Font(None, 32)
-        name_label = input_font.render("Save Name:", True, TEXT_PRIMARY)
-        screen.blit(name_label, (50, title_bottom + 20))
+        width = ui.content_width(1000)
+        left = (ui.width - width) // 2
+        ui.text(screen, "Save name", "body", TEXT_PRIMARY, topleft=(left, top))
+        self.input_box = pygame.Rect(left, top + ui.px(30), min(width, ui.px(560)), ui.px(46))
+        border = ACCENT_GOLD if self.editing_name else (100, 110, 130)
+        ui.panel(screen, self.input_box, border=border, alpha=150)
+        caret = "|" if self.editing_name and (pygame.time.get_ticks() // 500) % 2 == 0 else ""
+        ui.text(screen, self.save_name + caret, "body", TEXT_PRIMARY, max_width=self.input_box.width - ui.px(28),
+                midleft=(self.input_box.x + ui.px(14), self.input_box.centery))
 
-        # Input box
-        input_box = pygame.Rect(50, title_bottom + 50, 400, 40)
-        input_color = ACCENT_GOLD if self.editing_name else (100, 110, 130)
-        draw_panel(screen, input_box, border_color=input_color, bg_alpha=150)
+        label_y = self.input_box.bottom + ui.px(22)
+        ui.text(screen, "Existing saves", "body", TEXT_PRIMARY, topleft=(left, label_y))
+        panel = pygame.Rect(left, label_y + ui.px(32), width, max(ui.px(60), footer_top - ui.px(8) - (label_y + ui.px(32))))
+        ui.panel(screen, panel)
 
-        # Current save name text
-        name_text = input_font.render(self.save_name, True, TEXT_PRIMARY)
-        screen.blit(name_text, (input_box.x + 10, input_box.y + 8))
+        self.list.set_count(len(self.existing_saves))
+        self.list.selected = self.selected_save_index
+        inner = panel.inflate(-ui.px(24), -ui.px(24))
+        inner.height -= ui.px(16)                   # room for the "1-7 of 9" counter
+        self.list.layout(ui, inner, row_units=60)
+        self.list.draw_chrome(ui, screen, fill_selected=not self.editing_name)
+        if not self.existing_saves:
+            ui.text(screen, "No saves yet", "heading", TEXT_DIM, center=panel.center)
+        for index, rect in self.list.rects.items():
+            _draw_save_row(ui, screen, rect, self.existing_saves[index],
+                           index == self.selected_save_index and not self.editing_name)
+        counter = self.list.counter()
+        if counter:
+            ui.text(screen, counter, "tiny", TEXT_DIM, bottomright=(panel.right - ui.px(16), panel.bottom - ui.px(8)))
 
-        # Draw existing saves
-        saves_label_y = input_box.bottom + 30
-        saves_label = input_font.render("Existing Saves:", True, TEXT_PRIMARY)
-        screen.blit(saves_label, (50, saves_label_y))
-
-        list_top = saves_label_y + 34
-        list_bottom = screen.get_height() - 140
-        list_panel = pygame.Rect(50, list_top, screen.get_width() - 100, max(40, list_bottom - list_top))
-        draw_panel(screen, list_panel)
-
-        save_font = pygame.font.Font(None, 26)
-        y_offset = list_panel.y + 12
-        for i, save_meta in enumerate(self.existing_saves[:8]):  # Show up to 8 saves
-            is_selected = i == self.selected_save_index and not self.editing_name
-            color = ACCENT_GOLD if is_selected else TEXT_PRIMARY
-            save_text = f"{save_meta.save_name} - {save_meta.credits} credits - {save_meta.location}"
-            text = save_font.render(save_text, True, color)
-            screen.blit(text, (list_panel.x + 20, y_offset))
-            y_offset += 30
-
-        # Draw instructions
-        instruction_font = pygame.font.Font(None, 22)
-        instructions = [
-            "Type save name and press ENTER to save",
-            "Use UP/DOWN to select existing save to overwrite",
-            "Press TAB to switch between input and save list",
-            "Press ESC to go back"
-        ]
-
-        y_offset = screen.get_height() - 120
-        for instruction in instructions:
-            instr_text = instruction_font.render(instruction, True, TEXT_DIM)
-            screen.blit(instr_text, (50, y_offset))
-            y_offset += 25
-
-        # Draw message if any
         if self.message:
-            message_font = pygame.font.Font(None, 36)
-            msg_color = ACCENT_GOLD if "success" in self.message.lower() else (255, 120, 120)
-            msg_text = message_font.render(self.message, True, msg_color)
-            msg_rect = msg_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
-            draw_panel(screen, msg_rect.inflate(30, 16), border_color=msg_color)
-            screen.blit(msg_text, msg_rect)
-    
+            ui.message(screen, self.message, ACCENT_GOLD if "success" in self.message.lower() else (255, 120, 120))
+
     def handle_input(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            point = self._ui.to_px(event.pos)
+            if self.input_box.collidepoint(point):
+                self.editing_name = True
+            else:
+                index = self.list.index_at(self._ui, event.pos)
+                if index is not None:
+                    self.selected_save_index = index
+                    self.editing_name = False
+        elif event.type == pygame.MOUSEWHEEL and self.existing_saves:
+            self.selected_save_index = max(0, min(len(self.existing_saves) - 1, self.selected_save_index - event.y))
+            self.editing_name = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state(GameStates.PAUSED)
@@ -2518,8 +2530,11 @@ class LoadGameState(State):
         self.message = ""
         self.message_timer = 0.0
 
+        from ..ui.menu_kit import RowList, Ui, BASE_SIZE
         from ..ui.menu_style import MenuBackground
         self.background = MenuBackground()
+        self.list = RowList()
+        self._ui = Ui(BASE_SIZE)
 
     def update(self, delta_time):
         if self.message_timer > 0:
@@ -2528,93 +2543,43 @@ class LoadGameState(State):
                 self.message = ""
 
     def render(self, screen):
-        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+        from ..ui.menu_kit import ui_for
+        from ..ui.menu_style import ACCENT_GOLD, TEXT_DIM
 
+        ui = self._ui = ui_for(screen, self.game)
         self.background.draw(screen)
-        title_bottom = draw_title(screen, "LOAD GAME", y=70)
+        top = ui.header(screen, "LOAD GAME")
+        footer_top = ui.footer(screen, "UP / DOWN select  |  ENTER or click loads  |  DELETE removes a save  |  ESC back")
 
-        instruction_y = screen.get_height() - 120
-        panel_rect = pygame.Rect(50, title_bottom + 20, screen.get_width() - 100, instruction_y - 20 - (title_bottom + 20))
-        draw_panel(screen, panel_rect)
+        width = ui.content_width(1000)
+        panel = pygame.Rect((ui.width - width) // 2, top + ui.px(6), width, max(ui.px(80), footer_top - ui.px(8) - top - ui.px(6)))
+        ui.panel(screen, panel)
 
+        self.list.set_count(len(self.existing_saves))
+        self.list.selected = self.selected_save_index
+        inner = panel.inflate(-ui.px(24), -ui.px(24))
+        inner.height -= ui.px(16)                   # room for the "1-7 of 9" counter
+        self.list.layout(ui, inner, row_units=62)
+        self.list.draw_chrome(ui, screen)
         if not self.existing_saves:
-            # No saves found
-            no_saves_font = pygame.font.Font(None, 40)
-            no_saves_text = no_saves_font.render("No saved games found", True, TEXT_DIM)
-            no_saves_rect = no_saves_text.get_rect(center=panel_rect.center)
-            screen.blit(no_saves_text, no_saves_rect)
-        else:
-            # Draw save list with details, scrolled to keep the selection visible
-            save_font = pygame.font.Font(None, 30)
-            detail_font = pygame.font.Font(None, 22)
-            row_height = 70
+            ui.text(screen, "No saved games found", "heading", TEXT_DIM, center=panel.center)
+        for index, rect in self.list.rects.items():
+            _draw_save_row(ui, screen, rect, self.existing_saves[index], index == self.selected_save_index)
+        counter = self.list.counter()
+        if counter:
+            ui.text(screen, counter, "tiny", TEXT_DIM, bottomright=(panel.right - ui.px(16), panel.bottom - ui.px(8)))
 
-            max_visible = max(1, (panel_rect.height - 20) // row_height)
-            start_index = min(max(0, self.selected_save_index - max_visible // 2),
-                             max(0, len(self.existing_saves) - max_visible))
-            end_index = min(len(self.existing_saves), start_index + max_visible)
-
-            y_offset = panel_rect.y + 12
-            for i in range(start_index, end_index):
-                save_meta = self.existing_saves[i]
-                is_selected = i == self.selected_save_index
-                color = ACCENT_GOLD if is_selected else TEXT_PRIMARY
-                detail_color = ACCENT_GOLD if is_selected else TEXT_DIM
-
-                # Selection highlight
-                if is_selected:
-                    highlight_rect = pygame.Rect(panel_rect.x + 10, y_offset - 5, panel_rect.width - 20, row_height - 15)
-                    pygame.draw.rect(screen, (40, 45, 70), highlight_rect, border_radius=6)
-                    pygame.draw.rect(screen, ACCENT_BLUE, highlight_rect, 2, border_radius=6)
-
-                # Save name
-                name_text = save_font.render(save_meta.save_name, True, color)
-                screen.blit(name_text, (panel_rect.x + 20, y_offset))
-
-                # Save details
-                from datetime import datetime
-                try:
-                    save_date = datetime.fromisoformat(save_meta.save_date)
-                    date_str = save_date.strftime("%Y-%m-%d %H:%M")
-                except:
-                    date_str = save_meta.save_date
-
-                details = f"Credits: {save_meta.credits} | Location: {save_meta.location} | Date: {date_str}"
-                detail_text = detail_font.render(details, True, detail_color)
-                screen.blit(detail_text, (panel_rect.x + 40, y_offset + 25))
-
-                y_offset += row_height
-
-            if len(self.existing_saves) > max_visible:
-                scroll_text = f"{start_index + 1}-{end_index} of {len(self.existing_saves)}"
-                scroll_surface = detail_font.render(scroll_text, True, TEXT_DIM)
-                screen.blit(scroll_surface, (panel_rect.x + 20, panel_rect.bottom - 24))
-
-        # Draw instructions
-        instruction_font = pygame.font.Font(None, 22)
-        instructions = [
-            "Use UP/DOWN to select save",
-            "Press ENTER to load selected save",
-            "Press DELETE to delete selected save",
-            "Press ESC to go back"
-        ]
-
-        y_offset = instruction_y
-        for instruction in instructions:
-            instr_text = instruction_font.render(instruction, True, TEXT_DIM)
-            screen.blit(instr_text, (50, y_offset))
-            y_offset += 25
-
-        # Draw message if any
         if self.message:
-            message_font = pygame.font.Font(None, 36)
-            msg_color = ACCENT_GOLD if "success" in self.message.lower() else (255, 120, 120)
-            msg_text = message_font.render(self.message, True, msg_color)
-            msg_rect = msg_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
-            draw_panel(screen, msg_rect.inflate(30, 16), border_color=msg_color)
-            screen.blit(msg_text, msg_rect)
-    
+            ui.message(screen, self.message, ACCENT_GOLD if "success" in self.message.lower() else (255, 120, 120))
+
     def handle_input(self, event):
+        if event.type in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN, pygame.MOUSEWHEEL):
+            self.list.selected = self.selected_save_index
+            chosen = self.list.handle(event, self._ui, activate_on_click=True)
+            self.selected_save_index = self.list.selected
+            if chosen is not None:
+                self._load_game()
+            return
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state(GameStates.MAIN_MENU)
