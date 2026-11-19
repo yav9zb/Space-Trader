@@ -218,6 +218,11 @@ def act4(c, final_choice):
     c.update()
     assert c.done("act4_1")
 
+    signal(c, final_choice)
+
+
+def signal(c, final_choice):
+    """From having the coordinates to the ending."""
     c.engine.ship.position = Vector2(SIGNAL_SECTOR[0] * 1000 + 500, -(SIGNAL_SECTOR[1] * 1000 + 500))
     c.update()
     assert c.done("act4_2")

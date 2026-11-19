@@ -228,6 +228,18 @@ pip install -r requirements-dev.txt  # pytest isn't in the base requirements.txt
 python -m pytest -v
 ```
 
+The tests never touch your own saves or New Game+ file; they are pointed at a temporary folder (see `tests/conftest.py`).
+
+### Testing the late story
+
+Reaching Acts 3 and 4 by hand takes a lot of play. To jump straight to an act, write a save positioned there and load it in the game:
+
+```bash
+./venv/bin/python scripts/make_debug_save.py --stage act4 --path join
+```
+
+Stages are `act1`, `act2`, `act3` (just before the choice), `act4` and `finale`; `--path` (`expose`, `join`, `independent`) matters from `act4` on. The save is written to your normal saves folder as `debug_<stage>_<path>`, then use Load Game.
+
 ### Project Structure
 ```
 space_trader/
@@ -251,7 +263,7 @@ space_trader/
 │   └── universe.py      # Universe generation
 ├── assets/              # Audio, icons (bundled into packaged builds)
 ├── tests/               # Unit tests (pytest)
-├── scripts/             # Dev tooling (e.g. icon generation)
+├── scripts/             # Dev tooling (icon generation, debug saves)
 ├── spacetrader.spec     # PyInstaller build spec
 ├── requirements.txt        # Runtime dependencies
 ├── requirements-dev.txt    # + test dependencies
