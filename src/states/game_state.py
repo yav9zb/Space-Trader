@@ -694,12 +694,21 @@ class PausedState(State):
         ui = self._ui = ui_for(screen, self.game)
         cx = ui.width // 2
 
-        title = ui.text(screen, "PAUSED", "title", (255, 255, 255),
-                        midtop=(cx, max(ui.px(30), round(ui.height * 0.16))))
+        title_top = max(ui.px(30), round(ui.height * 0.16))
+        title_bottom = title_top + ui.font("title").get_linesize()
         footer_top = ui.footer(screen, "UP / DOWN to navigate, ENTER to select, ESC to resume", color=(170, 175, 190))
-        area = pygame.Rect(0, title.bottom + ui.px(26), ui.width, 0)
+        area = pygame.Rect(0, title_bottom + ui.px(26), ui.width, 0)
         area.height = max(ui.px(100), footer_top - ui.px(20) - area.top)
-        self.menu.layout(ui, area, row_units=56)
+        box = self.menu.layout(ui, area, row_units=56, align_top=True)
+
+        # A panel behind the menu keeps it readable over whatever is in flight
+        panel = pygame.Rect(0, 0, min(ui.px(560), ui.width - 2 * ui.margin()), 0)
+        panel.centerx = cx
+        panel.top = title_top - ui.px(22)
+        panel.height = box.bottom + ui.px(22) - panel.top
+        ui.panel(screen, panel, alpha=215)
+
+        ui.text(screen, "PAUSED", "title", (255, 255, 255), midtop=(cx, title_top))
         self.menu.draw(ui, screen)
 
     def handle_input(self, event):
