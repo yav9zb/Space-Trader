@@ -182,3 +182,20 @@ def test_achievement_text_is_plain_ascii():
     for achievement in ACHIEVEMENTS:
         assert all(ord(ch) < 128 for ch in achievement.name + achievement.description)
     assert len({a.id for a in ACHIEVEMENTS}) == len(ACHIEVEMENTS) == len(BY_ID)
+
+
+def test_a_pile_of_unlocks_becomes_one_summary_message(fresh):
+    """A veteran loading an old save unlocks many at once; the notification
+    stack only holds a few, so they are summarised rather than dropped."""
+    veteran = game(reputation=150, credits=60_000, counters={"bandit_destroyed": 30},
+                   flags=["prologue_complete"])
+    got = Achievements().check(veteran)
+
+    assert len(got) >= 5
+    assert len(notifications.items) == 1
+    assert f"{len(got)} achievements unlocked" in notifications.items[0][0]
+
+
+def test_one_or_two_unlocks_are_named_individually(fresh):
+    Achievements().check(game(counters={"bandit_destroyed": 1}))
+    assert [i[0] for i in notifications.items] == ["Achievement unlocked: First Blood"]

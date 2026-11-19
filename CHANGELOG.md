@@ -3,6 +3,7 @@
 ## Beta 14
 
 ### Fixed
+- **Achievements unlocked in bulk were partly hidden.** Loading an old save with many qualifying achievements pushed more messages than the notification stack holds. Three or more at once now show as one summary.
 - **Saves from betas 9 to 12 could not continue into the new campaign.** If you had already seen Hale's old closing conversation, nothing started Act 1. Loading such a save now moves it into Act 1 and places the new contacts. Hale also tells you where to find them if you ask.
 - **macOS downloads were not launchable.** The macOS zip unpacked to a bare `Contents` folder rather than `Space Trader.app`, and the other platforms' zips spilled loose files. Release archives now unpack to a single `Space Trader.app` or `Space Trader` folder. Builds from betas 9 to 13 still have the old layout.
 - **The mission tracker now follows the current step.** A story mission's tracker entry used to point at its first station forever. It now points at wherever the current step happens (a station, the contact to report back to, or a sector) and shows its coordinates.

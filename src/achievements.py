@@ -110,7 +110,21 @@ class Achievements:
                 newly.append(achievement)
         for achievement in newly:
             self._unlock(achievement)
+        self._announce(newly)
         return newly
+
+    def _announce(self, newly: List[Achievement]):
+        """One message per unlock, but a pile of them (a veteran's first
+        check after loading an old save) becomes a single summary, since the
+        notification stack only holds a few."""
+        from .ui.notifications import notifications
+        color = (255, 215, 120)
+        if len(newly) <= 2:
+            for achievement in newly:
+                notifications.push(f"Achievement unlocked: {achievement.name}", duration=6.0, color=color)
+        else:
+            notifications.push(f"{len(newly)} achievements unlocked - see the Logbook",
+                               duration=8.0, color=color)
 
     def tick(self, delta_time: float, game_engine) -> List[Achievement]:
         """Throttled check for the main loop: conditions are cheap, but there
@@ -124,9 +138,6 @@ class Achievements:
     def _unlock(self, achievement: Achievement):
         legacy.unlock_achievement(achievement.id)
 
-        from .ui.notifications import notifications
-        notifications.push(f"Achievement unlocked: {achievement.name}", duration=6.0,
-                           color=(255, 215, 120))
         try:
             from .steam.steam_manager import steam_manager
             steam_manager.unlock_achievement(achievement.id)
