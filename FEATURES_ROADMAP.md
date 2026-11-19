@@ -22,9 +22,9 @@ This document tracks what's actually implemented versus genuinely still planned.
 - **Escort and bounty missions** - escorts spawn a trader plus an ambush and bandits will attack the escorted trader; bounties spawn a named, labeled pirate captain. Both recover if loaded mid-mission.
 - **Patrols, backup, and hostile standing** - Guild patrols hunt bandits; Captains can call backup (H); at -60 standing a faction's patrols attack you and Guild/Pirate stations refuse docking, with ways back (bandit kills in its space, slow cooling off).
 - **Smuggling and market events** - contraband inspections at Guild stations, a pirate-market premium, Smuggling Run missions, and timed regional raids/shortages/embargoes shown as market news. Markets now actually refresh over time.
-- **Shifting borders and Liberation missions** - region control can change permanently (persisted); destroying a pirate stronghold frees its region. Player outposts are deferred until base building is integrated and saved.
+- **Shifting borders and Liberation missions** - region control can change permanently (persisted); destroying a pirate stronghold frees its region. A player outpost (a claimable freed station that earns passive income) is in; the larger base-building system remains unintegrated.
 - **The full campaign** - four acts and 16 story missions across six station contacts, three paths (expose, join, stay independent), six endings, and New Game+ legacy perks. Starting a new game now gives a fresh ship in a clean universe.
-- **Achievements** - 18 achievements derived from saved game state, persisted across games, shown in the Logbook.
+- **Achievements** - 19 achievements derived from saved game state, persisted across games, shown in the Logbook.
 - **Left-handed controls fix** - the default scheme shared keys between dock/trading and undock/upgrades, so a docked player could not undock; station services moved to Z/X/C/V.
 
 ## Planned / Not Yet Implemented

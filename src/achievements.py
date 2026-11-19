@@ -68,6 +68,7 @@ ACHIEVEMENTS: List[Achievement] = [
                 _events("region_flipped")),
     Achievement("caught", "Caught Red-Handed", "Have contraband seized by the Guild.",
                 _events("contraband_seized")),
+    Achievement("home_port", "Home Port", "Claim an outpost.", _flag("outpost_claimed")),
     Achievement("heir", "A Dead Man's Ship", "Finish the prologue.", _flag("prologue_complete")),
     Achievement("hollow", "The Hollow Account", "Uncover who pays the pirates.",
                 _flag("act2_debriefed")),

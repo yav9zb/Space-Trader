@@ -120,6 +120,7 @@ def test_station_tokens_refer_to_real_waypoints():
     import re
     valid = {f"{mid}.{key}" for mid, d in STORY_MISSIONS.items() for key in d.waypoints}
     valid |= set(NPCS)                       # a contact's own station
+    valid.add("outpost")                     # the player's claimed outpost
     for node in NODES.values():
         for token in re.findall(r"\{station:([^}]+)\}", node.text):
             assert token in valid, (node.id, token)
@@ -177,3 +178,10 @@ def test_every_campaign_chapter_is_entered_by_a_set_chapter_effect():
 def test_the_campaign_has_the_planned_size():
     assert len(STORY_MISSIONS) == 16
     assert len(NPCS) == 6
+
+
+def test_claim_outpost_effects_point_at_a_real_mission_waypoint():
+    claims = [e for e in _all_effects() if e["type"] == "claim_outpost"]
+    assert claims, "the outpost can never be claimed"
+    for effect in claims:
+        assert effect["waypoint"] in STORY_MISSIONS[effect["mission"]].waypoints

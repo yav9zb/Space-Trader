@@ -163,3 +163,18 @@ def test_talking_where_nobody_waits_does_nothing_and_does_not_crash(game):
     press(game, control_scheme_manager.get_key("talk"))
     assert game.current_state == GameStates.PLAYING
     assert "Nobody here" in game.docking_manager.get_status_message()
+
+
+def test_docking_at_the_outpost_pays_the_income_through_the_real_game(game):
+    from src.story import outpost
+
+    spare = game.universe.ensure_station_in_sector(6, 6, None)
+    game.story_state.npc_stations["act3_2.a"] = spare.name
+    outpost.claim(game, spare.name)
+    game.play_time += 30 * 60                      # half an hour of flying
+    before = game.ship.credits
+
+    dock_at(game, spare)
+
+    assert game.ship.credits == before + 30 * outpost.RATE_PER_MINUTE
+    assert game.story_state.get_flag(outpost.COLLECTED_AT) >= game.play_time - 1

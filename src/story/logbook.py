@@ -49,6 +49,20 @@ def _story_page(game) -> List[Line]:
         lines.append(("dim", "None yet."))
     lines.append(("gap", ""))
 
+    from . import outpost
+    if outpost.is_claimed(story):
+        name = story.npc_stations[outpost.STATION_KEY]
+        lines.append(("heading", "Outpost"))
+        place = find_station_by_name(name, game.universe)
+        where = ""
+        if place is not None:
+            where = f", Sector ({int(place.position.x // 1000)}, {int(-place.position.y // 1000)})"
+        lines.append(("body", f"{name}{where}"))
+        waiting = outpost.pending_income(story, getattr(game, "play_time", 0.0))
+        lines.append(("dim", f"{waiting:,} credits waiting. It earns {outpost.RATE_PER_MINUTE} a "
+                             f"minute, up to {outpost.CAP:,}; dock there to collect."))
+        lines.append(("gap", ""))
+
     lines.append(("heading", "Ledger entries"))
     if story.ledger_entries:
         for entry_id in story.ledger_entries:

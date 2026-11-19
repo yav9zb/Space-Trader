@@ -11,6 +11,7 @@ only. Conventions used throughout:
 from .chapters_acts import SIGNAL_SECTOR
 from .dialogue import Choice, Node
 from .dialogue_data import HALE, NODES, add_node as _add
+from .outpost import CAP, RATE_PER_MINUTE
 
 ROURKE = "Captain Rourke"
 VOSS = "Auditor Voss"
@@ -34,6 +35,10 @@ _hale_extra = [
            requires={"flag": "act2_debriefed", "not_story_started": "act3_1"}),
     Choice("About the choice I have to make...", next="hale_choice",
            requires={"story_active": "act3_1"}),
+    Choice("About the station we freed.", next="hale_outpost",
+           requires={"story_done": "act3_2", "not_flag": "outpost_claimed"}),
+    Choice("How is my outpost doing?", next="hale_outpost_status",
+           requires={"flag": "outpost_claimed"}),
     Choice("The frontier is in chaos.", next="hale_frontier",
            requires={"story_done": "act3_1", "not_story_started": "act3_2"}),
 ]
@@ -163,6 +168,36 @@ _add(Node(
     "Come see me about the frontier. A truce is a promise, and somebody "
     "always tests those.",
     choices=[Choice("I expected as much.", next=None)],
+))
+
+_add(Node(
+    "hale_outpost", HALE,
+    "That station at {station:act3_2.a}, the one you pried out of the "
+    "warband's hands. It has no owner now, and it would be a shame to let "
+    "some other crew move in. Claim it. Call it an outpost, a home port, "
+    "whatever you like. It will earn its keep while you fly: %d credits a "
+    "minute, up to %d, waiting for you whenever you dock there." % (RATE_PER_MINUTE, CAP),
+    choices=[
+        Choice("I will claim it.", next="hale_outpost_claimed",
+               effects=[{"type": "set_flag", "name": "outpost_claimed"},
+                        {"type": "claim_outpost", "mission": "act3_2", "waypoint": "a"}]),
+        Choice("Leave it for now.", next=None),
+    ],
+))
+
+_add(Node(
+    "hale_outpost_claimed", HALE,
+    "Then it is yours: {station:outpost}. Mind the Guild's tax collectors, "
+    "if they come asking. Dock there any time to collect what it has "
+    "earned.",
+    choices=[Choice("Thank you, Hale.", next=None)],
+))
+
+_add(Node(
+    "hale_outpost_status", HALE,
+    "Your outpost is at {station:outpost}. It earns %d credits a minute "
+    "while you play, up to %d. Dock there to collect it." % (RATE_PER_MINUTE, CAP),
+    choices=[Choice("Good to know.", next=None)],
 ))
 
 _add(Node(

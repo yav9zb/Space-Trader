@@ -56,6 +56,7 @@ CASES = {
     "liberator": (game(counters={"completed_type:Liberation": 1}), game(counters={"completed_type:Bounty": 1})),
     "redrawn_map": (game(counters={"region_flipped": 1}), game()),
     "caught": (game(counters={"contraband_seized": 1}), game()),
+    "home_port": (game(flags=["outpost_claimed"]), game(flags=["act2_debriefed"])),
     "heir": (game(flags=["prologue_complete"]), game(flags=["prologue_epilogue_seen"])),
     "hollow": (game(flags=["act2_debriefed"]), game(flags=["act1_debriefed"])),
     "signal": (game(flags=["campaign_complete"]), game(flags=["signal_open"])),

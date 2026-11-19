@@ -199,6 +199,9 @@ def act3(c, path_choice):
     c.break_fleet("act3_2")
     assert c.done("act3_2")
 
+    c.talk("hale", "About the station we freed.", "I will claim it.", "Thank you, Hale.")
+    assert story_state.npc_stations["outpost"] == story_state.npc_stations["act3_2.a"]
+
     c.talk("okoye", "What do you need?", "I will calibrate the array.", "On my way.")
     c.dock("act3_3", "a")
     c.talk("okoye", "The array is calibrated.", "Then we go there.")

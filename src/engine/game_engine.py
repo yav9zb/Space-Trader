@@ -76,7 +76,7 @@ class GameEngine:
         # Initialize docking system
         self.docking_manager = DockingManager()
         self.docking_manager.refusal_check = self._docking_refusal
-        self.docking_manager.inspection_hook = self._inspect_cargo
+        self.docking_manager.inspection_hook = self._on_docked
 
         # Game objects
         self.ship = Ship(400, 300)
@@ -376,6 +376,12 @@ class GameEngine:
         faction = get_station_faction(station, self.world_seed)
         return docking_refusal(faction, self.mission_manager.faction_standing.get(faction, 0))
 
+    def _on_docked(self, station):
+        """Everything that happens when docking completes."""
+        self._inspect_cargo(station)
+        from src.story.outpost import collect
+        collect(self, station)
+
     def _inspect_cargo(self, station):
         """Guild inspection on docking, if the player carries contraband."""
         from src.smuggling import inspect
@@ -523,6 +529,9 @@ class GameEngine:
         economy_events.world_seed = self.world_seed
         economy_events.reset()
         
+        self.play_time = 0.0
+        self.last_auto_save = 0.0
+
         # Nothing from the old universe may follow the player into the new one
         from src.combat.combat_manager import combat_manager
         combat_manager.clear_all()

@@ -42,6 +42,21 @@ def test_a_new_game_does_not_keep_the_old_ships_wealth_or_upgrades(engine):
     assert engine.mission_manager.reputation == 0
 
 
+def test_a_new_game_restarts_the_clock_and_forgets_the_outpost(engine):
+    from src.story import outpost
+
+    engine.create_new_universe()
+    engine.play_time = 5000.0
+    engine.story_state.npc_stations["act3_2.a"] = "Freeport-9"
+    outpost.claim(engine, "Freeport-9")
+    assert outpost.is_claimed(engine.story_state)
+
+    engine.create_new_universe()
+
+    assert engine.play_time == 0.0
+    assert not outpost.is_claimed(engine.story_state)
+
+
 def test_a_new_game_clears_ships_left_over_from_the_old_universe(engine):
     from pygame import Vector2
     from src.combat.combat_manager import combat_manager

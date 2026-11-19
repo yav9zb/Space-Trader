@@ -34,6 +34,7 @@ EFFECT_TYPES = {
     "show_dialogue",
     "flip_region",
     "complete_campaign",
+    "claim_outpost",
 }
 
 
@@ -127,6 +128,9 @@ def apply_effects(effects: List[Dict[str, Any]], game_engine):
         elif kind == "flip_region":
             from .borders import flip_nearest_region
             flip_nearest_region(game_engine, effect["from"], effect["faction"])
+        elif kind == "claim_outpost":
+            from .outpost import claim
+            claim(game_engine, story.npc_stations.get(f"{effect['mission']}.{effect['waypoint']}"))
         elif kind == "complete_campaign":
             story.set_flag("campaign_complete")
             game_engine.start_victory()
