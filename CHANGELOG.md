@@ -1,5 +1,16 @@
 # Changelog
 
+## Beta 20
+
+### Changed
+- **A better player ship.** Swept wings, engine pods that glow, a canopy with a highlight, and shading that reads as lit from the left.
+- **A proper cloaking shimmer.** Cloaked, your ship is surrounded by a cool pulsing glow, two ripples spreading outward, and flecks of bent light orbiting the hull.
+- **Screens fade in** over a fifth of a second when you move between menus, trading and the like. Flight and its pause menu still swap instantly.
+- **Rewards pop up where they happen.** Destroying a pirate shows "+N cr" rising from the wreck.
+
+### Fixed
+- The Ship Upgrades screen no longer overlaps its own help text on small windows (the scaled layouts from beta 19 give it room).
+
 ## Beta 19
 
 ### Changed

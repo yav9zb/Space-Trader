@@ -148,40 +148,30 @@ class CloakingSystem:
         }
     
     def draw_cloak_effects(self, screen: pygame.Surface, ship_position: Vector2, camera_offset: Vector2):
-        """Draw cloaking visual effects."""
+        """Cloaking: expanding ripples, a pulsing glow and bent-light flecks
+        around the (faint) ship."""
         if not self.is_cloaked:
             return
-            
+        from ..ui import gfx
+
         screen_pos = ship_position - camera_offset
-        
-        # Draw shimmer effect around ship
-        shimmer_radius = 25 + math.sin(self.shimmer_timer * 6) * 5
-        shimmer_color = (100, 150, 255, 50)
-        
-        # Create shimmer surface
-        shimmer_surface = pygame.Surface((shimmer_radius * 2, shimmer_radius * 2), pygame.SRCALPHA)
-        pygame.draw.circle(shimmer_surface, shimmer_color, 
-                         (int(shimmer_radius), int(shimmer_radius)), 
-                         int(shimmer_radius), 2)
-        
-        screen.blit(shimmer_surface, 
-                   (screen_pos.x - shimmer_radius, screen_pos.y - shimmer_radius))
-        
-        # Draw distortion lines
-        for i in range(3):
-            angle = (self.shimmer_timer * 50 + i * 120) % 360
-            line_length = 15 + math.sin(self.shimmer_timer * 4 + i) * 5
-            
-            start_x = screen_pos.x + math.cos(math.radians(angle)) * 20
-            start_y = screen_pos.y + math.sin(math.radians(angle)) * 20
-            end_x = start_x + math.cos(math.radians(angle)) * line_length
-            end_y = start_y + math.sin(math.radians(angle)) * line_length
-            
-            line_alpha = int(50 + math.sin(self.shimmer_timer * 8 + i) * 30)
-            line_color = (150, 200, 255, line_alpha)
-            
-            # Note: pygame.draw.line doesn't support alpha directly
-            pygame.draw.line(screen, (150, 200, 255), (start_x, start_y), (end_x, end_y), 1)
+        t = self.shimmer_timer
+
+        # A cool pulsing glow where the ship is
+        pulse = 0.5 + 0.5 * math.sin(t * 5)
+        gfx.draw_glow(screen, screen_pos, 34, (70, 140, 255), 0.25 + 0.2 * pulse)
+
+        # Two ripples spreading outward and fading, half a cycle apart
+        for offset in (0.0, 0.5):
+            phase = (t * 0.9 + offset) % 1.0
+            gfx.draw_ring_glow(screen, screen_pos, 10 + 34 * phase, 3, (110, 180, 255), 0.8 * (1 - phase))
+
+        # Flecks of bent light orbiting the hull
+        for i in range(5):
+            angle = math.radians((t * 70 + i * 72) % 360)
+            radius = 20 + 5 * math.sin(t * 3 + i)
+            at = (screen_pos.x + math.cos(angle) * radius, screen_pos.y + math.sin(angle) * radius)
+            gfx.draw_glow(screen, at, 6, (170, 215, 255), 0.7)
 
 
 # Global cloaking system instance

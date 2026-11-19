@@ -272,25 +272,50 @@ class Ship:
             pygame.draw.polygon(ship_surface, HULL_OUTLINE, surface_points, 2)
             screen.blit(ship_surface, (screen_pos.x - self.size * 2, screen_pos.y - self.size * 2))
         else:
-            # Normal drawing
-            pygame.draw.polygon(screen, HULL_FILL, transformed_points)
-            # Shadowed starboard half gives the hull some depth
-            pygame.draw.polygon(screen, HULL_SHADOW,
-                                [transformed_points[0], transformed_points[3], transformed_points[2]])
-            pygame.draw.polygon(screen, HULL_OUTLINE, transformed_points, 2)
-            # Bright edge along the port wing
-            pygame.draw.line(screen, (255, 255, 255), transformed_points[0], transformed_points[1], 1)
-
-            # Cockpit accent, a little forward of center
-            cockpit_local = Vector2(0, -self.size * 0.15).rotate(self.rotation)
-            cockpit_pos = cockpit_local + screen_pos
-            pygame.draw.circle(screen, COCKPIT, (int(cockpit_pos.x), int(cockpit_pos.y)), max(2, int(self.size * 0.16)))
+            # Normal drawing: a layered hull (wings, fuselage, engine pods, canopy)
+            self._draw_hull(screen, screen_pos, HULL_FILL, HULL_SHADOW, HULL_OUTLINE, COCKPIT)
 
         # Draw weapon projectiles
         self.weapon_system.draw(screen, camera_offset)
 
         # Draw cloaking effects
         cloaking_system.draw_cloak_effects(screen, self.position, camera_offset)
+
+    # Hull layout in units of the ship's size, nose pointing up. Shapes on the
+    # right-hand side are drawn in shadow, so the hull reads as lit from the left.
+    FUSELAGE = [(0, -1.2), (0.2, -0.55), (0.27, 0.45), (0.14, 0.78), (-0.14, 0.78), (-0.27, 0.45), (-0.2, -0.55)]
+    WING_RIGHT = [(0.2, -0.1), (1.0, 0.8), (0.88, 1.0), (0.26, 0.6)]
+    POD_RIGHT = [(0.42, 0.3), (0.58, 0.3), (0.6, 1.0), (0.4, 1.0)]
+
+    def _hull_points(self, shape, mirror=False):
+        factor = -1 if mirror else 1
+        return [Vector2(x * factor * self.size, y * self.size).rotate(self.rotation) for x, y in shape]
+
+    def _draw_hull(self, screen, screen_pos, fill, shadow, outline, canopy):
+        def poly(shape, color, mirror=False, width=0):
+            pts = [p + screen_pos for p in self._hull_points(shape, mirror)]
+            pygame.draw.polygon(screen, color, pts, width)
+            return pts
+
+        for mirror in (True, False):                     # left (lit) first, then right (shadow)
+            tone = shadow if not mirror else fill
+            poly(self.WING_RIGHT, gfx.darken(tone, 0.12), mirror)
+            poly(self.POD_RIGHT, gfx.darken(tone, 0.3), mirror)
+            poly(self.WING_RIGHT, outline, mirror, 1)
+        poly(self.FUSELAGE, fill)
+        right_half = [(0, -1.2), (0.2, -0.55), (0.27, 0.45), (0.14, 0.78), (0, 0.78)]
+        poly(right_half, shadow)
+        poly(self.FUSELAGE, outline, False, 2)
+
+        # Canopy with a highlight, a little forward of centre
+        canopy_pts = [(0, -0.75), (0.13, -0.3), (0, -0.05), (-0.13, -0.3)]
+        poly(canopy_pts, canopy)
+        poly([(0, -0.7), (-0.08, -0.33), (0, -0.4)], gfx.lighten(canopy, 0.6))
+
+        # Engine pod glows
+        for mirror in (True, False):
+            tip = Vector2((-1 if mirror else 1) * 0.5 * self.size, 1.0 * self.size).rotate(self.rotation) + screen_pos
+            gfx.draw_glow(screen, tip, self.size * 0.45, (90, 150, 255), 0.5)
 
     def _draw_flame(self, screen, screen_pos, ship_alpha):
         """Engine flame: a flickering layered burn with a glow, coloured by

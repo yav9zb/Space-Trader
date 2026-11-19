@@ -96,6 +96,8 @@ class CombatManager:
 
         # Update explosions
         self._update_explosions(delta_time)
+        from ..ui.floating_text import floating_texts
+        floating_texts.update(delta_time)
         
         # Check player weapon hits
         if hasattr(ship, 'weapon_system'):
@@ -376,6 +378,8 @@ class CombatManager:
 
         # Award credits to player
         player_ship.credits += bandit.credits_reward
+        from ..ui.floating_text import floating_texts
+        floating_texts.add(bandit.position, f"+{bandit.credits_reward} cr")
 
         # Create explosion effect
         self._create_explosion(bandit.position, bandit.base_size * 2)
@@ -546,6 +550,9 @@ class CombatManager:
                     spark_color = tuple(int(c * life) for c in (255, 210, 120))
                     pygame.draw.circle(screen, spark_color, (int(at.x), int(at.y)), 2 if life > 0.5 else 1)
 
+        from ..ui.floating_text import floating_texts
+        floating_texts.draw(screen, camera_offset)
+
         # Draw respawn effects
         respawn_system.draw_effects(screen, camera_offset)
     
@@ -646,6 +653,8 @@ class CombatManager:
         self.active_traders.clear()
         self.active_patrols.clear()
         self.explosions.clear()
+        from ..ui.floating_text import floating_texts
+        floating_texts.clear()
         self.last_backup_time = -BACKUP_COOLDOWN
         
         # Reset stats

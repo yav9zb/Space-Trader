@@ -38,6 +38,11 @@ SCALED_STATES = frozenset({
 MOUSE_SCALED_STATES = SCALED_STATES | {GameStates.PAUSED}
 
 
+FADE_SECONDS = 0.22
+# Switching between flight and its pause menu should feel instant
+NO_FADE = {frozenset({GameStates.PLAYING, GameStates.PAUSED})}
+
+
 class GameEngine:
 
     def __init__(self):
@@ -142,6 +147,7 @@ class GameEngine:
         from src.story.story_state import story_state
         self.story_state = story_state
         self.pending_dialogue = None
+        self.fade_remaining = 0.0
         
         # Initialize missions for new game
         self.mission_manager.initialize_missions(self)
@@ -256,6 +262,7 @@ class GameEngine:
     def update(self) -> None:
         """Update game logic based on current state"""
         self.delta_time = self.clock.get_time() / 1000.0  # Convert to seconds
+        self.fade_remaining = max(0.0, getattr(self, "fade_remaining", 0.0) - self.delta_time)
         screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
         
         # Update play time when playing
@@ -330,7 +337,8 @@ class GameEngine:
         else:
             screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
             current_state.render(self.screen)
-        
+
+        self._draw_fade()
         pygame.display.flip()
 
 
@@ -437,6 +445,18 @@ class GameEngine:
         self.settings.toggle_fullscreen()
         self._update_display()
     
+    def _draw_fade(self):
+        """Fade in from black right after switching screens."""
+        remaining = getattr(self, "fade_remaining", 0.0)
+        if remaining <= 0:
+            return
+        size = self.screen.get_size()
+        if getattr(self, "_fade_surface", None) is None or self._fade_surface.get_size() != size:
+            self._fade_surface = pygame.Surface(size)
+            self._fade_surface.fill((0, 0, 0))
+        self._fade_surface.set_alpha(int(255 * min(1.0, remaining / FADE_SECONDS)))
+        self.screen.blit(self._fade_surface, (0, 0))
+
     def _on_window_resized(self):
         """React to the window having a new size without re-creating it
         (re-creating on every resize event flickers and fights macOS's own
@@ -501,6 +521,8 @@ class GameEngine:
     def change_state(self, new_state: GameStates, station=None) -> None:
         """Safely change the game state"""
         logger.info(f"Changing game state from {self.current_state} to {new_state}")
+        if new_state != self.current_state and frozenset({self.current_state, new_state}) not in NO_FADE:
+            self.fade_remaining = FADE_SECONDS
     
         # Handle cleanup of old state
         if self.current_state == GameStates.TRADING:
