@@ -45,8 +45,23 @@ jobs:
         run: pip install -r requirements-build.txt
       - name: Build
         run: pyinstaller spacetrader.spec --noconfirm
+      # Package here rather than letting upload-artifact zip the raw folder: that
+      # drops the "Space Trader.app" folder name (so the macOS download is not
+      # a launchable app) and loses symlinks. Each archive unpacks to one
+      # top-level item: the .app on macOS, a "Space Trader" folder elsewhere.
+      - name: Package (macOS)
+        if: matrix.os == 'macos-latest'
+        run: cd dist && zip -qry ../SpaceTrader-macos.zip "Space Trader.app"
+      - name: Package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: cd dist && zip -qry ../SpaceTrader-linux.zip "Space Trader"
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: Compress-Archive -Path "dist/Space Trader" -DestinationPath SpaceTrader-windows.zip
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: SpaceTrader-${{ matrix.os }}
-          path: dist/${{ matrix.artifact }}
+          path: SpaceTrader-*.zip
+          compression-level: 0
