@@ -74,6 +74,10 @@ def test_debris_collision():
     """Test debris-to-debris collision."""
     debris1 = Debris(100, 100, DebrisType.METAL)
     debris2 = Debris(110, 110, DebrisType.ICE)
+    # Sizes are random per piece; the centers are ~14 apart, so pin the sizes
+    # to guarantee overlap (small random pairs failed about 0.3% of runs)
+    debris1.size = 10
+    debris2.size = 10
 
     debris1.velocity = Vector2(10, 0)
     debris2.velocity = Vector2(-10, 0)
