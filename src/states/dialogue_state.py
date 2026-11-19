@@ -11,33 +11,16 @@ try:
     from ..states.game_state import State, GameStates
     from ..story.dialogue import DialogueSession
     from ..ui.menu_style import (
-        MenuBackground, draw_title, draw_panel,
+        MenuBackground, draw_title, draw_panel, wrap_text,
         ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM,
     )
 except ImportError:
     from states.game_state import State, GameStates
     from story.dialogue import DialogueSession
     from ui.menu_style import (
-        MenuBackground, draw_title, draw_panel,
+        MenuBackground, draw_title, draw_panel, wrap_text,
         ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM,
     )
-
-
-def wrap_text(text, font, max_width):
-    """Word-wrap text to max_width pixels, honouring explicit newlines."""
-    lines = []
-    for paragraph in text.split("\n"):
-        words = paragraph.split(" ")
-        current = ""
-        for word in words:
-            candidate = word if not current else current + " " + word
-            if font.size(candidate)[0] <= max_width or not current:
-                current = candidate
-            else:
-                lines.append(current)
-                current = word
-        lines.append(current)
-    return lines
 
 
 class DialogueState(State):

@@ -30,6 +30,7 @@ class GameStates(Enum):
     BASE_CONSTRUCTION = auto()  # Added for base building
     GAME_OVER = auto()
     DIALOGUE = auto()  # Added for story/NPC conversations
+    LOGBOOK = auto()  # Added for the story/contacts/factions logbook
 
 class State:
     def __init__(self, game):
@@ -1176,6 +1177,11 @@ class PlayingState(State):
     def update(self, delta_time):
         self.onboarding_hints.update(delta_time)
 
+        if self.game.docking_manager.is_docked():
+            from ..story.director import get_contact_at
+            if get_contact_at(self.game.docking_manager.get_target_station(), self.game):
+                self.onboarding_hints.trigger("station_contact")
+
         # Handle ship movement only if not docked
         if not self.game.docking_manager.is_docked():
             self.game.ship.handle_input(delta_time)
@@ -1431,6 +1437,19 @@ class PlayingState(State):
             text_rect.y = int(screen_pos.y + station.size + 10)
             screen.blit(docked_text, text_rect)
 
+            # A story contact waiting at this station
+            from ..story.director import get_contact_at
+            contact = get_contact_at(station, self.game)
+            if contact:
+                contact_font = pygame.font.Font(None, 24)
+                talk_key = control_scheme_manager.get_key_name("talk")
+                contact_text = contact_font.render(
+                    f"{contact.name} is here - press {talk_key} to talk", True, (255, 220, 80))
+                contact_rect = contact_text.get_rect()
+                contact_rect.centerx = int(screen_pos.x)
+                contact_rect.y = text_rect.bottom + 6
+                screen.blit(contact_text, contact_rect)
+
     def _draw_debug_info(self, screen, camera_offset):
         """Draw debug information for object positions"""
         font = pygame.font.Font(None, 24)
@@ -1528,6 +1547,15 @@ class PlayingState(State):
                 if self.game.docking_manager.is_docked():
                     station = self.game.docking_manager.get_target_station()
                     self.game.change_state(GameStates.MISSIONS, station)
+            elif event.key == control_scheme_manager.get_key("talk"):
+                if self.game.docking_manager.is_docked():
+                    from ..story.director import get_contact_at, start_contact_dialogue
+                    station = self.game.docking_manager.get_target_station()
+                    contact = get_contact_at(station, self.game)
+                    if contact:
+                        start_contact_dialogue(contact, self.game)
+                    else:
+                        self.game.docking_manager.last_status_message = "Nobody here wants to talk."
             elif event.key == control_scheme_manager.get_key("undock"):
                 if self.game.docking_manager.is_docked():
                     result = self.game.docking_manager.attempt_undocking(self.game.ship)
@@ -1550,7 +1578,7 @@ class PlayingState(State):
 class PausedState(State):
     def __init__(self, game):
         super().__init__(game)
-        self.pause_options = ["Resume", "Save Game", "Settings", "Main Menu"]
+        self.pause_options = ["Resume", "Save Game", "Logbook", "Settings", "Main Menu"]
         self.selected_option = 0
         self.option_rects = []
 
@@ -1622,13 +1650,16 @@ class PausedState(State):
     
     def _select_option(self):
         """Handle option selection"""
-        if self.selected_option == 0:  # Resume
+        option = self.pause_options[self.selected_option]
+        if option == "Resume":
             self.game.change_state(GameStates.PLAYING)
-        elif self.selected_option == 1:  # Save Game
+        elif option == "Save Game":
             self.game.change_state(GameStates.SAVE_GAME)
-        elif self.selected_option == 2:  # Settings
+        elif option == "Logbook":
+            self.game.change_state(GameStates.LOGBOOK)
+        elif option == "Settings":
             self.game.change_state(GameStates.SETTINGS)
-        elif self.selected_option == 3:  # Main Menu
+        elif option == "Main Menu":
             self.game.change_state(GameStates.MAIN_MENU)
 
 class TradingState(State):

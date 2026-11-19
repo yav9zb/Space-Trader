@@ -1,5 +1,15 @@
 # Changelog
 
+## Beta 8
+
+### Added
+- **Station contacts and conversations** - named characters can wait at stations. When docked at one you will see a prompt; press the Talk key (N with WASD controls, Z with arrow-key controls) to start a conversation. Your first contact is Dock Master Hale, at a nearby Independent station.
+- **Logbook** - new pause menu entry with three pages: Story (current chapter and decoded ledger entries), Contacts (who you have met and where), and Factions (your standing with each).
+- **Prologue** - the opening conversation with Hale. The rest of the campaign follows in later betas.
+
+### Fixed
+- **Arrow-key (left-handed) controls: you could not undock.** Dock and Trading shared F, and Undock and Upgrades shared G, so the first matching action always won. Station services now use Z/X/C/V (talk, trading, upgrades, missions); F/G remain dock/undock. WASD controls are unchanged apart from the new Talk key (N). A test now prevents two actions from ever sharing a key.
+
 ## Beta 7
 
 ### Fixed

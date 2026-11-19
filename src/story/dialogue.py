@@ -99,6 +99,9 @@ def apply_effects(effects: List[Dict[str, Any]], game_engine):
             story.add_ledger_entry(effect["id"])
         elif kind == "set_chapter":
             story.chapter = effect["chapter"]
+            # New chapter, new contacts
+            from .director import ensure_npcs_placed
+            ensure_npcs_placed(game_engine)
         else:
             raise ValueError(f"Unknown effect: {kind}")
 

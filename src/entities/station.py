@@ -26,9 +26,10 @@ class Station:
         StationType.SHIPYARD: (150, 150, 0)      # Yellow
     }
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, station_type=None):
         self.position = pygame.Vector2(x, y)
-        self.station_type = random.choice(list(StationType))
+        # An explicit type (used for story stations) skips the random pick
+        self.station_type = station_type or random.choice(list(StationType))
         self.size = self._get_size_for_type()
         self.color = self.STATION_COLORS[self.station_type]
         self.name = self._generate_name()

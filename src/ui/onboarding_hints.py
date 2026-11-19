@@ -30,9 +30,18 @@ def _station_services_lines():
     ]
 
 
+def _station_contact_lines():
+    k = control_scheme_manager.get_key_name
+    return [
+        "A contact is waiting at this station.",
+        f"Press {k('talk')} to talk - conversations shape the story",
+    ]
+
+
 HINTS = {
     "flight_controls": _flight_controls_lines,
     "station_services": _station_services_lines,
+    "station_contact": _station_contact_lines,
 }
 
 

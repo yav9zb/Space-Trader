@@ -63,6 +63,12 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Music Stingers**: Mission-complete and game-over cues
 - **Volume Controls**: Master/SFX/Music sliders in Settings
 
+#### Factions, Reputation and Story
+- **Factions**: Space is divided into Trade Guild, Independent, and Pirate Territory sectors, shown in the Navigation HUD, with different trader and bandit density. The starting area is always safe.
+- **Reputation and Ranks**: Overall reputation (Rookie to Legend) gates the top tier of ship upgrades; separate standing with each faction gates some missions and adjusts upgrade prices.
+- **Neutral Traders**: Unarmed ships fly between stations. Attacking one plunders credits but costs reputation.
+- **Station Contacts**: Named characters wait at some stations; dock and press the Talk key to start a conversation. The Logbook (pause menu) tracks the story, contacts you have met, and faction standing. A story campaign is being built on this foundation.
+
 #### User Interface
 - **Minimap**: Real-time minimap showing nearby objects and ship position
 - **Large Map**: Detailed universe overview with station locations
@@ -73,8 +79,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 
 - **Advanced AI**: Improved enemy tactics and faction-based behaviors
 - **Multiplayer**: Cooperative and competitive multiplayer modes
-- **Faction System**: Reputation and relationships with different groups
-- **Story Mode**: Narrative campaign with scripted events
+- **Story Campaign**: The conversation, contact, and logbook systems exist; the authored missions and chapters are in progress
 - **Visual Effects**: Enhanced explosions, particle systems, and environmental effects
 
 ## Controls
@@ -177,6 +182,13 @@ Produces a standalone build in `dist/` (`Space Trader.app` on macOS, an exe + fo
 - **Mission Manager** (`src/missions/mission_manager.py`): Mission generation and tracking
 - **Mission Types** (`src/missions/mission_types.py`): Base mission classes and structures
 - **Specific Missions** (`src/missions/specific_missions.py`): Implementation of mission types
+
+### Story and Factions
+- **Factions** (`src/factions.py`): Deterministic faction control over the sector grid, plus price/spawn multipliers
+- **Story State** (`src/story/story_state.py`): Saved campaign flags, chapter, contact placements, and event counts
+- **Dialogue** (`src/story/dialogue.py`, `src/story/dialogue_data.py`): Choice/requirement/effect engine and the authored conversations
+- **Contacts** (`src/story/npcs.py`, `src/story/director.py`): Named station contacts and where they are placed
+- **Logbook** (`src/story/logbook.py`): Content for the Logbook screen
 
 ### Ship Systems
 - **Upgrade System** (`src/upgrades/`): Ship improvement and enhancement systems

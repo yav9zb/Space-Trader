@@ -86,8 +86,14 @@ class Universe:
         if not universe_generator.should_generate_chunk(chunk_x, chunk_y, distance_from_origin):
             return  # Skip this chunk - it's empty space
         
-        # Keep track of placed objects to avoid overlapping
-        placed_objects = []
+        # Keep track of placed objects to avoid overlapping, starting with any
+        # station already created here (e.g. one placed ahead of time for a
+        # story contact)
+        placed_objects = [
+            (station.position, station.size) for station in self.stations
+            if int(station.position.x // self.sector_size) == chunk_x
+            and int(station.position.y // self.sector_size) == chunk_y
+        ]
         stations_before = len(self.stations)
 
         # Check if this chunk should have a star system
@@ -322,6 +328,38 @@ class Universe:
             if debris not in debris_field_manager.debris_list:
                 debris.update(delta_time)
     
+    def ensure_station_in_sector(self, chunk_x, chunk_y, station_type=None):
+        """Return a station in the given sector, creating one if the sector
+        has none of the wanted type. Story contacts must exist at a known
+        place, but the universe is generated lazily, so they can't rely on the
+        procedural layers having produced a suitable station. Placement is
+        seeded from the world seed so it is repeatable, and the global RNG
+        state is restored so callers' random streams are unaffected."""
+        for station in self.stations:
+            in_sector = (int(station.position.x // self.sector_size) == chunk_x
+                         and int(station.position.y // self.sector_size) == chunk_y)
+            if in_sector and (station_type is None or station.station_type == station_type):
+                return station
+
+        start_x = chunk_x * self.sector_size
+        start_y = chunk_y * self.sector_size
+        rng_state = random.getstate()
+        try:
+            random.seed(self._get_chunk_seed(chunk_x, chunk_y, 7))
+            existing = [
+                (station.position, station.size) for station in self.stations
+                if int(station.position.x // self.sector_size) == chunk_x
+                and int(station.position.y // self.sector_size) == chunk_y
+            ]
+            pos = self._find_safe_position(start_x, start_y, self.sector_size, existing, min_distance=100)
+            if pos is None:
+                pos = Vector2(start_x + self.sector_size / 2, start_y + self.sector_size / 2)
+            station = Station(pos.x, pos.y, station_type)
+        finally:
+            random.setstate(rng_state)
+        self.stations.append(station)
+        return station
+
     def _add_station(self, x, y):
         """Add a station to the universe"""
         from .entities.station import Station

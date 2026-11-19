@@ -134,10 +134,14 @@ class GameEngine:
             GameStates.MISSIONS: None,  # Will be created dynamically with station parameter
             GameStates.BASE_CONSTRUCTION: None,  # Will be created dynamically
             GameStates.DIALOGUE: None,  # Will be created dynamically with a start node
+            GameStates.LOGBOOK: None,  # Created fresh each time it is opened
             GameStates.SAVE_GAME: None,  # Will be created dynamically
             GameStates.LOAD_GAME: LoadGameState(self),
             GameStates.GAME_OVER: GameOverState(self)
         }
+
+        from src.story.director import ensure_npcs_placed
+        ensure_npcs_placed(self)
         
         logger.info("GameEngine initialization complete")
 
@@ -452,6 +456,9 @@ class GameEngine:
             # Create a dialogue screen for the node set by start_dialogue()
             from src.states.dialogue_state import DialogueState
             self.states[GameStates.DIALOGUE] = DialogueState(self, self.pending_dialogue)
+        elif new_state == GameStates.LOGBOOK:
+            from src.states.logbook_state import LogbookState
+            self.states[GameStates.LOGBOOK] = LogbookState(self)
         elif new_state == GameStates.BASE_CONSTRUCTION:
             # Create base construction state
             from src.states.base_construction_state import BaseConstructionState
@@ -494,6 +501,9 @@ class GameEngine:
         for faction in self.mission_manager.faction_standing:
             self.mission_manager.faction_standing[faction] = 0
         self.story_state.reset()
+
+        from src.story.director import ensure_npcs_placed
+        ensure_npcs_placed(self)
         
         # Initialize missions for new universe
         self.mission_manager.initialize_missions(self)

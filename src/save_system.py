@@ -261,6 +261,10 @@ class SaveSystem:
         
         # Load game state
         self._load_game_state_data(save_data.get("game_state", {}), game_engine)
+
+        # Contacts for chapters reached but not yet placed (e.g. an older save)
+        from src.story.director import ensure_npcs_placed
+        ensure_npcs_placed(game_engine)
     
     def _load_player_data(self, player_data: Dict[str, Any], game_engine):
         """Load player-related data."""

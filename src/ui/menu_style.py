@@ -65,3 +65,20 @@ def draw_panel(screen, rect, border_color=ACCENT_BLUE, bg_alpha=190, border_widt
     pygame.draw.rect(panel_surface, (*PANEL_BG, bg_alpha), panel_surface.get_rect(), border_radius=PANEL_RADIUS)
     screen.blit(panel_surface, rect.topleft)
     pygame.draw.rect(screen, border_color, rect, border_width, border_radius=PANEL_RADIUS)
+
+
+def wrap_text(text, font, max_width):
+    """Word-wrap text to max_width pixels, honouring explicit newlines."""
+    lines = []
+    for paragraph in text.split("\n"):
+        words = paragraph.split(" ")
+        current = ""
+        for word in words:
+            candidate = word if not current else current + " " + word
+            if font.size(candidate)[0] <= max_width or not current:
+                current = candidate
+            else:
+                lines.append(current)
+                current = word
+        lines.append(current)
+    return lines

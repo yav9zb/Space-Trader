@@ -17,6 +17,9 @@ This document tracks what's actually implemented versus genuinely still planned.
 - **Display settings submenu** - the "Display" category was a placeholder that did nothing when selected; now supports Resolution, Display Mode (Windowed/Fullscreen/Borderless), and HUD Scale (0.75x-1.75x, addresses beta feedback about small flight-HUD text). See `SETTINGS.md`.
 - **Reputation system** - `min_reputation` mission requirements and `reputation_bonus`/`reputation_loss` reward/penalty fields existed but were never applied; the player's reputation is now tracked, persisted, and shown in the Ship Status HUD and Mission Board.
 
+- **Story foundations** - saved campaign state, event tracking, a dialogue engine and conversation screen, named station contacts (Talk key when docked), and a Logbook (pause menu). Mission save/load was also fixed so in-progress missions keep working after loading.
+- **Left-handed controls fix** - the default scheme shared keys between dock/trading and undock/upgrades, so a docked player could not undock; station services moved to Z/X/C/V.
+
 ## Planned / Not Yet Implemented
 
 ### Near-term
