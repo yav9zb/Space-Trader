@@ -203,6 +203,7 @@ def test_notifications_are_drawn_sharp_only(engine):
 
     notifications.clear()
     notifications.push("Hello there", duration=5.0)
+    engine.fade_remaining = 0.0                     # a screen change's fade-in would dim it
     engine.update()
     engine.render()
     pixels = engine.presenter.pixel_surface
@@ -266,8 +267,9 @@ def test_pausing_dims_the_sharp_frame_and_the_menu_works_with_point_mouse_coordi
 
     pause = engine.states[GameStates.PAUSED]
     scale = ss.scale_for(engine.WINDOW_SIZE)
-    rect = pause.option_rects[4]                                            # Main Menu, in logical coordinates
-    window_pos = (int(rect.centerx * scale), int(rect.centery * scale))     # points, as the mouse reports
+    rect = pause.option_rects[4]                                            # Main Menu, in pixels
+    ratio = engine.presenter.ratio
+    window_pos = (int(rect.centerx / ratio), int(rect.centery / ratio))     # points, as the mouse reports
     monkeypatch.setattr(ss, "_real_get_pos", lambda: window_pos)
     pygame.event.clear()
     pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=window_pos, button=1))

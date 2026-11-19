@@ -29,13 +29,15 @@ logger = logging.getLogger(__name__)
 # Screens drawn at a logical size and scaled to the window (see ui/screen_scaler.py).
 # Flight is drawn at real window pixels; pause and base building are overlays on it.
 SCALED_STATES = frozenset({
-    GameStates.MAIN_MENU, GameStates.SETTINGS, GameStates.TRADING, GameStates.UPGRADES,
-    GameStates.MISSIONS, GameStates.SAVE_GAME, GameStates.LOAD_GAME, GameStates.GAME_OVER,
+    GameStates.SETTINGS, GameStates.TRADING, GameStates.UPGRADES,
+    GameStates.MISSIONS, GameStates.SAVE_GAME, GameStates.LOAD_GAME,
     GameStates.DIALOGUE, GameStates.LOGBOOK, GameStates.VICTORY,
 })
-# The pause menu is drawn over the world, so only its menu layer is scaled (by
-# the state itself), but its mouse positions need mapping like the others.
-MOUSE_SCALED_STATES = SCALED_STATES | {GameStates.PAUSED}
+# Screens laid out with ui/menu_kit.py: they measure themselves and draw at the
+# window's real pixels (a Retina display's physical pixels when available), so
+# they need no scaling. The pause menu is one of them, drawn over the world.
+NATIVE_STATES = frozenset({GameStates.MAIN_MENU, GameStates.GAME_OVER})
+MOUSE_SCALED_STATES = SCALED_STATES
 
 
 FADE_SECONDS = 0.22
@@ -337,6 +339,14 @@ class GameEngine:
         if self.current_state in SCALED_STATES:
             screen_scaler.prepare(self.screen, True)
             screen_scaler.render(current_state, self.screen)
+        elif self.current_state in NATIVE_STATES:
+            screen_scaler.prepare(self.screen, False)
+            presenter = self.presenter
+            if presenter is not None:
+                self.screen.fill((0, 0, 0))
+                presenter.queue(lambda pixels, ratio: current_state.render(pixels))
+            else:
+                current_state.render(self.screen)
         else:
             screen_scaler.prepare(self.screen, self.current_state in MOUSE_SCALED_STATES)
             current_state.render(self.screen)
@@ -466,6 +476,11 @@ class GameEngine:
         """Fade in from black right after switching screens."""
         remaining = getattr(self, "fade_remaining", 0.0)
         if remaining <= 0:
+            return
+        presenter = self.presenter
+        if presenter is not None:
+            # the veil covers the upscaled frame and every sharp layer
+            presenter.veil_alpha = max(presenter.veil_alpha, int(255 * min(1.0, remaining / FADE_SECONDS)))
             return
         size = self.screen.get_size()
         if getattr(self, "_fade_surface", None) is None or self._fade_surface.get_size() != size:

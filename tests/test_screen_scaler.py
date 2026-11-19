@@ -137,13 +137,10 @@ def test_clicking_a_menu_option_works_at_a_large_window_size(engine, monkeypatch
     engine.change_state(GameStates.MAIN_MENU)
     engine.render()
     menu = engine.states[GameStates.MAIN_MENU]
-    scale = ss.scale_for((2560, 1440))
-    assert scale > 1
-    settings_rect = menu.option_rects[2]                                   # logical coordinates
+    settings_rect = menu.option_rects[2]                                   # window pixels: nothing is scaled
 
     pygame.event.clear()
-    window_pos = (int(settings_rect.centerx * scale), int(settings_rect.centery * scale))
-    monkeypatch.setattr(ss, "_real_get_pos", lambda: window_pos)           # the menu reads the mouse directly
+    window_pos = settings_rect.center
     pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=window_pos, button=1))
     engine.handle_events()
     assert engine.current_state == GameStates.SETTINGS
@@ -157,12 +154,9 @@ def test_clicking_the_same_place_on_a_short_window_also_works(engine, monkeypatc
     engine.change_state(GameStates.MAIN_MENU)
     engine.render()
     menu = engine.states[GameStates.MAIN_MENU]
-    scale = ss.scale_for((1024, 640))
-    assert scale < 1
     rect = menu.option_rects[1]                                            # Load Game
     pygame.event.clear()
-    window_pos = (int(rect.centerx * scale), int(rect.centery * scale))
-    monkeypatch.setattr(ss, "_real_get_pos", lambda: window_pos)
+    window_pos = rect.center
     pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=window_pos, button=1))
     engine.handle_events()
     assert engine.current_state == GameStates.LOAD_GAME
@@ -201,7 +195,7 @@ def test_every_scaled_screen_renders_at_every_mac_window_size(engine):
 
 
 @pytest.mark.parametrize("size", [(1024, 640), (1512, 945), (2560, 1440), (3440, 1440)])
-def test_the_pause_menu_is_scaled_while_the_world_behind_it_is_not(engine, monkeypatch, size):
+def test_the_pause_menu_fits_the_window_and_the_world_behind_it_is_not_scaled(engine, monkeypatch, size):
     from src.states.game_state import GameStates
 
     pygame.display.set_mode(size, pygame.RESIZABLE)
@@ -211,18 +205,14 @@ def test_the_pause_menu_is_scaled_while_the_world_behind_it_is_not(engine, monke
     engine.change_state(GameStates.PAUSED)
     engine.render()
     pause = engine.states[GameStates.PAUSED]
-    scale = ss.scale_for(size)
 
     # the HUD behind the menu was laid out for the real window, not the logical one
     assert engine.states[GameStates.PLAYING].enhanced_hud.screen_width == size[0]
     assert len(pause.option_rects) == 5
-    logical_w, logical_h = ss.logical_size(size)
-    assert all(0 <= r.centerx <= logical_w and 0 <= r.centery <= logical_h for r in pause.option_rects)
+    assert all(pygame.Rect(0, 0, *size).contains(r) for r in pause.option_rects)
 
     # clicking "Main Menu" (the last option) at its on-screen position works
-    rect = pause.option_rects[4]
-    window_pos = (int(rect.centerx * scale), int(rect.centery * scale))
-    monkeypatch.setattr(ss, "_real_get_pos", lambda: window_pos)
+    window_pos = pause.option_rects[4].center
     pygame.event.clear()
     pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=window_pos, button=1))
     engine.handle_events()

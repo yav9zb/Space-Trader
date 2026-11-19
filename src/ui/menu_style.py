@@ -67,13 +67,15 @@ def draw_title(screen, title, subtitle=None, y=70):
     return bottom
 
 
-def draw_panel(screen, rect, border_color=ACCENT_BLUE, bg_alpha=190, border_width=2):
+def draw_panel(screen, rect, border_color=ACCENT_BLUE, bg_alpha=190, border_width=2, radius=None):
     """Rounded, semi-transparent panel with an accent border."""
     from . import gfx
-    screen.blit(gfx.panel_surface(rect.width, rect.height, PANEL_BG, bg_alpha, PANEL_RADIUS), rect.topleft)
-    pygame.draw.rect(screen, border_color, rect, border_width, border_radius=PANEL_RADIUS)
+    radius = PANEL_RADIUS if radius is None else radius
+    screen.blit(gfx.panel_surface(rect.width, rect.height, PANEL_BG, bg_alpha, radius), rect.topleft)
+    pygame.draw.rect(screen, border_color, rect, border_width, border_radius=radius)
     if rect.width >= 60 and rect.height >= 40:
-        gfx.draw_corner_accents(screen, rect, gfx.lighten(border_color, 0.35))
+        gfx.draw_corner_accents(screen, rect, gfx.lighten(border_color, 0.35),
+                                length=max(10, radius), thickness=border_width)
 
 
 def wrap_text(text, font, max_width):

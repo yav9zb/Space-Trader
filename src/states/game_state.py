@@ -49,104 +49,66 @@ class State:
 class MenuState(State):
     def __init__(self, game):
         super().__init__(game)
+        from ..ui.menu_kit import MenuList, Ui, BASE_SIZE
+        from ..ui.menu_style import MenuBackground
         self.title = "Space Trading Simulator"
         self.tagline = "Trade. Explore. Survive."
-        self.menu_options = ["New Game", "Load Game", "Settings", "Exit"]
-        self.selected_option = 0
-        self.option_rects = []  # Store rectangles for mouse interaction
-        self.starfield = None
-        self.start_ticks = pygame.time.get_ticks()
+        self.menu = MenuList(["New Game", "Load Game", "Settings", "Exit"])
+        self.background = MenuBackground()
+        self._ui = Ui(BASE_SIZE)
+
+    @property
+    def menu_options(self):
+        return self.menu.items
+
+    @property
+    def selected_option(self):
+        return self.menu.selected
+
+    @selected_option.setter
+    def selected_option(self, value):
+        self.menu.selected = value
+
+    @property
+    def option_rects(self):
+        return [self.menu.rects[i] for i in sorted(self.menu.rects)]
 
     def render(self, screen):
-        from pygame import Vector2
-        from ..entities.starfield import StarField
+        from ..ui.menu_kit import ui_for
+        from ..ui.menu_style import ACCENT_BLUE
+        from ..ui import gfx
 
-        # Clear screen first
-        screen.fill((2, 2, 16))  # Near-black space background
+        ui = self._ui = ui_for(screen, self.game)
+        self.background.draw(screen)
 
-        # Lazily build a starfield sized to the actual screen, and let it
-        # drift slowly over time for a subtle sense of motion.
-        if (self.starfield is None or self.starfield.screen_width != screen.get_width()
-                or self.starfield.screen_height != screen.get_height()):
-            from .. import display
-            self.starfield = StarField(display.star_count(screen.get_size(), 160),
-                                       screen.get_width(), screen.get_height())
-        drift = (pygame.time.get_ticks() - self.start_ticks) * 0.02
-        self.starfield.draw(screen, Vector2(drift, drift * 0.4))
-
-        # Title with a soft accent underline
-        title_font = pygame.font.Font(None, 84)
+        # Title with a soft accent underline, tagline beneath
+        title_font = ui.font("display")
         title = title_font.render(self.title, True, (235, 240, 255))
-        title_rect = title.get_rect(center=(screen.get_width() // 2, 130))
+        title_rect = title.get_rect(midtop=(ui.width // 2, max(ui.px(40), round(ui.height * 0.13))))
+        gfx.draw_glow(screen, title_rect.center, max(40, title_rect.height * 2), ACCENT_BLUE, 0.10)
         screen.blit(title, title_rect)
+        line_y = title_rect.bottom + ui.px(10)
+        pygame.draw.line(screen, ACCENT_BLUE, (title_rect.left, line_y), (title_rect.right, line_y), max(1, ui.px(2)))
+        tagline = ui.text(screen, self.tagline, "heading", (140, 170, 220),
+                          midtop=(ui.width // 2, line_y + ui.px(14)))
 
-        pygame.draw.line(
-            screen, (80, 160, 255),
-            (title_rect.left, title_rect.bottom + 8),
-            (title_rect.right, title_rect.bottom + 8), 2
-        )
+        # The options share what is left of the screen below the title
+        area = pygame.Rect(0, tagline.bottom + ui.px(30), ui.width, 0)
+        area.height = max(ui.px(120), ui.height - ui.px(80) - area.top)
+        self.menu.layout(ui, area, row_units=64)
+        self.menu.draw(ui, screen)
 
-        tagline_font = pygame.font.Font(None, 28)
-        tagline = tagline_font.render(self.tagline, True, (140, 170, 220))
-        tagline_rect = tagline.get_rect(center=(screen.get_width() // 2, title_rect.bottom + 30))
-        screen.blit(tagline, tagline_rect)
+        ui.footer(screen, "UP / DOWN to choose, ENTER to select")
 
-        # Draw menu options and store their rectangles
-        option_font = pygame.font.Font(None, 48)  # Slightly larger font for options
-        self.option_rects = []  # Reset rectangles
-        for i, option in enumerate(self.menu_options):
-            is_selected = i == self.selected_option
-            color = (255, 220, 80) if is_selected else (220, 225, 235)
-            text = option_font.render(option, True, color)
-            # Position each option, centered horizontally and spaced vertically
-            text_rect = text.get_rect(center=(screen.get_width() // 2, 340 + i * 60))
-
-            if is_selected:
-                marker = option_font.render(">", True, (255, 220, 80))
-                screen.blit(marker, (text_rect.left - 30, text_rect.top))
-
-            screen.blit(text, text_rect)
-
-            # Store expanded rectangle for mouse interaction
-            expanded_rect = text_rect.inflate(40, 20)
-            self.option_rects.append(expanded_rect)
-
-        # Draw current world seed in bottom right
+        # Current world seed in the bottom right
         if hasattr(self.game, 'world_seed') and self.game.world_seed is not None:
-            seed_font = pygame.font.Font(None, 24)
-            seed_text = f"World Seed: {self.game.world_seed}"
-            seed_surface = seed_font.render(seed_text, True, (110, 120, 140))
-            seed_rect = seed_surface.get_rect(bottomright=(screen.get_width() - 10, screen.get_height() - 10))
-            screen.blit(seed_surface, seed_rect)
+            ui.text(screen, f"World Seed: {self.game.world_seed}", "small", (110, 120, 140),
+                    bottomright=(ui.width - ui.px(14), ui.height - ui.px(12)))
 
     def handle_input(self, event):
-        from ..audio.sound_manager import sound_manager
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                self.selected_option = (self.selected_option - 1) % len(self.menu_options)
-                sound_manager.play("ui_navigate")
-            elif event.key == pygame.K_DOWN:
-                self.selected_option = (self.selected_option + 1) % len(self.menu_options)
-                sound_manager.play("ui_navigate")
-            elif event.key == pygame.K_RETURN:
-                sound_manager.play("ui_confirm")
-                self._select_option()
-        elif event.type == pygame.MOUSEMOTION:
-            # Check if mouse is over any option
-            mouse_pos = pygame.mouse.get_pos()
-            for i, rect in enumerate(self.option_rects):
-                if rect.collidepoint(mouse_pos):
-                    self.selected_option = i
-                    break
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Left click
-                mouse_pos = pygame.mouse.get_pos()
-                for i, rect in enumerate(self.option_rects):
-                    if rect.collidepoint(mouse_pos):
-                        self.selected_option = i
-                        sound_manager.play("ui_confirm")
-                        self._select_option()
-                        break
+        chosen = self.menu.handle(event, self._ui)
+        if chosen is not None:
+            self._select_option()
 
     def _select_option(self):
         """Handle option selection"""
@@ -164,74 +126,53 @@ class GameOverState(State):
     """Permadeath end screen, shown when the ship is destroyed on Extreme difficulty."""
     def __init__(self, game):
         super().__init__(game)
+        from ..ui.menu_kit import MenuList, Ui, BASE_SIZE
         self.title = "GAME OVER"
-        self.menu_options = ["Return to Main Menu", "Exit"]
-        self.selected_option = 0
-        self.option_rects = []
+        self.menu = MenuList(["Return to Main Menu", "Exit"])
+        self._ui = Ui(BASE_SIZE)
+
+    @property
+    def menu_options(self):
+        return self.menu.items
+
+    @property
+    def selected_option(self):
+        return self.menu.selected
+
+    @property
+    def option_rects(self):
+        return [self.menu.rects[i] for i in sorted(self.menu.rects)]
 
     def render(self, screen):
+        from ..ui.menu_kit import ui_for
+        ui = self._ui = ui_for(screen, self.game)
         screen.fill((20, 0, 0))  # Dark red background
+        cx = ui.width // 2
 
-        title_font = pygame.font.Font(None, 96)
-        title = title_font.render(self.title, True, (220, 40, 40))
-        title_rect = title.get_rect(center=(screen.get_width() // 2, 160))
-        screen.blit(title, title_rect)
-
-        subtitle_font = pygame.font.Font(None, 32)
-        subtitle = subtitle_font.render(
-            "Your ship was destroyed. Extreme difficulty offers no second chances.",
-            True, (200, 150, 150)
-        )
-        subtitle_rect = subtitle.get_rect(center=(screen.get_width() // 2, 230))
-        screen.blit(subtitle, subtitle_rect)
+        title = ui.text(screen, self.title, "display", (220, 40, 40),
+                        midtop=(cx, max(ui.px(40), round(ui.height * 0.12))))
+        subtitle = ui.text(screen, "Your ship was destroyed. Extreme difficulty offers no second chances.",
+                           "body", (200, 150, 150), max_width=ui.width - 2 * ui.margin(),
+                           midtop=(cx, title.bottom + ui.px(16)))
 
         # Run stats
-        stats_font = pygame.font.Font(None, 28)
         credits = self.game.ship.credits if getattr(self.game, 'ship', None) else 0
         play_time = getattr(self.game, 'play_time', 0.0)
         minutes, seconds = divmod(int(play_time), 60)
-        stats_lines = [
-            f"Final Credits: {credits}",
-            f"Time Survived: {minutes}m {seconds}s",
-        ]
-        y = 300
-        for line in stats_lines:
-            text = stats_font.render(line, True, (220, 220, 220))
-            text_rect = text.get_rect(center=(screen.get_width() // 2, y))
-            screen.blit(text, text_rect)
-            y += 32
+        y = subtitle.bottom + ui.px(34)
+        for line in (f"Final Credits: {credits}", f"Time Survived: {minutes}m {seconds}s"):
+            rect = ui.text(screen, line, "heading", (220, 220, 220), midtop=(cx, y))
+            y = rect.bottom + ui.px(8)
 
-        option_font = pygame.font.Font(None, 48)
-        self.option_rects = []
-        for i, option in enumerate(self.menu_options):
-            color = (255, 220, 0) if i == self.selected_option else (255, 255, 255)
-            text = option_font.render(option, True, color)
-            text_rect = text.get_rect(center=(screen.get_width() // 2, 420 + i * 60))
-            screen.blit(text, text_rect)
-            self.option_rects.append(text_rect.inflate(40, 20))
+        area = pygame.Rect(0, y + ui.px(24), ui.width, 0)
+        area.height = max(ui.px(110), ui.height - ui.px(50) - area.top)
+        self.menu.layout(ui, area, row_units=64)
+        self.menu.draw(ui, screen)
 
     def handle_input(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                self.selected_option = (self.selected_option - 1) % len(self.menu_options)
-            elif event.key == pygame.K_DOWN:
-                self.selected_option = (self.selected_option + 1) % len(self.menu_options)
-            elif event.key == pygame.K_RETURN:
-                self._select_option()
-        elif event.type == pygame.MOUSEMOTION:
-            mouse_pos = pygame.mouse.get_pos()
-            for i, rect in enumerate(self.option_rects):
-                if rect.collidepoint(mouse_pos):
-                    self.selected_option = i
-                    break
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                mouse_pos = pygame.mouse.get_pos()
-                for i, rect in enumerate(self.option_rects):
-                    if rect.collidepoint(mouse_pos):
-                        self.selected_option = i
-                        self._select_option()
-                        break
+        chosen = self.menu.handle(event, self._ui, play_sounds=False)
+        if chosen is not None:
+            self._select_option()
 
     def _select_option(self):
         if self.selected_option == 0:  # Return to Main Menu
@@ -1629,94 +1570,64 @@ class PlayingState(State):
 class PausedState(State):
     def __init__(self, game):
         super().__init__(game)
-        self.pause_options = ["Resume", "Save Game", "Logbook", "Settings", "Main Menu"]
-        self.selected_option = 0
-        self.option_rects = []
+        from ..ui.menu_kit import MenuList, Ui, BASE_SIZE
+        self.menu = MenuList(["Resume", "Save Game", "Logbook", "Settings", "Main Menu"])
+        self._ui = Ui(BASE_SIZE)
+
+    @property
+    def pause_options(self):
+        return self.menu.items
+
+    @property
+    def selected_option(self):
+        return self.menu.selected
+
+    @selected_option.setter
+    def selected_option(self, value):
+        self.menu.selected = value
+
+    @property
+    def option_rects(self):
+        return [self.menu.rects[i] for i in sorted(self.menu.rects)]
 
     def render(self, screen):
         # First render the game state in the background
         self.game.states[GameStates.PLAYING].render(screen)
-        
-        # Get screen dimensions
-        width, height = screen.get_size()
-        
-        from ..ui.screen_scaler import scaler
+
         presenter = self.game.presenter
         if presenter is not None:
             # On a Retina display the veil goes over the finished frame, sharp
-            # HUD included, and the menu on top of that
+            # HUD included, and the menu on top of that at full resolution
             presenter.veil_alpha = 128
-            points = screen.get_size()
-            presenter.queue(lambda pixels, ratio: scaler.draw_overlay(self._draw_menu, pixels, reference=points),
-                            on_top=True)
+            presenter.queue(lambda pixels, ratio: self._draw_menu(pixels), on_top=True)
             return
 
-        # Draw pause overlay (full screen)
-        s = pygame.Surface((width, height))
-        s.set_alpha(128)
-        s.fill((0, 0, 0))
-        screen.blit(s, (0, 0))
-
-        # The menu itself is drawn at a logical size and scaled, like the other
-        # menu screens, while the world behind it stays at real window pixels
-        scaler.draw_overlay(self._draw_menu, screen)
+        veil = pygame.Surface(screen.get_size())
+        veil.set_alpha(128)
+        veil.fill((0, 0, 0))
+        screen.blit(veil, (0, 0))
+        self._draw_menu(screen)
 
     def _draw_menu(self, screen):
-        width, height = screen.get_size()
+        from ..ui.menu_kit import ui_for
+        ui = self._ui = ui_for(screen, self.game)
+        cx = ui.width // 2
 
-        # Title
-        title_font = pygame.font.Font(None, 74)
-        title_text = title_font.render("PAUSED", True, (255, 255, 255))
-        title_rect = title_text.get_rect(center=(width // 2, height // 4))
-        screen.blit(title_text, title_rect)
-        
-        # Menu options
-        option_font = pygame.font.Font(None, 48)
-        y_offset = height // 2 - 50
-        self.option_rects = []  # Reset rectangles
-        for i, option in enumerate(self.pause_options):
-            color = (255, 255, 0) if i == self.selected_option else (255, 255, 255)
-            option_text = option_font.render(option, True, color)
-            option_rect = option_text.get_rect(center=(width // 2, y_offset))
-            screen.blit(option_text, option_rect)
-            
-            # Store expanded rectangle for mouse interaction
-            expanded_rect = option_rect.inflate(40, 20)
-            self.option_rects.append(expanded_rect)
-            y_offset += 50
-        
-        # Instructions
-        instruction_font = pygame.font.Font(None, 24)
-        instructions = instruction_font.render("Use UP/DOWN to navigate, ENTER to select, ESC to resume", True, (150, 150, 150))
-        instruction_rect = instructions.get_rect(center=(width // 2, height - 100))
-        screen.blit(instructions, instruction_rect)
+        title = ui.text(screen, "PAUSED", "title", (255, 255, 255),
+                        midtop=(cx, max(ui.px(30), round(ui.height * 0.16))))
+        footer_top = ui.footer(screen, "UP / DOWN to navigate, ENTER to select, ESC to resume", color=(170, 175, 190))
+        area = pygame.Rect(0, title.bottom + ui.px(26), ui.width, 0)
+        area.height = max(ui.px(100), footer_top - ui.px(20) - area.top)
+        self.menu.layout(ui, area, row_units=56)
+        self.menu.draw(ui, screen)
 
     def handle_input(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.game.change_state(GameStates.PLAYING)
-            elif event.key == pygame.K_UP:
-                self.selected_option = (self.selected_option - 1) % len(self.pause_options)
-            elif event.key == pygame.K_DOWN:
-                self.selected_option = (self.selected_option + 1) % len(self.pause_options)
-            elif event.key == pygame.K_RETURN:
-                self._select_option()
-        elif event.type == pygame.MOUSEMOTION:
-            # Check if mouse is over any option
-            mouse_pos = pygame.mouse.get_pos()
-            for i, rect in enumerate(self.option_rects):
-                if rect.collidepoint(mouse_pos):
-                    self.selected_option = i
-                    break
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Left click
-                mouse_pos = pygame.mouse.get_pos()
-                for i, rect in enumerate(self.option_rects):
-                    if rect.collidepoint(mouse_pos):
-                        self.selected_option = i
-                        self._select_option()
-                        break
-    
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.game.change_state(GameStates.PLAYING)
+            return
+        if self.menu.handle(event, self._ui) is not None:
+            self._select_option()
+
     def _select_option(self):
         """Handle option selection"""
         option = self.pause_options[self.selected_option]
