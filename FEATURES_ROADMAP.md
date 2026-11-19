@@ -30,7 +30,7 @@ This document tracks what's actually implemented versus genuinely still planned.
 ## Planned / Not Yet Implemented
 
 ### Near-term
-- **Auto-Dock / Docking Assist** - manual docking is fully implemented; automated docking and configurable docking sensitivity are not.
+- **Docking settings** - docking already starts automatically at a safe approach speed (with the dock key as a manual shortcut); a setting to turn auto-docking off and configurable sensitivity are not implemented.
 - **Steam Achievements / Cloud Saves** - in-game achievements now exist and are passed to a Steam hook, but that hook is a stub: it has to be wired to the real Steamworks SDK (ISteamUserStats), which this codebase has no access to. Cloud saves are not implemented.
 
 ### Longer-term / Concept

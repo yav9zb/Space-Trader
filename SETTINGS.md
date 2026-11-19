@@ -112,7 +112,7 @@ Changes apply immediately and are saved to `settings.json`.
 
 Genuinely not implemented yet:
 
-- **Auto-Dock / Docking Assist**: manual docking (approach at safe speed, press Dock) is fully implemented; automatic docking and configurable docking sensitivity are not.
+- **Docking assist settings**: docking starts automatically when you approach a station at a safe speed (the Dock key is a manual shortcut), but there is no setting to turn that off or tune its sensitivity.
 - **Controller support**.
 
 ## Implementation Details

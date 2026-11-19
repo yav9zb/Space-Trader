@@ -18,7 +18,7 @@ def _flight_controls_lines():
     k = control_scheme_manager.get_key_name
     return [
         f"{k('thrust')} thrust   {k('rotate_left')}/{k('rotate_right')} turn   {k('fire_weapons')} fire",
-        f"Approach a station and press {k('dock')} to dock",
+        f"Approach a station slowly to dock ({k('dock')} docks manually)",
     ]
 
 

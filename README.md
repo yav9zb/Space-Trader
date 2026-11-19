@@ -297,7 +297,7 @@ land in a packaged build).
 ## Known Issues / Beta Notes
 
 - **No dedicated save-system test coverage** yet - save/load is stable in manual testing but not covered by the automated suite. See [SAVE_SYSTEM.md](SAVE_SYSTEM.md).
-- **No auto-dock** - docking is fully manual (approach at a safe speed, press the dock key).
+- **Docking** - approaching a station at a safe speed docks automatically; the dock key is a manual shortcut. There is no setting yet to turn auto-docking off or adjust its sensitivity.
 - **Steam integration is unverified scaffolding**, not a tested integration - irrelevant unless you're building toward the Steam release; see [STEAM_RELEASE_CHECKLIST.md](STEAM_RELEASE_CHECKLIST.md).
 - **Windows/Linux builds are untested on real machines** - the GitHub Actions workflow (`.github/workflows/build.yml`) builds all three platforms on a tag push and they pass CI, but only the macOS build has been launched and played by hand.
 - Found something else? [Open an issue](https://github.com/yav9zb/Space-Trader/issues) - beta feedback is genuinely useful right now.
