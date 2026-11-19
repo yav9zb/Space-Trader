@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **Loaded games showed stations with a random look.** Stations kept their type, name and market after a load but came back with a random shape and color. They now look the way they did when you saved.
+
 ## Beta 8
 
 ### Added

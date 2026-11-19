@@ -303,7 +303,7 @@ class SaveSystem:
     
     def _load_universe_data(self, universe_data: Dict[str, Any], game_engine):
         """Load universe state."""
-        from src.entities.station import Station
+        from src.entities.station import Station, StationType as EntityStationType
         from src.trading.market import StationType, StationMarket
         from pygame import Vector2
         
@@ -324,13 +324,16 @@ class SaveSystem:
         # Restore stations
         for station_data in universe_data.get("stations", []):
             pos = station_data["position"]
+            # The market module has its own StationType enum with the same
+            # values; the station entity needs the entity one so its color and
+            # shape (derived from the type) come out right
             station_type = StationType(station_data["station_type"])
             
-            # Create station
-            station = Station(pos["x"], pos["y"])
-            station.station_type = station_type
+            station = Station(pos["x"], pos["y"], EntityStationType(station_data["station_type"]))
             station.name = station_data.get("name", f"Station {len(game_engine.universe.stations)}")
-            station.size = station_data.get("size", 30)
+            station.size = station_data.get("size", station.size)
+            station.collision_radius = station.size
+            station.shape_points = station._generate_shape()
             
             # Restore market state
             market_data = station_data.get("market", {})
