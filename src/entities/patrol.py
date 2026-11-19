@@ -93,7 +93,7 @@ class PatrolShip:
 
         best, best_distance = None, self.detection_range
         for bandit in combat_manager.active_bandits:
-            if bandit.state == BanditState.DISABLED or bandit.bounty_id:
+            if bandit.state == BanditState.DISABLED or bandit.bounty_id or bandit.stronghold_id:
                 continue
             distance = (bandit.position - self.position).length()
             if distance < best_distance:

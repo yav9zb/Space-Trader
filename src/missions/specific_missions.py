@@ -847,3 +847,102 @@ class SmugglingRunMission(DeliveryMission):
         )
         self.reward.credits = int(self.reward.credits * 2.2)
         self.requirements.min_reputation = max(self.requirements.min_reputation, 10)
+
+
+class LiberationMission(Mission):
+    """Break a pirate stronghold to free a region. A fleet is spawned at the
+    middle of a Pirate-controlled region when the mission becomes active;
+    destroying all of it hands the region to another faction. Kills are
+    counted through a story counter, and any ships missing while the job is
+    still open (for example after loading a save) are respawned so only the
+    survivors remain to be fought.
+    """
+
+    EXTRA_STATE_FIELDS = ("region_x", "region_y", "fleet_size", "new_faction")
+    FLEET_TYPES = ("boss", "heavy", "heavy", "fighter", "fighter")
+
+    def __init__(self, origin_station_id: str, region_x: int, region_y: int,
+                 new_faction: str = "Independent", mission_id: str = None):
+        super().__init__(mission_id)
+
+        from ..story.borders import describe_region
+
+        self.mission_type = MissionType.LIBERATION
+        self.origin_station_id = origin_station_id
+        self.region_x = region_x
+        self.region_y = region_y
+        self.fleet_size = len(self.FLEET_TYPES)
+        self.new_faction = new_faction
+
+        where = describe_region((region_x, region_y))
+        self.title = f"Liberate {where.replace('the region around ', '')}"
+        self.description = (
+            f"Pirates hold {where}. Destroy the stronghold fleet at its center "
+            f"({self.fleet_size} ships, led by a warlord) and the region will be "
+            f"free of their rule."
+        )
+
+        base_reward = random.randint(3500, 5000)
+        self.requirements = MissionRequirement(min_reputation=20)
+        self.reward = MissionReward(credits=base_reward, reputation_bonus=random.randint(15, 25))
+        self.penalty = MissionPenalty(credits=int(base_reward * 0.1), reputation_loss=random.randint(3, 6))
+        self.time_limit = 14400
+
+        self.objectives = [MissionObjective(
+            description=f"Destroy all {self.fleet_size} ships of the stronghold fleet")]
+        self.progress_description = f"Reach {where} and destroy the fleet"
+
+    def _counter(self) -> str:
+        return f"stronghold_killed:{self.id}"
+
+    def on_update(self, game_engine):
+        if self.status not in (MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS):
+            return
+
+        from ..combat.combat_manager import combat_manager
+        from ..entities.bandit import BanditShip, BanditType, BanditState
+        from ..story.borders import region_center
+        from ..story.story_state import story_state
+        import math
+        from pygame import Vector2
+
+        remaining = self.fleet_size - story_state.count_events(self._counter())
+        if remaining <= 0:
+            return
+        present = sum(1 for b in combat_manager.active_bandits
+                      if b.stronghold_id == self.id and b.state != BanditState.DISABLED)
+        missing = remaining - present
+        if missing <= 0:
+            return
+
+        center = region_center((self.region_x, self.region_y))
+        for index, type_name in enumerate(self.FLEET_TYPES[present:present + missing]):
+            angle = 2 * math.pi * index / max(1, self.fleet_size)
+            offset = Vector2(math.cos(angle), math.sin(angle)) * 160
+            ship = BanditShip(center + offset, BanditType(type_name))
+            ship.stronghold_id = self.id
+            if type_name == "boss":
+                ship.name = "Warlord"
+            combat_manager.add_bandit(ship)
+        self.status = MissionStatus.IN_PROGRESS
+
+    def update_progress(self, ship, current_station=None) -> bool:
+        if self.status not in (MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS):
+            return False
+
+        if self.is_expired():
+            self.status = MissionStatus.EXPIRED
+            return False
+
+        from ..story.borders import flip_region
+        from ..story.story_state import story_state
+
+        killed = story_state.count_events(self._counter())
+        self.completion_percentage = min(1.0, killed / self.fleet_size)
+        self.progress_description = f"Stronghold ships destroyed: {min(killed, self.fleet_size)}/{self.fleet_size}"
+        if killed >= self.fleet_size:
+            self.objectives[0].completed = True
+            self.complete()
+            flip_region((self.region_x, self.region_y), self.new_faction)
+            return True
+        return False

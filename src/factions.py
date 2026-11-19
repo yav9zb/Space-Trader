@@ -40,6 +40,24 @@ FACTION_BANDIT_SPAWN_MULTIPLIER = {
 }
 
 
+# Regions whose control has been changed by the story or the player. Kept in
+# StoryState (so it saves and loads) and mirrored here so the many callers of
+# get_controlling_faction need no extra argument.
+_region_overrides = {}
+
+
+def set_region_override(region, faction: str):
+    _region_overrides[tuple(region)] = faction
+
+
+def clear_region_overrides():
+    _region_overrides.clear()
+
+
+def region_of_sector(chunk_x: int, chunk_y: int):
+    return (chunk_x // FACTION_REGION_SECTORS, chunk_y // FACTION_REGION_SECTORS)
+
+
 def get_controlling_faction(chunk_x: int, chunk_y: int, world_seed) -> str:
     """Deterministically map a sector to its controlling faction. Uses a
     local Random instance (not the global `random` module) since this is
@@ -51,6 +69,8 @@ def get_controlling_faction(chunk_x: int, chunk_y: int, world_seed) -> str:
 
     region_x = chunk_x // FACTION_REGION_SECTORS
     region_y = chunk_y // FACTION_REGION_SECTORS
+    if (region_x, region_y) in _region_overrides:
+        return _region_overrides[(region_x, region_y)]
     seed_string = f"{world_seed}_faction_{region_x}_{region_y}"
     seed = zlib.crc32(seed_string.encode()) & 0x7FFFFFFF
 

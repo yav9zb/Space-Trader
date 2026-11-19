@@ -16,6 +16,7 @@ class MissionType(Enum):
     ESCORT = "Escort"
     BOUNTY = "Bounty"
     SMUGGLING = "Smuggling"
+    LIBERATION = "Liberation"
 
 
 class MissionStatus(Enum):

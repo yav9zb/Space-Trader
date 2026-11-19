@@ -6,6 +6,8 @@ evaluated purely from this state rather than from live subclass attributes.
 
 from typing import Any, Dict, List
 
+from .. import factions
+
 
 class StoryState:
     MAX_RECENT_EVENTS = 200
@@ -23,7 +25,18 @@ class StoryState:
         self.ledger_entries: List[str] = []
         self.event_counts: Dict[str, int] = {}
         self.recent_events: List[Dict[str, Any]] = []
+        self.region_overrides: Dict[str, str] = {}      # "rx,ry" -> faction
         self._next_seq = 0
+        factions.clear_region_overrides()
+
+    # Borders ---------------------------------------------------------------
+
+    def set_region_override(self, region, faction: str):
+        """Change who controls a 4x4-sector region. Applies to the HUD, markets,
+        patrols and anything generated from now on; chunks already generated
+        keep the entities they already have."""
+        self.region_overrides[f"{region[0]},{region[1]}"] = faction
+        factions.set_region_override(region, faction)
 
     # Flags -----------------------------------------------------------------
 
@@ -92,6 +105,7 @@ class StoryState:
             "ledger_entries": list(self.ledger_entries),
             "event_counts": dict(self.event_counts),
             "recent_events": list(self.recent_events),
+            "region_overrides": dict(self.region_overrides),
             "next_seq": self._next_seq,
         }
 
@@ -110,6 +124,9 @@ class StoryState:
         self.ledger_entries = list(data.get("ledger_entries", []))
         self.event_counts = dict(data.get("event_counts", {}))
         self.recent_events = list(data.get("recent_events", []))
+        for key, faction in data.get("region_overrides", {}).items():
+            rx, ry = (int(part) for part in key.split(","))
+            self.set_region_override((rx, ry), faction)
         self._next_seq = data.get("next_seq", len(self.recent_events))
 
 

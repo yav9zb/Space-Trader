@@ -30,6 +30,7 @@ EFFECT_TYPES = {
     "set_chapter",
     "bump_counter",
     "show_dialogue",
+    "flip_region",
 }
 
 
@@ -112,6 +113,9 @@ def apply_effects(effects: List[Dict[str, Any]], game_engine):
             story.bump(effect["name"])
         elif kind == "show_dialogue":
             game_engine.start_dialogue(effect["node"])
+        elif kind == "flip_region":
+            from .borders import flip_nearest_region
+            flip_nearest_region(game_engine, effect["from"], effect["faction"])
         elif kind == "add_ledger_entry":
             story.add_ledger_entry(effect["id"])
         elif kind == "set_chapter":

@@ -7,7 +7,7 @@ from .mission_types import Mission, MissionStatus, MissionType
 from .specific_missions import (
     DeliveryMission, TradingContractMission, SupplyRunMission,
     EmergencyDeliveryMission, ExplorationMission, EscortMission, BountyMission,
-    SmugglingRunMission, BOUNTY_FIRST_NAMES, BOUNTY_LAST_NAMES
+    SmugglingRunMission, LiberationMission, BOUNTY_FIRST_NAMES, BOUNTY_LAST_NAMES
 )
 
 try:
@@ -63,11 +63,12 @@ class MissionManager:
                 MissionType.ESCORT: 0.15
             },
             StationType.MILITARY: {
-                MissionType.EMERGENCY_DELIVERY: 0.2,
-                MissionType.SUPPLY_RUN: 0.2,
+                MissionType.EMERGENCY_DELIVERY: 0.15,
+                MissionType.SUPPLY_RUN: 0.15,
                 MissionType.EXPLORATION: 0.1,
-                MissionType.DELIVERY: 0.15,
-                MissionType.BOUNTY: 0.35
+                MissionType.DELIVERY: 0.1,
+                MissionType.BOUNTY: 0.3,
+                MissionType.LIBERATION: 0.2
             },
             StationType.MINING: {
                 MissionType.DELIVERY: 0.3,
@@ -265,6 +266,8 @@ class MissionManager:
                 return self._generate_bounty_mission(origin_station)
             elif mission_type == MissionType.SMUGGLING:
                 return self._generate_smuggling_mission(origin_station, stations)
+            elif mission_type == MissionType.LIBERATION:
+                return self._generate_liberation_mission(origin_station)
         except Exception as e:
             logger.warning(f"Failed to generate {mission_type} mission: {e}")
             return None
@@ -287,6 +290,25 @@ class MissionManager:
             return None
         destination = random.choice(possible_destinations)
         return EscortMission(origin_station.name, destination.name)
+
+    def _generate_liberation_mission(self, origin_station) -> Optional[LiberationMission]:
+        """Generate a mission to free a nearby Pirate-controlled region. None
+        if the world isn't known or no such region is within reach."""
+        from ..factions import get_controlling_faction, FACTION_PIRATE, FACTION_REGION_SECTORS
+
+        seed = self._world_seed
+        if seed is None:
+            return None
+        half = FACTION_REGION_SECTORS // 2
+        candidates = [
+            (rx, ry) for rx in range(-4, 5) for ry in range(-4, 5)
+            if get_controlling_faction(rx * FACTION_REGION_SECTORS + half,
+                                       ry * FACTION_REGION_SECTORS + half, seed) == FACTION_PIRATE
+        ]
+        if not candidates:
+            return None
+        rx, ry = random.choice(candidates)
+        return LiberationMission(origin_station.name, rx, ry)
 
     def _generate_smuggling_mission(self, origin_station, stations) -> Optional[SmugglingRunMission]:
         """Generate a contraband delivery, preferably to a Pirate station."""

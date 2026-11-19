@@ -22,6 +22,7 @@ This document tracks what's actually implemented versus genuinely still planned.
 - **Escort and bounty missions** - escorts spawn a trader plus an ambush and bandits will attack the escorted trader; bounties spawn a named, labeled pirate captain. Both recover if loaded mid-mission.
 - **Patrols, backup, and hostile standing** - Guild patrols hunt bandits; Captains can call backup (H); at -60 standing a faction's patrols attack you and Guild/Pirate stations refuse docking, with ways back (bandit kills in its space, slow cooling off).
 - **Smuggling and market events** - contraband inspections at Guild stations, a pirate-market premium, Smuggling Run missions, and timed regional raids/shortages/embargoes shown as market news. Markets now actually refresh over time.
+- **Shifting borders and Liberation missions** - region control can change permanently (persisted); destroying a pirate stronghold frees its region. Player outposts are deferred until base building is integrated and saved.
 - **Left-handed controls fix** - the default scheme shared keys between dock/trading and undock/upgrades, so a docked player could not undock; station services moved to Z/X/C/V.
 
 ## Planned / Not Yet Implemented

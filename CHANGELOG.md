@@ -1,5 +1,12 @@
 # Changelog
 
+## Beta 12
+
+### Added
+- **Liberation missions** (Military Bases, reputation 20). A pirate stronghold sits at the heart of a Pirate Territory region: a Warlord, two heavy raiders and two fighters. Destroy all five and the region becomes Independent space. The Trade Guild's patrols leave the stronghold to you. If you save and reload mid-mission, only the surviving ships come back.
+- **Borders that move.** Control of a region can now change for good. Prices, patrol and bandit traffic, station factions and the HUD all follow the new owner, the change is announced on screen, and it is saved with the game. The starting area can never change hands. Systems already generated keep the ships and stations they had.
+- Story dialogue can now flip the nearest region of a faction (the `flip_region` effect), ready for the campaign's later acts.
+
 ## Beta 11
 
 ### Added

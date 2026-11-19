@@ -55,6 +55,7 @@ class BanditShip:
         # wants this ship dead (reported through a story counter on death)
         self.name = None
         self.bounty_id = None
+        self.stronghold_id = None     # set for a liberation mission's fleet
 
         # AI state
         self.state = BanditState.PATROLLING

@@ -228,7 +228,7 @@ class CombatManager:
         """Patrol fire hits bandits (never bounty targets, which are the
         player's to collect) and, when the patrol is hostile, the player."""
         targets = [b for b in self.active_bandits
-                   if b.state != BanditState.DISABLED and not b.bounty_id]
+                   if b.state != BanditState.DISABLED and not (b.bounty_id or b.stronghold_id)]
         hostile = patrol.is_hostile_to_player(game_engine.mission_manager)
         if hostile:
             targets.append(ship)
@@ -381,6 +381,8 @@ class CombatManager:
         from ..story.story_state import story_state
         if bandit.bounty_id:
             story_state.bump(f"bounty_killed:{bandit.bounty_id}")
+        if bandit.stronghold_id:
+            story_state.bump(f"stronghold_killed:{bandit.stronghold_id}")
         story_state.record_event(
             "bandit_destroyed",
             bandit_type=bandit.bandit_type.value,
