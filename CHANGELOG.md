@@ -1,5 +1,16 @@
 # Changelog
 
+## Beta 18
+
+### Changed
+- **The HUD panels were rebuilt.** Ship Status and Navigation now size themselves to their content, so there is no dead space and nothing spills past a border, and they stack with a constant gap. Hull, cargo and fuel are bars with the value written on them, turning amber and then red as they run low. Ammo is a row of four small gauges. Speed, afterburner, rank, faction and docking status each have their own line, and the afterburner, faction and docking status are coloured tags. When the window is too short for the full panels, a compact version drops the lowest-priority lines instead of running off the bottom.
+- **The minimap is now a radar.** It is round, with range rings and a crosshair, and your ship is a wedge that turns with your heading. Stations are squares, planets are coloured circles, hostile ships are red triangles, patrols blue, traders grey, radioactive and explosive asteroids green and orange, black holes purple, and mission objectives gold diamonds. An objective beyond the range is pinned to the rim with an arrow. The range is written under the radar instead of over it, and the radar grows with the window.
+- **The mission tracker** uses the same style, truncates long titles instead of overflowing, shows time remaining and coordinates, and sits below the radar. The objective arrow's label is drawn underneath the panels, not over them.
+- HUD text sizes now scale with the window. At small windows the old sizing made the new font about 8 pixels tall.
+
+### Fixed
+- **Running the tests rewrote your real `settings.json`.** The settings were loaded and saved at import time, so every test run overwrote them with test-environment values (a 700x500 window, hints marked as seen). All user-data paths are now redirected to a temporary folder for the whole test suite. If your window size or hints look wrong, that is the cause.
+
 ## Beta 17
 
 ### Changed

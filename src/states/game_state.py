@@ -1355,9 +1355,11 @@ class PlayingState(State):
         combat_manager.draw_combat_effects(screen, camera_offset)
 
         # Draw minimap last (so it's on top)
+        from ..ui.minimap import gather_contacts
         self.game.minimap.draw(screen, self.game.ship,
                              self.game.universe.stations,
-                             self.game.universe.planets)
+                             self.game.universe.planets,
+                             gather_contacts(self.game, self.game.minimap.view_radius))
 
         # Red edge flash right after the player is hit
         from ..ui import gfx as _gfx

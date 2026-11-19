@@ -60,3 +60,15 @@ def uninstall():
     global _installed
     pygame.font.Font = _OriginalFont
     _installed = False
+
+
+def exact(pixels: int, bold: bool = True) -> pygame.font.Font:
+    """The game font at an exact pixel size (no scaling), for layouts that are
+    measured rather than drawn around a fixed grid. Falls back to pygame's
+    own font if the file is missing."""
+    pixels = max(8, int(pixels))
+    if os.path.exists(font_path()):
+        font = _OriginalFont(font_path(), pixels)
+        font.set_bold(bold)
+        return font
+    return _OriginalFont(None, pixels)

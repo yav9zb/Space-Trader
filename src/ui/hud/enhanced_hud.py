@@ -21,6 +21,7 @@ except ImportError:
 
 
 from .. import gfx
+from . import panel_kit
 
 logger = logging.getLogger(__name__)
 
@@ -189,12 +190,17 @@ class EnhancedHUD:
         """Render the complete HUD."""
         # Clear reserved areas at start of each frame
         self.ui_layout.clear_reserved_areas()
+
+        # Arrow toward the current mission objective: drawn first, so the
+        # panels sit on top of it rather than being covered by its label
+        try:
+            from .. import objective_pointer
+            objective_pointer.draw(surface, game_engine, self.font_small)
+        except Exception:
+            logger.exception("Objective pointer failed")
         
-        if self.show_ship_status:
-            self._render_ship_status(surface, game_engine)
-        
-        if self.show_navigation:
-            self._render_navigation(surface, game_engine)
+        if self.show_ship_status or self.show_navigation:
+            self._render_left_column(surface, game_engine)
         
         if self.show_mission_tracker:
             self._render_mission_tracker(surface, game_engine)
@@ -206,295 +212,169 @@ class EnhancedHUD:
         if game_settings.show_fps:
             self._render_fps(surface, game_engine)
         
-        # Arrow toward the current mission objective
-        try:
-            from .. import objective_pointer
-            objective_pointer.draw(surface, game_engine, self.font_small)
-        except Exception:
-            logger.exception("Objective pointer failed")
-
         # Render dev view overlay
         self.dev_view.render(surface, game_engine)
         
         # Render alerts
         self._render_alerts(surface)
     
-    def _render_ship_status(self, surface: pygame.Surface, game_engine):
-        """Render ship status panel."""
-        ship = game_engine.ship
-        
-        # Panel dimensions using responsive sizing - made taller for fuel/ammo
-        panel_width, panel_height = self.ui_layout.get_panel_size(250, 300, 0.3, 0.6)
-        panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_LEFT, panel_width, panel_height)
-        
-        # Panel background and border using theme
-        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
-        ui_theme.draw_panel_background(surface, panel_rect, 180)
-        ui_theme.draw_border(surface, panel_rect, UIElementType.SHIP_STATUS)
-        
-        # Title with theme color
-        title_color = ui_theme.get_text_color(UIElementType.SHIP_STATUS)
-        title = self.font_medium.render("SHIP STATUS", True, title_color)
-        surface.blit(title, (panel_x + self.ui_layout.padding, panel_y + self.ui_layout.padding))
-        
-        y_offset = panel_y + self.ui_layout.get_responsive_spacing(35)
-        
-        # Credits
-        credits_text = f"Credits: {int(self.credits_display):,}"
-        credits_color = (255, 255, 0) if ship.credits > 10000 else (255, 255, 255)
-        credits_surface = self.font_small.render(credits_text, True, credits_color)
-        surface.blit(credits_surface, (panel_x + self.ui_layout.padding, y_offset))
-        y_offset += self.ui_layout.get_responsive_spacing(20)
-        
-        # Hull status
-        hull_text = f"Hull: {ship.current_hull:.0f}/{ship.get_effective_stats().get_effective_hull_points()}"
-        hull_surface = self.font_small.render(hull_text, True, (255, 255, 255))
-        surface.blit(hull_surface, (panel_x + self.ui_layout.padding, y_offset))
-        
-        # Hull bar
-        bar_x = panel_x + int(120 * self.ui_layout.font_scale)
-        self.hull_bar.draw(surface, bar_x, y_offset + 2)
-        y_offset += self.ui_layout.get_responsive_spacing(25)
-        
-        # Cargo status
-        cargo_used = ship.cargo_hold.get_used_capacity()
-        cargo_total = ship.cargo_hold.capacity
-        cargo_text = f"Cargo: {cargo_used}/{cargo_total}"
-        cargo_surface = self.font_small.render(cargo_text, True, (255, 255, 255))
-        surface.blit(cargo_surface, (panel_x + self.ui_layout.padding, y_offset))
-        
-        # Cargo bar
-        cargo_bar_x = panel_x + int(120 * self.ui_layout.font_scale)
-        self.cargo_bar.draw(surface, cargo_bar_x, y_offset + 2)
-        y_offset += self.ui_layout.get_responsive_spacing(25)
-        
-        # Fuel status with emergency fuel indicator
-        emergency_fuel_status = ship.get_emergency_fuel_status()
-        if emergency_fuel_status['active']:
-            fuel_text = f"Fuel: EMERGENCY MODE"
-            fuel_color = (255, 50, 50)  # Red for emergency
-        else:
-            fuel_text = f"Fuel: {ship.current_fuel:.0f}/{ship.fuel_capacity:.0f}"
-            fuel_color = (255, 255, 255)  # Normal white
-        
-        fuel_surface = self.font_small.render(fuel_text, True, fuel_color)
-        surface.blit(fuel_surface, (panel_x + self.ui_layout.padding, y_offset))
-        
-        # Fuel bar (only show if not in emergency mode)
-        if not emergency_fuel_status['active']:
-            fuel_bar_x = panel_x + int(120 * self.ui_layout.font_scale)
-            self.fuel_bar.draw(surface, fuel_bar_x, y_offset + 2)
-        y_offset += self.ui_layout.get_responsive_spacing(25)
-        
-        # Ammo status - show counts for each type
-        ammo_text = "Ammo:"
-        ammo_surface = self.font_small.render(ammo_text, True, (255, 255, 255))
-        surface.blit(ammo_surface, (panel_x + self.ui_layout.padding, y_offset))
-        y_offset += self.ui_layout.get_responsive_spacing(15)
-        
-        # Display ammo counts in compact format
-        ammo_info = [
-            f"Laser: {ship.get_ammo_count('laser_cells')}/{ship.get_max_ammo_capacity('laser_cells')}",
-            f"Plasma: {ship.get_ammo_count('plasma_cartridges')}/{ship.get_max_ammo_capacity('plasma_cartridges')}",
-            f"Missiles: {ship.get_ammo_count('missiles')}/{ship.get_max_ammo_capacity('missiles')}",
-            f"Railgun: {ship.get_ammo_count('railgun_slugs')}/{ship.get_max_ammo_capacity('railgun_slugs')}"
-        ]
-        
-        for i, ammo_line in enumerate(ammo_info):
-            ammo_line_surface = self.font_small.render(ammo_line, True, (200, 200, 200))
-            surface.blit(ammo_line_surface, (panel_x + self.ui_layout.padding + 10, y_offset))
-            y_offset += self.ui_layout.get_responsive_spacing(12)
-        
-        y_offset += self.ui_layout.get_responsive_spacing(10)
-        
-        # Speed
-        speed = ship.velocity.length()
-        max_speed = ship.get_effective_stats().get_effective_max_speed()
-        speed_text = f"Speed: {speed:.0f}/{max_speed:.0f}"
-        speed_surface = self.font_small.render(speed_text, True, (255, 255, 255))
-        surface.blit(speed_surface, (panel_x + self.ui_layout.padding, y_offset))
-        y_offset += self.ui_layout.get_responsive_spacing(20)
-        
-        # Afterburner status (disabled during emergency fuel)
-        afterburner_status = ship.get_afterburner_status()
-        emergency_fuel_status = ship.get_emergency_fuel_status()
-        
-        if emergency_fuel_status['active']:
-            afterburner_text = "AFTERBURNER: DISABLED"
-            afterburner_color = (100, 100, 100)  # Gray for disabled
-        elif afterburner_status['active']:
-            afterburner_text = "AFTERBURNER: ACTIVE"
-            afterburner_color = (0, 150, 255)  # Blue for active
-        elif afterburner_status['cooldown'] > 0:
-            afterburner_text = f"AFTERBURNER: {afterburner_status['cooldown']:.1f}s"
-            afterburner_color = (255, 100, 100)  # Red for cooling down
-        else:
-            afterburner_text = "AFTERBURNER: READY"
-            afterburner_color = (100, 255, 100)  # Green for ready
-        
-        afterburner_surface = self.font_small.render(afterburner_text, True, afterburner_color)
-        surface.blit(afterburner_surface, (panel_x + self.ui_layout.padding, y_offset))
-        y_offset += self.ui_layout.get_responsive_spacing(20)
-        
-        # Upgrades summary
-        upgrade_summary = ship.upgrades.get_upgrade_summary()
-        upgrade_text = f"Upgrades: {sum(1 for v in upgrade_summary.values() if v != 'None')}/4"
-        upgrade_surface = self.font_small.render(upgrade_text, True, (200, 200, 255))
-        surface.blit(upgrade_surface, (panel_x + self.ui_layout.padding, y_offset))
-        y_offset += self.ui_layout.get_responsive_spacing(20)
+    # ---- panels ------------------------------------------------------------------
 
-        # Reputation
+    FACTION_COLORS = {"Trade Guild": (232, 190, 90), "Independent": (150, 180, 215),
+                      "Pirate Territory": (238, 105, 88)}
+    DOCKING_COLORS = {"free_flight": panel_kit.DIM, "approaching": panel_kit.BLUE, "docking": panel_kit.AMBER,
+                      "docked": panel_kit.GREEN, "undocking": panel_kit.AMBER}
+
+    def _metrics(self):
+        """Pixel metrics for the current window size, rebuilt only when it changes."""
+        scale = self.ui_layout.font_scale
+        if getattr(self, "_metrics_for", None) != scale:
+            self._metrics_cache = panel_kit.make_metrics(scale)
+            self._metrics_for = scale
+        return self._metrics_cache
+
+    def _left_width(self, m) -> int:
+        return max(190, min(int(235 * m.unit), int(self.screen_width * 0.34)))
+
+    def build_ship_status(self, game_engine, compact: bool = False) -> panel_kit.Panel:
+        """The ship status panel's content (separate from drawing, so layout is testable)."""
         from ...missions.rank_system import get_rank_name
-        reputation = game_engine.mission_manager.reputation
-        reputation_text = f"Reputation: {reputation} ({get_rank_name(reputation)})"
-        reputation_surface = self.font_small.render(reputation_text, True, (200, 255, 200))
-        surface.blit(reputation_surface, (panel_x + self.ui_layout.padding, y_offset))
-
-        # Reserve this area to prevent overlap
-        self.ui_layout.reserve_area(panel_x, panel_y, panel_width, panel_height, "ship_status")
-    
-    def _render_navigation(self, surface: pygame.Surface, game_engine):
-        """Render navigation panel."""
         ship = game_engine.ship
-        
-        # Panel dimensions using responsive sizing
-        panel_width, panel_height = self.ui_layout.get_panel_size(250, 120, 0.3, 0.3)
-        # Position below ship status panel with spacing - updated height
-        ship_status_height = self.ui_layout.get_panel_size(250, 280, 0.3, 0.6)[1]
-        offset_y = ship_status_height + self.ui_layout.get_responsive_spacing(20)
-        panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_LEFT, panel_width, panel_height, 0, offset_y)
-        
-        # Panel background and border using theme
-        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
-        ui_theme.draw_panel_background(surface, panel_rect, 180)
-        ui_theme.draw_border(surface, panel_rect, UIElementType.NAVIGATION)
-        
-        # Title with theme color
-        title_color = ui_theme.get_text_color(UIElementType.NAVIGATION)
-        title = self.font_medium.render("NAVIGATION", True, title_color)
-        surface.blit(title, (panel_x + self.ui_layout.padding, panel_y + self.ui_layout.padding))
-        
-        y_offset = panel_y + self.ui_layout.get_responsive_spacing(35)
-        
-        # Current position (invert Y for display)
-        sector_x = int(ship.position.x // 1000)
-        sector_y = int(-ship.position.y // 1000)
-        pos_text = f"Sector: ({sector_x}, {sector_y})"
-        pos_surface = self.font_small.render(pos_text, True, (255, 255, 255))
-        surface.blit(pos_surface, (panel_x + self.ui_layout.padding, y_offset))
-        y_offset += self.ui_layout.get_responsive_spacing(20)
+        m = self._metrics()
+        panel = panel_kit.Panel("SHIP STATUS", UIElementType.SHIP_STATUS, (150, 175, 255), m, self._left_width(m))
 
-        # Controlling faction for this sector, with your standing there
+        credits = int(self.credits_display)
+        panel.stat("Credits", f"{credits:,}", panel_kit.AMBER if credits > 10000 else panel_kit.TEXT,
+                   icon="credits", icon_color=panel_kit.AMBER)
+        if not compact:
+            panel.divider()
+
+        max_hull = ship.get_effective_stats().get_effective_hull_points()
+        hull = self.hull_bar.value
+        panel.bar("hull", "HULL", f"{ship.current_hull:.0f}/{max_hull}", hull, panel_kit.level_color(hull))
+
+        cargo = self.cargo_bar.value
+        panel.bar("cargo", "CARGO", f"{ship.cargo_hold.get_used_capacity()}/{ship.cargo_hold.capacity}",
+                  cargo, panel_kit.AMBER if cargo >= 0.95 else panel_kit.BLUE)
+
+        if ship.get_emergency_fuel_status()['active']:
+            panel.chip("EMERGENCY MODE", panel_kit.RED, label="FUEL")
+        else:
+            fuel = self.fuel_bar.value
+            panel.bar("fuel", "FUEL", f"{ship.current_fuel:.0f}/{ship.fuel_capacity:.0f}", fuel,
+                      panel_kit.level_color(fuel, (90, 170, 250)))
+        if not compact:
+            panel.divider()
+
+        cells = []
+        for label, kind in (("LASER", "laser_cells"), ("PLASMA", "plasma_cartridges"),
+                            ("MISSILE", "missiles"), ("RAIL", "railgun_slugs")):
+            have, cap = ship.get_ammo_count(kind), max(1, ship.get_max_ammo_capacity(kind))
+            cells.append((label, str(have), have / cap, panel_kit.level_color(have / cap, (120, 190, 255))))
+        panel.grid(cells, columns=4 if compact else None)
+        if not compact:
+            panel.divider()
+
+        stats = ship.get_effective_stats()
+        panel.stat("Speed", f"{ship.velocity.length():.0f}/{stats.get_effective_max_speed():.0f}", icon="speed")
+
+        afterburner, emergency = ship.get_afterburner_status(), ship.get_emergency_fuel_status()
+        if emergency['active']:
+            text, color = "DISABLED", panel_kit.DIM
+        elif afterburner['active']:
+            text, color = "ACTIVE", panel_kit.BLUE
+        elif afterburner['cooldown'] > 0:
+            text, color = f"{afterburner['cooldown']:.1f}s", panel_kit.AMBER
+        else:
+            text, color = "READY", panel_kit.GREEN
+        panel.chip(text, color, label="BOOST")
+
+        reputation = game_engine.mission_manager.reputation
+        panel.stat("Rank", f"{get_rank_name(reputation)}  {reputation}", (170, 235, 180), icon="rank",
+                   icon_color=(170, 235, 180))
+        if not compact:
+            summary = ship.upgrades.get_upgrade_summary()
+            panel.stat("Upgrades", f"{sum(1 for v in summary.values() if v != 'None')}/4")
+        return panel
+
+    def build_navigation(self, game_engine, compact: bool = False) -> panel_kit.Panel:
         from ...factions import get_controlling_faction
+        ship = game_engine.ship
+        m = self._metrics()
+        panel = panel_kit.Panel("NAVIGATION", UIElementType.NAVIGATION, (150, 225, 160), m, self._left_width(m))
+
+        sector_x, sector_y = int(ship.position.x // 1000), int(-ship.position.y // 1000)
+        panel.big("SECTOR", f"({sector_x}, {sector_y})", icon="sector")
+
         faction = get_controlling_faction(sector_x, -sector_y, game_engine.world_seed)
         standing = game_engine.mission_manager.get_faction_standing(faction)
-        faction_text = f"{faction} ({standing:+d})"
-        faction_surface = self.font_small.render(faction_text, True, (180, 190, 220))
-        surface.blit(faction_surface, (panel_x + self.ui_layout.padding, y_offset))
-        y_offset += self.ui_layout.get_responsive_spacing(20)
-        
-        # Nearest station
+        panel.chip(f"{faction} {standing:+d}", self.FACTION_COLORS.get(faction, panel_kit.DIM), label="SPACE")
+        if not compact:
+            panel.divider()
+
         if self.nearest_station:
             distance = (self.nearest_station.position - ship.position).length()
-            station_text = f"Nearest: {self.nearest_station.name}"
-            distance_text = f"Distance: {distance:.0f}m"
-            
-            station_surface = self.font_small.render(station_text, True, (255, 255, 255))
-            distance_surface = self.font_small.render(distance_text, True, (200, 200, 200))
-            
-            surface.blit(station_surface, (panel_x + self.ui_layout.padding, y_offset))
-            surface.blit(distance_surface, (panel_x + self.ui_layout.padding, y_offset + 15))
-            y_offset += self.ui_layout.get_responsive_spacing(35)
-        
-        # Docking status
-        if hasattr(game_engine, 'docking_manager'):
-            docking_state = game_engine.docking_manager.docking_state.value
-            state_color = (0, 255, 0) if "docked" in docking_state.lower() else (255, 255, 255)
-            state_text = f"Status: {docking_state.title()}"
-            state_surface = self.font_small.render(state_text, True, state_color)
-            surface.blit(state_surface, (panel_x + self.ui_layout.padding, y_offset))
-            
-        # Reserve this area to prevent overlap
-        self.ui_layout.reserve_area(panel_x, panel_y, panel_width, panel_height, "navigation")
-    
-    def _render_mission_tracker(self, surface: pygame.Surface, game_engine):
-        """Render active missions tracker."""
-        active_missions = mission_manager.active_missions
-        if not active_missions:
-            return
-        
-        # Calculate dynamic panel height based on missions
-        mission_height = self.ui_layout.get_responsive_spacing(45)
-        extra_height = sum(15 for mission in active_missions[:3] if hasattr(mission, 'destination_station_id') and mission.destination_station_id)
-        base_height = len(active_missions[:3]) * mission_height + extra_height + 40
-        
-        # Panel dimensions using responsive sizing
-        panel_width, panel_height = self.ui_layout.get_panel_size(280, base_height, 0.35, 0.6)
-        # Sit below the minimap, which owns the top-right corner (60px down)
-        minimap = getattr(game_engine, 'minimap', None)
-        below_minimap = (60 + minimap.map_size + 10) if minimap is not None else 0
-        panel_x, panel_y = self.ui_layout.get_position(Anchor.TOP_RIGHT, panel_width, panel_height, 0, below_minimap)
-        
-        # Panel background and border using theme
-        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
-        ui_theme.draw_panel_background(surface, panel_rect, 180)
-        ui_theme.draw_border(surface, panel_rect, UIElementType.MISSION_TRACKER)
-        
-        # Title with theme color
-        title_color = ui_theme.get_text_color(UIElementType.MISSION_TRACKER)
-        title = self.font_medium.render("ACTIVE MISSIONS", True, title_color)
-        surface.blit(title, (panel_x + self.ui_layout.padding, panel_y + self.ui_layout.padding))
-        
-        y_offset = panel_y + self.ui_layout.get_responsive_spacing(35)
-        
-        for i, mission in enumerate(active_missions[:3]):  # Show up to 3 missions
-            # Mission title with responsive text truncation
-            max_chars = max(20, int(30 * self.ui_layout.font_scale))
-            title_text = mission.title[:max_chars] + ("..." if len(mission.title) > max_chars else "")
-            title_surface = self.font_small.render(title_text, True, (255, 255, 255))
-            surface.blit(title_surface, (panel_x + self.ui_layout.padding, y_offset))
-            
-            # Destination info if available
-            if hasattr(mission, 'destination_station_id') and mission.destination_station_id:
-                dest_text = f"-> {mission.destination_station_id}"
-                dest_surface = self.font_small.render(dest_text, True, (150, 200, 255))
-                surface.blit(dest_surface, (panel_x + self.ui_layout.padding, y_offset + 15))
-
-                # Where that is, when it is a station and the panel has room
-                coords = mission_manager.get_station_coordinates(
-                    mission.destination_station_id, game_engine.universe.stations)
-                if coords:
-                    coords_surface = self.font_small.render(coords.replace("Sector ", ""), True, (120, 150, 190))
-                    free = panel_width - 2 * self.ui_layout.padding - dest_surface.get_width()
-                    if coords_surface.get_width() + 12 <= free:
-                        surface.blit(coords_surface, (panel_x + panel_width - self.ui_layout.padding
-                                                      - coords_surface.get_width(), y_offset + 15))
-                progress_y_offset = self.ui_layout.get_responsive_spacing(30)
+            if compact:
+                panel.stat(self.nearest_station.name, f"{distance:,.0f}m", icon="station")
             else:
-                progress_y_offset = self.ui_layout.get_responsive_spacing(15)
-            
-            # Progress bar with responsive sizing
-            progress_width = int(200 * self.ui_layout.font_scale)
-            progress_height = int(8 * self.ui_layout.font_scale)
-            progress_x = panel_x + self.ui_layout.padding
-            progress_y = y_offset + progress_y_offset
-            
-            gfx.draw_bar(surface, (progress_x, progress_y, progress_width, progress_height),
-                         mission.completion_percentage, (90, 170, 250))
-            
-            # Time remaining
-            time_remaining = mission.get_formatted_time_remaining()
-            if time_remaining != "No time limit":
-                time_color = (255, 100, 100) if "EXPIRED" in time_remaining else (200, 200, 200)
-                time_surface = self.font_small.render(time_remaining, True, time_color)
-                time_x = panel_x + panel_width - time_surface.get_width() - self.ui_layout.padding
-                surface.blit(time_surface, (time_x, y_offset))
-            
-            y_offset += mission_height + (15 if hasattr(mission, 'destination_station_id') and mission.destination_station_id else 0)
-        
-        # Reserve this area to prevent overlap
-        self.ui_layout.reserve_area(panel_x, panel_y, panel_width, panel_height, "mission_tracker")
-    
+                panel.stat("Nearest", self.nearest_station.name, icon="station")
+                panel.stat("Distance", f"{distance:,.0f}m")
+        if hasattr(game_engine, 'docking_manager'):
+            state = game_engine.docking_manager.docking_state.value
+            panel.chip(state.replace("_", " ").title(), self.DOCKING_COLORS.get(state, panel_kit.DIM), label="STATUS")
+        return panel
+
+    def _left_column(self, game_engine):
+        """(panel, name, rect) for the left-hand column, stacked with a constant
+        gap. If the full panels would run off the bottom of the window, the
+        compact versions (fewer, tighter rows) are used instead."""
+        m = self._metrics()
+        for compact in (False, True):
+            panels = []
+            if self.show_ship_status:
+                panels.append((self.build_ship_status(game_engine, compact), "ship_status"))
+            if self.show_navigation:
+                panels.append((self.build_navigation(game_engine, compact), "navigation"))
+            rects = panel_kit.stack([p for p, _ in panels], self.ui_layout.margin_x,
+                                    self.ui_layout.margin_y, m.gap + 4)
+            bottom = rects[-1].bottom if rects else 0
+            if bottom <= self.screen_height - self.ui_layout.margin_y:
+                break
+        return [(p, name, r) for (p, name), r in zip(panels, rects)]
+
+    def _render_left_column(self, surface: pygame.Surface, game_engine):
+        for panel, name, rect in self._left_column(game_engine):
+            panel.draw(surface, rect.x, rect.y)
+            self.ui_layout.reserve_area(rect.x, rect.y, rect.width, rect.height, name)
+
+    def _render_mission_tracker(self, surface: pygame.Surface, game_engine):
+        """Active missions, below the minimap in the top-right corner."""
+        active = mission_manager.active_missions
+        if not active:
+            return
+        m = self._metrics()
+        width = max(210, min(int(270 * m.unit), int(self.screen_width * 0.4)))
+        panel = panel_kit.Panel("ACTIVE MISSIONS", UIElementType.MISSION_TRACKER, (255, 200, 110), m, width)
+        for mission in active[:3]:
+            destination = getattr(mission, 'destination_station_id', None)
+            coords = ""
+            if destination:
+                coords = (mission_manager.get_station_coordinates(destination, game_engine.universe.stations) or "")
+                coords = coords.replace("Sector ", "")
+            time_left = mission.get_formatted_time_remaining()
+            right = "" if time_left == "No time limit" else time_left
+            panel.entry(mission.title, right, f"-> {destination}" if destination else "", coords,
+                        mission.completion_percentage,
+                        right_color=panel_kit.RED if "EXPIRED" in right else panel_kit.DIM)
+        if len(active) > 3:
+            panel.note(f"+{len(active) - 3} more in the Mission Board")
+
+        minimap = getattr(game_engine, 'minimap', None)
+        top = (minimap.rect.bottom + m.gap) if minimap is not None else self.ui_layout.margin_y
+        x = self.screen_width - width - self.ui_layout.margin_x
+        rect = panel.draw(surface, x, top)
+        self.ui_layout.reserve_area(rect.x, rect.y, rect.width, rect.height, "mission_tracker")
+
     def _render_market_info(self, surface: pygame.Surface, game_engine):
         """Render market information panel."""
         # This would show price trends, alerts, etc.
