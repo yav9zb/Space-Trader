@@ -195,29 +195,51 @@ def test_docking_at_the_outpost_pays_the_income_through_the_real_game(game):
     assert game.story_state.get_flag(outpost.COLLECTED_AT) >= game.play_time - 1
 
 
-def gold_pixels(surface):
-    from src.ui.objective_pointer import COLOR
-    return sum(1 for x in range(0, surface.get_width(), 1) for y in range(0, surface.get_height(), 1)
-               if surface.get_at((x, y))[:3] == COLOR)
+def differing_pixels(a, b, area):
+    return sum(1 for x in range(area.left, area.right) for y in range(area.top, area.bottom)
+               if a.get_at((x, y)) != b.get_at((x, y)))
 
 
-def test_the_real_hud_points_at_the_current_story_objective(game):
+def test_the_real_hud_points_at_the_current_story_objective(game, monkeypatch):
     """The pointer is drawn inside a try/except, so a broken import there would
-    fail silently; this checks it really appears in the game's own render."""
+    fail silently. This renders the game's own frame with and without the
+    pointer, with the clock frozen so twinkling stars and flickering glows
+    cannot differ, and checks that the pointer is the only change."""
     from src.story.story_missions import start_story_mission
+    from src.ui import objective_pointer
 
     game.story_state.chapter = "act_1"
     director.ensure_npcs_placed(game)
     assert start_story_mission("act1_2", game)
     annex = station(game, game.story_state.npc_stations["act1_2.a"])
-    game.ship.position = annex.position + Vector2(6000, 0)
-
     clear_hazards_near(annex.position, 9000)
-    frames(game, 2)
-    with_arrow = gold_pixels(game.screen)
+    game.ship.velocity = Vector2(0, 0)
+    frames(game, 2, render=False)                                   # settle, then freeze time
+    monkeypatch.setattr(pygame.time, "get_ticks", lambda: 5000)
 
-    game.ship.position = annex.position + Vector2(100, 0)          # arrived: the arrow goes away
-    frames(game, 2)
-    without_arrow = gold_pixels(game.screen)
+    def still_frame():
+        # No hit flash or screen shake left over from other tests' fighting
+        game.ship.damage_pulse = 0.0
+        game.camera.shake_amount = 0.0
+        game.render()
+        return game.screen.copy()
 
-    assert with_arrow - without_arrow > 15, (with_arrow, without_arrow)
+    def whole_screen(a, b):
+        return differing_pixels(a, b, a.get_rect())
+
+    real_draw = objective_pointer.draw
+    game.ship.position = annex.position + Vector2(6000, 0)
+    game.ship.velocity = Vector2(0, 0)
+    with_pointer = still_frame()
+    monkeypatch.setattr(objective_pointer, "draw", lambda *args, **kwargs: None)
+    without_pointer = still_frame()
+    noise = whole_screen(without_pointer, still_frame())            # stations still turn a hair per draw
+    change = whole_screen(with_pointer, without_pointer)
+    assert change > 400 and change > noise * 20
+
+    monkeypatch.setattr(objective_pointer, "draw", real_draw)
+    game.ship.position = annex.position + Vector2(100, 0)           # arrived: the arrow goes away
+    game.ship.velocity = Vector2(0, 0)
+    arrived = still_frame()
+    monkeypatch.setattr(objective_pointer, "draw", lambda *args, **kwargs: None)
+    assert whole_screen(arrived, still_frame()) < 400               # a station turning, not the 1,600-pixel pointer

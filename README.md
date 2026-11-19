@@ -324,3 +324,4 @@ All rights reserved. This is a commercial project in development; source code is
 - Built with [Pygame](https://www.pygame.org/)
 - Inspired by classic space trading games like Elite and Escape Velocity
 - Sound effects and music: [Kenney.nl](https://kenney.nl/) (CC0 / public domain) - Sci-Fi Sounds, Interface Sounds, and Music Jingles packs
+- Font: Exo 2 by The Exo 2 Project Authors, under the SIL Open Font License 1.1 (`assets/fonts`; license in `assets/licenses/exo2_OFL.txt`)

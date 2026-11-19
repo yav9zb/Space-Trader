@@ -34,6 +34,10 @@ class GameEngine:
         # Initialize Pygame
         pygame.init()
 
+        # The game's font (Exo 2); must come before any screen creates a font
+        from src.ui import fonts
+        fonts.install()
+
         # Initialize Steamworks if running under Steam - safe no-op otherwise
         from src.steam.steam_manager import steam_manager
         self.steam_manager = steam_manager

@@ -28,3 +28,14 @@ def isolated_user_data(tmp_path_factory):
     legacy.loaded = False
     yield root
     save_system.save_directory, legacy.path, legacy.loaded = original
+
+
+@pytest.fixture(autouse=True, scope="session")
+def game_font():
+    """Tests run with the game's real font, as the game does, so layout checks
+    (text fitting, wrapping) mean what they say."""
+    import pygame
+    pygame.font.init()
+    from src.ui import fonts
+    fonts.install()
+    yield
