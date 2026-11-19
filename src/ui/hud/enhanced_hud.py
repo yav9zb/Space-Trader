@@ -20,6 +20,8 @@ except ImportError:
     from ui_theme import ui_theme, UIElementType, UIState
 
 
+from .. import gfx
+
 logger = logging.getLogger(__name__)
 
 
@@ -64,26 +66,18 @@ class StatusBar:
             self.value = max(0.0, min(1.0, self.value))
     
     def draw(self, surface: pygame.Surface, x: int, y: int):
-        """Draw the status bar."""
-        # Background
-        pygame.draw.rect(surface, self.bg_color, (x, y, self.width, self.height))
-        
-        # Border using theme
-        bar_rect = pygame.Rect(x, y, self.width, self.height)
-        ui_theme.draw_border(surface, bar_rect, UIElementType.STATUS_BAR)
-        
-        # Fill
-        fill_width = int(self.width * self.value)
-        if fill_width > 0:
-            # Color interpolation based on value
-            if self.value < 0.3:
-                color = (255, int(255 * self.value / 0.3), 0)  # Red to yellow
-            elif self.value < 0.7:
-                color = (int(255 * (0.7 - self.value) / 0.4), 255, 0)  # Yellow to green
-            else:
-                color = self.color  # Use default color
-            
-            pygame.draw.rect(surface, color, (x + 1, y + 1, fill_width - 2, self.height - 2))
+        """Draw the status bar: a dark trough with a lit fill, turning from the
+        bar's colour through amber to red as it empties, and pulsing when it
+        is nearly empty."""
+        if self.value < 0.3:
+            color = (235, 70, 50)
+            if self.value < 0.15:
+                color = gfx.mix((120, 30, 25), color, gfx.flicker(0.0, speed=0.8, low=0.0))
+        elif self.value < 0.6:
+            color = (235, 190, 50)
+        else:
+            color = self.color
+        gfx.draw_bar(surface, (x, y, self.width, self.height), self.value, color, background=self.bg_color)
 
 
 class EnhancedHUD:
@@ -485,13 +479,8 @@ class EnhancedHUD:
             progress_x = panel_x + self.ui_layout.padding
             progress_y = y_offset + progress_y_offset
             
-            pygame.draw.rect(surface, (40, 40, 40), (progress_x, progress_y, progress_width, progress_height))
-            
-            fill_width = int(progress_width * mission.completion_percentage)
-            if fill_width > 0:
-                pygame.draw.rect(surface, (100, 200, 255), (progress_x, progress_y, fill_width, progress_height))
-            
-            pygame.draw.rect(surface, (100, 100, 100), (progress_x, progress_y, progress_width, progress_height), 1)
+            gfx.draw_bar(surface, (progress_x, progress_y, progress_width, progress_height),
+                         mission.completion_percentage, (90, 170, 250))
             
             # Time remaining
             time_remaining = mission.get_formatted_time_remaining()

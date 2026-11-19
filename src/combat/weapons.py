@@ -4,6 +4,11 @@ import pygame
 import math
 import random
 from pygame import Vector2
+
+try:
+    from ..ui import gfx
+except ImportError:     # run as a plain script
+    from ui import gfx
 from typing import List, Optional
 from enum import Enum
 from dataclasses import dataclass
@@ -50,35 +55,56 @@ class Projectile:
         if self.age >= self.max_age:
             self.alive = False
     
+    def _palette(self):
+        """(outer, core) colours: who fired a shot should be readable at a glance.
+        The player's are cool cyan, patrols' green, everyone else's hot red."""
+        owner = self.owner
+        if hasattr(owner, "cargo_hold"):
+            return (60, 170, 255), (220, 245, 255)
+        if hasattr(owner, "faction"):          # patrols (bandits have no faction)
+            return (70, 220, 120), (225, 255, 235)
+        return (230, 60, 40), (255, 215, 190)
+
     def draw(self, screen: pygame.Surface, camera_offset: Vector2):
         """Draw the projectile."""
         screen_pos = self.position - camera_offset
         heading = self.velocity.normalize() if self.velocity.length() > 0 else Vector2(0, -1)
+        outer, core = self._palette()
+        pos = (int(screen_pos.x), int(screen_pos.y))
 
         if self.weapon_type == WeaponType.LASER:
-            # Short bright bolt: dim outer line + bright core, along travel direction
-            tail = screen_pos - heading * 10
-            pygame.draw.line(screen, (150, 30, 30), tail, screen_pos, 3)
-            pygame.draw.line(screen, (255, 120, 100), tail, screen_pos, 1)
+            # A bolt with a fading tail and a glow
+            gfx.draw_glow(screen, screen_pos, 13, outer, 0.8)
+            for width, back, color in ((5, 14, gfx.darken(outer, 0.45)), (3, 12, outer), (1, 9, core)):
+                pygame.draw.line(screen, color, screen_pos - heading * back, screen_pos, width)
         elif self.weapon_type == WeaponType.PLASMA:
-            # Glowing energy orb: dim outer ring + bright core
-            pos = (int(screen_pos.x), int(screen_pos.y))
-            pygame.draw.circle(screen, (40, 130, 60), pos, 6)
-            pygame.draw.circle(screen, (150, 255, 170), pos, 3)
+            # A pulsing energy orb dragging a short tail
+            pulse = gfx.flicker(self.age * 3.0, speed=1.2, low=0.7)
+            for k in (3, 2, 1):
+                trail = screen_pos - heading * (k * 6)
+                pygame.draw.circle(screen, gfx.darken((90, 240, 130), 0.2 + 0.2 * k),
+                                   (int(trail.x), int(trail.y)), max(1, 5 - k))
+            gfx.draw_glow(screen, screen_pos, int(18 * pulse), (60, 220, 110), 0.9)
+            pygame.draw.circle(screen, (60, 180, 90), pos, 5)
+            pygame.draw.circle(screen, (200, 255, 215), pos, 3)
         elif self.weapon_type == WeaponType.MISSILE:
-            # Small elongated body along travel direction, plus exhaust flame
-            nose = screen_pos + heading * 5
+            # A small body with a real exhaust flame
+            gfx.draw_glow(screen, screen_pos, 12, (255, 150, 40), 0.55)
+            nose = screen_pos + heading * 6
             tail = screen_pos - heading * 5
-            side = Vector2(-heading.y, heading.x) * 2
-            pygame.draw.polygon(screen, (230, 230, 210), [nose, tail + side, tail - side])
-            flame_tip = tail - heading * 8
-            pygame.draw.line(screen, (255, 140, 0), tail, flame_tip, 3)
+            side = Vector2(-heading.y, heading.x) * 2.5
+            pygame.draw.polygon(screen, (235, 235, 215), [nose, tail + side, tail - side])
+            pygame.draw.polygon(screen, (150, 150, 140), [tail + side, tail - side, tail - heading * 2])
+            angle = math.degrees(math.atan2(heading.y, heading.x)) + 90
+            gfx.draw_engine_flame(screen, tail, angle, 6, (255, 120, 20), (255, 235, 160), power=1.2,
+                                  seed=self.age * 5, offset=0.1)
         elif self.weapon_type == WeaponType.RAILGUN:
-            # Hypervelocity tracer: a bright, thin streak rather than a near-invisible dot
-            tail = screen_pos - heading * 18
-            pygame.draw.line(screen, (100, 160, 255), tail, screen_pos, 2)
-            pygame.draw.circle(screen, (220, 235, 255), (int(screen_pos.x), int(screen_pos.y)), 2)
-    
+            # A hypervelocity tracer: a long thin streak with a bright head
+            gfx.draw_glow(screen, screen_pos, 14, (90, 150, 255), 0.7)
+            for width, back, color in ((4, 26, (50, 90, 180)), (2, 22, (110, 170, 255)), (1, 18, (235, 245, 255))):
+                pygame.draw.line(screen, color, screen_pos - heading * back, screen_pos, width)
+            pygame.draw.circle(screen, (240, 248, 255), pos, 2)
+
     def check_collision(self, target) -> bool:
         """Check if projectile hits a target."""
         if not self.alive or target == self.owner:

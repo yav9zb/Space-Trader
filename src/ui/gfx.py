@@ -139,6 +139,57 @@ def draw_engine_flame(screen: pygame.Surface, pos, rotation: float, size: float,
 
 
 _vignettes = {}
+_rings = {}
+
+
+def ring_glow(radius: int, width: int, color) -> pygame.Surface:
+    """A soft glowing ring (bright at `radius`, fading on both sides), black
+    elsewhere, for additive blitting. Used for accretion disks and shockwaves."""
+    radius, width = max(3, int(radius)), max(1, int(width))
+    color = clamp_color(color)
+
+    def build():
+        reach = radius + width * 2
+        size = reach * 2
+        surface = pygame.Surface((size, size))
+        surface.fill((0, 0, 0))
+        steps = width * 4
+        for i in range(steps + 1):
+            offset = (i / steps - 0.5) * 2 * width * 2          # -2w .. +2w around the ring
+            level = max(0.0, 1.0 - abs(offset) / (width * 2)) ** 2
+            r = int(radius + offset)
+            if r > 0 and level > 0:
+                pygame.draw.circle(surface, tuple(int(c * level) for c in color), (reach, reach), r, 2)
+        return surface
+
+    return _bounded(_rings, (radius, width, color), build)
+
+
+def draw_ring_glow(screen: pygame.Surface, pos, radius, width, color, strength: float = 1.0):
+    radius = int(radius)
+    if radius < 3 or strength <= 0:
+        return
+    color = tuple(c * min(1.0, strength) for c in color[:3])
+    surface = ring_glow(radius, width, color)
+    half = surface.get_width() // 2
+    screen.blit(surface, (int(pos[0]) - half, int(pos[1]) - half), special_flags=pygame.BLEND_RGB_ADD)
+
+
+def draw_bar(screen: pygame.Surface, rect, fraction: float, color,
+             background=(16, 20, 32), border=(110, 125, 150)):
+    """A status bar: dark trough, a fill with a lighter top edge so it has
+    some volume, and a thin border."""
+    rect = pygame.Rect(rect)
+    fraction = max(0.0, min(1.0, fraction))
+    radius = max(1, rect.height // 3)
+    pygame.draw.rect(screen, background, rect, border_radius=radius)
+    fill_width = int(rect.width * fraction)
+    if fill_width > 1:
+        fill = pygame.Rect(rect.x, rect.y, fill_width, rect.height)
+        pygame.draw.rect(screen, color, fill, border_radius=radius)
+        highlight = pygame.Rect(rect.x + 1, rect.y + 1, max(0, fill_width - 2), max(1, rect.height // 3))
+        pygame.draw.rect(screen, lighten(color, 0.45), highlight, border_radius=radius)
+    pygame.draw.rect(screen, border, rect, 1, border_radius=radius)
 
 
 def draw_edge_flash(screen: pygame.Surface, color, strength: float):
@@ -165,3 +216,4 @@ def clear_caches():
     _glows.clear()
     _shades.clear()
     _vignettes.clear()
+    _rings.clear()

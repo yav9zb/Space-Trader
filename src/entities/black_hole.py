@@ -4,6 +4,8 @@ import pygame
 import math
 import random
 from pygame import Vector2
+
+from ..ui import gfx
 from typing import Optional
 
 
@@ -92,67 +94,39 @@ class BlackHole:
         return 0.0
     
     def draw(self, screen: pygame.Surface, camera_offset: Vector2):
-        """Draw the black hole with gravitational effects."""
+        """Draw the black hole: a lensing glow, a hot accretion ring, a
+        bright photon ring at the event horizon, and a perfectly black core."""
         screen_pos = self.position - camera_offset
-        
-        # Draw accretion disk (outermost layer)
-        disk_color = (80 + int(20 * self.distortion_intensity), 
-                     40 + int(30 * self.distortion_intensity), 
-                     120 + int(20 * self.distortion_intensity))
-        pygame.draw.circle(screen, disk_color, 
-                         (int(screen_pos.x), int(screen_pos.y)), 
-                         int(self.accretion_disk_radius), 3)
-        
-        # Draw gravitational distortion rings
-        for i in range(3):
-            ring_radius = self.size * (1.8 - i * 0.3)
-            ring_alpha = int(100 * self.distortion_intensity * (1 - i * 0.3))
-            ring_color = (60 + ring_alpha, 30 + ring_alpha//2, 100 + ring_alpha)
-            pygame.draw.circle(screen, ring_color,
-                             (int(screen_pos.x), int(screen_pos.y)),
-                             int(ring_radius), 2)
-        
-        # Draw damage zone warning
+        center = (int(screen_pos.x), int(screen_pos.y))
+        pulse = 0.85 + 0.15 * math.sin(self.pulse_timer * 3)
+        intensity = 0.55 + 0.45 * self.distortion_intensity
+
+        # Wide violet glow where space is bent
+        gfx.draw_glow(screen, screen_pos, self.accretion_disk_radius * 1.25, (90, 40, 170), 0.5 * intensity * pulse)
+
+        # Accretion disk: a hot ring, orange inside fading to violet outside
+        disk_width = max(4, int(self.size * 0.35))
+        gfx.draw_ring_glow(screen, screen_pos, self.accretion_disk_radius * 0.82, disk_width, (130, 70, 220), 0.9 * intensity)
+        gfx.draw_ring_glow(screen, screen_pos, self.size * 1.5, max(3, disk_width // 2), (255, 150, 60), 0.85 * intensity * pulse)
+
+        # Damage zone, faint
         if self.damage_zone > self.event_horizon:
-            warning_color = (200, 100, 100, int(50 * (1 + math.sin(self.pulse_timer * 4))))
-            pygame.draw.circle(screen, (200, 100, 100),
-                             (int(screen_pos.x), int(screen_pos.y)),
-                             int(self.damage_zone), 1)
-        
-        # Draw event horizon (point of no return)
-        horizon_color = (20, 10, 20)
-        pygame.draw.circle(screen, horizon_color,
-                         (int(screen_pos.x), int(screen_pos.y)),
-                         int(self.event_horizon))
-        
-        # Draw the black hole core (absolute black)
-        core_radius = self.size * 0.4
-        pygame.draw.circle(screen, (0, 0, 0),
-                         (int(screen_pos.x), int(screen_pos.y)),
-                         int(core_radius))
-        
-        # Add pulsing energy effects around the core
-        pulse_radius = core_radius + 5 * math.sin(self.pulse_timer * 5)
-        if pulse_radius > core_radius:
-            pulse_color = (100, 50, 150, int(100 * math.sin(self.pulse_timer * 5)))
-            pygame.draw.circle(screen, (100, 50, 150),
-                             (int(screen_pos.x), int(screen_pos.y)),
-                             int(pulse_radius), 1)
-        
-        # Draw directional gravitational field lines (rotating)
+            pygame.draw.circle(screen, (150, 70, 70), center, int(self.damage_zone), 1)
+
+        # Rotating field lines
         for angle_offset in range(0, 360, 45):
             angle = math.radians(self.rotation + angle_offset)
             start_radius = self.accretion_disk_radius * 0.8
             end_radius = self.size * 1.1
-            
-            start_x = screen_pos.x + start_radius * math.cos(angle)
-            start_y = screen_pos.y + start_radius * math.sin(angle)
-            end_x = screen_pos.x + end_radius * math.cos(angle)
-            end_y = screen_pos.y + end_radius * math.sin(angle)
-            
-            line_color = (60, 30, 100)
-            pygame.draw.line(screen, line_color, (start_x, start_y), (end_x, end_y), 1)
-    
+            start = (screen_pos.x + start_radius * math.cos(angle), screen_pos.y + start_radius * math.sin(angle))
+            end = (screen_pos.x + end_radius * math.cos(angle), screen_pos.y + end_radius * math.sin(angle))
+            pygame.draw.line(screen, (55, 30, 95), start, end, 1)
+
+        # Event horizon, photon ring, black core
+        pygame.draw.circle(screen, (10, 5, 14), center, int(self.event_horizon))
+        gfx.draw_ring_glow(screen, screen_pos, max(4, self.size * 0.55), 3, (255, 230, 190), 0.9 * pulse)
+        pygame.draw.circle(screen, (0, 0, 0), center, int(self.size * 0.4))
+
     def get_threat_level(self, ship_position: Vector2) -> str:
         """Get threat level description based on ship distance."""
         distance = (self.position - ship_position).length()

@@ -297,3 +297,154 @@ def test_an_explosion_draws_a_bright_flash_that_fades():
     late = screen()
     manager.draw_combat_effects(late, Vector2(0, 0))
     assert lit_pixels(early) > lit_pixels(late) >= 0
+
+
+# --- bars and rings -----------------------------------------------------------------------
+
+def test_a_bar_fills_in_proportion_and_is_lit_on_top():
+    s = screen(300, 60)
+    green = (80, 210, 90)
+    gfx.draw_bar(s, (10, 10, 200, 14), 0.5, green)
+    filled_mid = s.get_at((60, 17))[:3]
+    empty_mid = s.get_at((180, 17))[:3]
+    assert filled_mid != empty_mid and abs(filled_mid[1] - green[1]) < 80
+    assert s.get_at((60, 12))[1] > s.get_at((60, 20))[1]                    # highlight on the top edge
+    assert s.get_at((150, 17))[:3] == s.get_at((190, 17))[:3]               # both beyond half: trough
+
+
+def test_bars_clamp_and_handle_empty_and_full():
+    s = screen(300, 60)
+    gfx.draw_bar(s, (10, 10, 200, 14), -3, (255, 0, 0))
+    assert s.get_at((100, 17))[:3] == (16, 20, 32)                          # empty: just the trough
+    gfx.draw_bar(s, (10, 30, 200, 14), 9, (255, 0, 0))
+    assert s.get_at((205, 37))[0] > 100                                      # full: filled to the end
+
+
+def test_a_ring_glow_is_bright_on_the_ring_and_dark_away_from_it():
+    s = screen(300, 300)
+    gfx.draw_ring_glow(s, (150, 150), 80, 6, (255, 200, 100))
+    on_ring = sum(s.get_at((150 + 80, 150))[:3])
+    inside, outside = sum(s.get_at((150, 150))[:3]), sum(s.get_at((150 + 120, 150))[:3])
+    assert on_ring > 100 and inside == 0 and outside == 0
+    assert gfx.ring_glow(80, 6, (255, 200, 100)) is gfx.ring_glow(80, 6, (255, 200, 100))   # cached
+
+
+# --- projectiles ------------------------------------------------------------------------------
+
+def _owner(kind):
+    from types import SimpleNamespace
+    return {
+        "player": SimpleNamespace(cargo_hold=object()),
+        "patrol": SimpleNamespace(faction="Trade Guild", patrol_center=Vector2(0, 0)),
+        "bandit": SimpleNamespace(patrol_center=Vector2(0, 0), bandit_type="fighter"),
+    }[kind]
+
+
+def test_shots_are_coloured_by_who_fired_them_and_bandits_are_not_mistaken_for_patrols():
+    from src.combat.weapons import Projectile, WeaponType
+
+    colours = {}
+    for kind in ("player", "patrol", "bandit"):
+        shot = Projectile(Vector2(0, 0), Vector2(0, -100), 5, _owner(kind), WeaponType.LASER)
+        colours[kind] = shot._palette()
+    assert len({c[0] for c in colours.values()}) == 3
+    outer_bandit = colours["bandit"][0]
+    assert outer_bandit[0] > outer_bandit[1] and outer_bandit[0] > outer_bandit[2]     # red
+    assert colours["player"][0][2] > colours["player"][0][0]                          # blue-ish
+    assert colours["patrol"][0][1] > colours["patrol"][0][0]                          # green-ish
+
+
+@pytest.mark.parametrize("weapon", ["LASER", "PLASMA", "MISSILE", "RAILGUN"])
+def test_every_weapon_draws_a_visible_shot_that_points_along_its_travel(weapon):
+    from src.combat.weapons import Projectile, WeaponType
+
+    s = screen(300, 300)
+    shot = Projectile(Vector2(150, 150), Vector2(400, 0), 5, _owner("player"), getattr(WeaponType, weapon))
+    shot.draw(s, Vector2(0, 0))
+    assert lit_pixels(s) > 15
+    left = sum(1 for x in range(100, 148) for y in range(130, 170) if sum(s.get_at((x, y))[:3]) > 40)
+    right = sum(1 for x in range(153, 200) for y in range(130, 170) if sum(s.get_at((x, y))[:3]) > 40)
+    assert left > 0                                                     # a tail behind a rightward shot
+
+
+# --- asteroids and black holes ---------------------------------------------------------------
+
+def test_every_asteroid_type_draws_and_its_craters_stay_put():
+    from src.entities.asteroid import Asteroid, AsteroidType
+
+    for kind in AsteroidType:
+        asteroid = Asteroid(Vector2(150, 150), 30, kind)
+        s = screen(300, 300)
+        asteroid.draw(s, Vector2(0, 0))
+        assert lit_pixels(s) > 150
+        craters = list(asteroid._craters())
+        asteroid.rotation += 77
+        asteroid.draw(s, Vector2(0, 0))
+        assert asteroid._craters() == craters                           # fixed on the rock, they just turn with it
+
+
+def test_damaged_asteroids_and_ships_show_a_health_bar():
+    from src.entities.asteroid import Asteroid
+    from src.entities.bandit import BanditShip, BanditType
+
+    asteroid = Asteroid(Vector2(150, 150), 30)
+    s1, s2 = screen(300, 300), screen(300, 300)
+    asteroid.draw(s1, Vector2(0, 0))
+    asteroid.current_health = asteroid.max_health * 0.4
+    asteroid.draw(s2, Vector2(0, 0))
+    assert lit_pixels(s2) > lit_pixels(s1)
+
+    bandit = BanditShip(Vector2(150, 150), BanditType.FIGHTER)
+    a, b = screen(300, 300), screen(300, 300)
+    bandit.draw(a, Vector2(0, 0))
+    bandit.current_hull = bandit.max_hull * 0.3
+    bandit.draw(b, Vector2(0, 0))
+    assert lit_pixels(b) > lit_pixels(a)
+
+
+def test_a_black_hole_has_a_black_core_ringed_by_light():
+    from src.entities.black_hole import BlackHole
+
+    hole = BlackHole(Vector2(300, 300), 60.0)
+    s = screen(600, 600)
+    hole.draw(s, Vector2(0, 0))
+    assert s.get_at((300, 300))[:3] == (0, 0, 0)
+    ring = max(sum(s.get_at((300 + r, 300))[:3]) for r in range(int(60 * 0.4), int(60 * 0.9)))
+    assert ring > 150
+    assert lit_pixels(s) > 3000                                         # a big glow, not a dot
+
+
+# --- HUD status bars ----------------------------------------------------------------------------------
+
+def test_status_bars_change_colour_as_they_empty():
+    from src.ui.hud.enhanced_hud import StatusBar
+
+    def fill_colour(value):
+        bar = StatusBar(100, 12, (80, 200, 255))
+        bar.value = bar.target_value = value
+        s = screen(160, 40)
+        bar.draw(s, 10, 10)
+        return s.get_at((14, 17))[:3]
+
+    healthy, middling, critical = fill_colour(1.0), fill_colour(0.45), fill_colour(0.2)
+    assert healthy != middling != critical
+    assert critical[0] > critical[2] and middling[0] > middling[2]       # amber and red, not the bar's blue
+    assert healthy[2] > healthy[0]
+
+
+def test_craters_are_drawn_and_depend_only_on_the_asteroid_not_on_chance():
+    from src.entities.asteroid import Asteroid
+
+    a, b = Asteroid(Vector2(150, 150), 30), Asteroid(Vector2(150, 150), 30)
+    a.rotation = b.rotation = 20
+    b.color = a.color                                                      # colour is random per rock
+    b.shape_points = list(a.shape_points)                                    # and so is the outline
+    assert a._craters() == b._craters()                                   # seeded by the asteroid itself
+
+    with_craters, without = screen(300, 300), screen(300, 300)
+    a.draw(with_craters, Vector2(0, 0))
+    b._crater_list = []
+    b.draw(without, Vector2(0, 0))
+    differing = sum(1 for x in range(100, 200) for y in range(100, 200)
+                    if with_craters.get_at((x, y)) != without.get_at((x, y)))
+    assert differing > 10

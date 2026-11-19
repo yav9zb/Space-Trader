@@ -7,6 +7,8 @@ from pygame import Vector2
 from typing import Optional, List
 from enum import Enum
 
+from ..ui import gfx
+
 
 class AsteroidType(Enum):
     NORMAL = "normal"
@@ -147,64 +149,74 @@ class Asteroid:
         if self.current_health < self.max_health:
             self._draw_health_bar(screen, screen_pos)
     
+    def _craters(self):
+        """A few craters, fixed for the life of this asteroid: (x, y, radius)
+        as fractions of its size."""
+        if not hasattr(self, "_crater_list"):
+            rng = random.Random(int(self.size * 977) ^ int(self.max_health * 31))
+            self._crater_list = [
+                (rng.uniform(-0.45, 0.45), rng.uniform(-0.45, 0.45), rng.uniform(0.10, 0.2))
+                for _ in range(rng.randint(2, 4))
+            ]
+        return self._crater_list
+
+    def _draw_rock(self, screen: pygame.Surface, screen_pos: Vector2, points: List[tuple], base, edge):
+        """The rock itself: a lit facet toward the upper left, a darker rim,
+        and craters, so it reads as a solid lump rather than a flat polygon."""
+        center = Vector2(screen_pos)
+        pygame.draw.polygon(screen, base, points)
+        facet = [center + (Vector2(p) - center) * 0.78 + Vector2(-0.1, -0.12) * self.size for p in points]
+        pygame.draw.polygon(screen, gfx.lighten(base, 0.16), facet)
+        shade = [center + (Vector2(p) - center) * 0.55 + Vector2(0.18, 0.2) * self.size for p in points]
+        pygame.draw.polygon(screen, gfx.darken(base, 0.25), shade)
+        for cx, cy, cr in self._craters():
+            at = center + Vector2(cx, cy).rotate(self.rotation) * self.size
+            radius = max(2, int(cr * self.size))
+            pygame.draw.circle(screen, gfx.darken(base, 0.42), (int(at.x), int(at.y)), radius)
+            pygame.draw.circle(screen, gfx.lighten(base, 0.3), (int(at.x - 1), int(at.y - 1)), radius, 1)
+        pygame.draw.polygon(screen, edge, points, 2)
+
     def _draw_normal(self, screen: pygame.Surface, screen_pos: Vector2, points: List[tuple]):
         """Draw normal asteroid."""
-        pygame.draw.polygon(screen, self.color, points)
-        pygame.draw.polygon(screen, (80, 80, 80), points, 2)
+        self._draw_rock(screen, screen_pos, points, self.color, gfx.darken(self.color, 0.55))
     
     def _draw_health_bar(self, screen: pygame.Surface, screen_pos: Vector2):
         """Draw health bar above asteroid."""
         bar_width = 40
-        bar_height = 4
+        bar_height = 5
         bar_x = screen_pos.x - bar_width // 2
         bar_y = screen_pos.y - self.size - 10
-        
-        # Background
-        pygame.draw.rect(screen, (100, 100, 100), 
-                       (bar_x, bar_y, bar_width, bar_height))
-        
-        # Health bar
         health_percentage = self.get_health_percentage()
-        fill_width = int(bar_width * health_percentage)
-        health_color = (255, 0, 0) if health_percentage < 0.3 else (255, 255, 0) if health_percentage < 0.7 else (0, 255, 0)
-        
-        if fill_width > 0:
-            pygame.draw.rect(screen, health_color,
-                           (bar_x, bar_y, fill_width, bar_height))
+        health_color = (230, 60, 50) if health_percentage < 0.3 else (235, 200, 50) if health_percentage < 0.7 else (80, 210, 90)
+        gfx.draw_bar(screen, (int(bar_x), int(bar_y), bar_width, bar_height), health_percentage, health_color)
     
     def _draw_radioactive(self, screen: pygame.Surface, screen_pos: Vector2, points: List[tuple]):
-        """Draw radioactive asteroid with radiation glow."""
-        # Draw radiation field
-        radiation_color = (100, 200, 100, 50)  # Semi-transparent green
-        pygame.draw.circle(screen, (50, 150, 50),
-                         (int(screen_pos.x), int(screen_pos.y)),
-                         int(self.radiation_range), 1)
-        
-        # Draw the asteroid with green tint
-        pygame.draw.polygon(screen, self.color, points)
-        pygame.draw.polygon(screen, (100, 255, 100), points, 2)
-        
-        # Add radiation symbol
+        """Draw radioactive asteroid with a pulsing radiation glow."""
+        pulse = gfx.flicker(self.position.x * 0.01, speed=0.4, low=0.55)
+        gfx.draw_glow(screen, screen_pos, self.radiation_range * 0.85, (60, 230, 90), 0.28 * pulse)
+        gfx.draw_ring_glow(screen, screen_pos, self.radiation_range, 3, (60, 200, 90), 0.5 * pulse)
+
+        self._draw_rock(screen, screen_pos, points, self.color, (100, 255, 100))
+
+        # Radiation trefoil, glowing
         symbol_size = self.size * 0.3
         symbol_x, symbol_y = int(screen_pos.x), int(screen_pos.y)
-        # Simple radiation trefoil
+        gfx.draw_glow(screen, screen_pos, self.size * 0.7, (200, 255, 80), 0.5 * pulse)
         for angle in [0, 120, 240]:
             end_x = symbol_x + symbol_size * math.cos(math.radians(angle))
             end_y = symbol_y + symbol_size * math.sin(math.radians(angle))
-            pygame.draw.line(screen, (255, 255, 100), (symbol_x, symbol_y), (end_x, end_y), 2)
+            pygame.draw.line(screen, (255, 255, 110), (symbol_x, symbol_y), (end_x, end_y), 2)
     
     def _draw_explosive(self, screen: pygame.Surface, screen_pos: Vector2, points: List[tuple]):
-        """Draw explosive asteroid with warning indicators."""
-        # Draw potential explosion radius (faint)
-        pygame.draw.circle(screen, (200, 100, 100),
-                         (int(screen_pos.x), int(screen_pos.y)),
-                         int(self.explosion_radius), 1)
-        
-        # Draw the asteroid with orange/red tint
-        pygame.draw.polygon(screen, self.color, points)
-        pygame.draw.polygon(screen, (255, 150, 100), points, 2)
-        
-        # Add warning stripes
+        """Draw explosive asteroid: a hot, flickering warning glow."""
+        pulse = gfx.flicker(self.position.y * 0.01, speed=0.9, low=0.4)
+        gfx.draw_glow(screen, screen_pos, self.size * 2.0, (255, 120, 30), 0.35 * pulse)
+        pygame.draw.circle(screen, (110, 55, 50), (int(screen_pos.x), int(screen_pos.y)),
+                           int(self.explosion_radius), 1)
+
+        self._draw_rock(screen, screen_pos, points, self.color, (255, 150, 100))
+
+        # Warning stripes
         stripe_color = (255, 200, 0)
         for i in range(3):
             start_angle = i * 60 + self.rotation
@@ -212,6 +224,8 @@ class Asteroid:
             start_pos = screen_pos + Vector2(self.size * 0.5, 0).rotate(start_angle)
             end_pos = screen_pos + Vector2(self.size * 0.8, 0).rotate(end_angle)
             pygame.draw.line(screen, stripe_color, start_pos, end_pos, 3)
+        # A glowing fault line
+        gfx.draw_glow(screen, screen_pos, self.size * 0.8, (255, 140, 40), 0.5 * pulse)
     
     
     def check_radiation_damage(self, ship) -> float:

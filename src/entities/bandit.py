@@ -467,23 +467,13 @@ class BanditShip:
         
         # Draw hull bar above ship
         if self.current_hull < self.max_hull and self.state != BanditState.DISABLED:
-            bar_width = 30
-            bar_height = 4
+            bar_width = 32
+            bar_height = 5
             bar_x = screen_pos.x - bar_width // 2
-            bar_y = screen_pos.y - self.base_size - 10
-            
-            # Background
-            pygame.draw.rect(screen, (100, 100, 100), 
-                           (bar_x, bar_y, bar_width, bar_height))
-            
-            # Health bar
+            bar_y = screen_pos.y - self.base_size - 12
             hull_percentage = self.current_hull / self.max_hull
-            fill_width = int(bar_width * hull_percentage)
-            health_color = (255, 0, 0) if hull_percentage < 0.3 else (255, 255, 0) if hull_percentage < 0.7 else (0, 255, 0)
-            
-            if fill_width > 0:
-                pygame.draw.rect(screen, health_color,
-                               (bar_x, bar_y, fill_width, bar_height))
+            health_color = (230, 60, 50) if hull_percentage < 0.3 else (235, 200, 50) if hull_percentage < 0.7 else (80, 210, 90)
+            gfx.draw_bar(screen, (int(bar_x), int(bar_y), bar_width, bar_height), hull_percentage, health_color)
         
         if self.name and self.state != BanditState.DISABLED:
             label = _name_font().render(self.name, True, (255, 210, 130))

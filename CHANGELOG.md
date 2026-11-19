@@ -1,5 +1,10 @@
 # Changelog
 
+## Beta 17
+
+### Changed
+- **More visual polish.** Asteroids are lit, cratered rocks, with a pulsing green radiation glow on radioactive ones and a hot flickering glow on explosive ones. Black holes have a violet lensing glow, an orange accretion ring, a bright photon ring and a black core. Weapon shots have glows and tails and are colour-coded by who fired them: blue for you, green for patrols, red for everyone else. Missiles have a real exhaust flame. Status bars (HUD, mission progress, enemy and asteroid health) are lit bars with a trough, and a nearly empty bar pulses red.
+
 ## Beta 16
 
 ### Fixed

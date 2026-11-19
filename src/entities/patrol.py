@@ -195,11 +195,10 @@ class PatrolShip:
         pygame.draw.polygon(screen, PATROL_OUTLINE, points, 2)
 
         if self.current_hull < self.max_hull:
-            width, height = 30, 4
+            width, height = 32, 5
             x = screen_pos.x - width // 2
-            y = screen_pos.y - self.size - 10
-            pygame.draw.rect(screen, (100, 100, 100), (x, y, width, height))
+            y = screen_pos.y - self.size - 12
             fraction = max(0.0, self.current_hull / self.max_hull)
-            pygame.draw.rect(screen, (80, 200, 255), (x, y, int(width * fraction), height))
+            gfx.draw_bar(screen, (int(x), int(y), width, height), fraction, (80, 190, 255))
 
         self.weapon_system.draw(screen, camera_offset)
