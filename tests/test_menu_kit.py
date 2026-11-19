@@ -642,3 +642,131 @@ def test_up_and_down_move_through_a_pages_rows_and_wrap(engine, settings_screen)
     assert state.selected["camera"] == len(state.rows("camera")) - 1          # wrapped to Back
     state.handle_input(key(pygame.K_RETURN))
     assert state.page is None
+
+
+# --- mission board -----------------------------------------------------------------------------
+
+@pytest.fixture
+def board(engine):
+    """A mission board over a fresh mission manager (it is a process-wide
+    singleton), put back as it was afterwards."""
+    import copy
+    from src.states.game_state import GameStates
+
+    manager = engine.mission_manager
+    saved = copy.copy(vars(manager))
+    engine.create_new_universe(seed=4)
+    manager.available_missions, manager.active_missions = [], []
+    manager.visited_stations, manager.station_mission_seeds = set(), {}
+    manager.reputation = 80
+    manager.faction_standing = {name: 80 for name in manager.faction_standing}
+    engine.change_state(GameStates.MISSIONS, engine.universe.stations[0])
+    engine.fade_remaining = 0
+    state = engine.states[GameStates.MISSIONS]
+    assert state.available_missions
+    yield state
+    vars(manager).clear()
+    vars(manager).update(saved)
+
+
+@pytest.mark.parametrize("size", SIZES)
+def test_the_mission_board_fits_every_window_size_in_list_and_details(engine, board, size):
+    pygame.display.set_mode(size, pygame.RESIZABLE)
+    engine._on_window_resized()
+    window = pygame.Rect(0, 0, *size)
+    for details in (False, True):
+        board.viewing_details = details
+        engine.render()
+        bar = board.detail_buttons if details else board.list_buttons
+        assert all(window.contains(r) for r in bar.rects)
+        if not details:
+            assert board.list.rects and all(window.contains(r) for r in board.list.rects.values())
+        assert all(window.contains(r) for r in board.tab_rects.values()) or size[0] < 1100
+
+
+def test_clicking_the_tabs_switches_between_available_and_active(engine, board):
+    engine.render()
+    pygame.event.clear()
+    pygame.event.post(click(board.tab_rects["active"].center))
+    engine.handle_events()
+    assert board.current_tab == "active"
+    engine.render()
+    pygame.event.post(click(board.tab_rects["available"].center))
+    engine.handle_events()
+    assert board.current_tab == "available"
+
+
+def test_a_second_click_on_a_mission_opens_its_details_and_accept_works_by_button(engine, board):
+    engine.render()
+    pygame.event.clear()
+    pygame.event.post(click(board.list.rects[1].center))
+    engine.handle_events()
+    assert board.selected_mission_index == 1 and board.viewing_details is False
+    pygame.event.post(click(board.list.rects[1].center))
+    engine.handle_events()
+    assert board.viewing_details is True
+
+    wanted = board.available_missions[1].id
+    engine.render()
+    pygame.event.post(click(board.detail_buttons.rects[0].center))             # Accept
+    engine.handle_events()
+    assert any(m.id == wanted for m in engine.mission_manager.active_missions)
+    assert board.current_tab == "active"
+
+
+def test_abandon_by_button_and_back_to_the_list(engine, board):
+    board.handle_input(key(pygame.K_a))                                        # accept the first mission
+    assert board.current_tab == "active" and board.active_missions, board.message
+    board.viewing_details = True
+    engine.render()
+    assert board.detail_buttons.enabled == [False, True, True]
+    pygame.event.clear()
+    pygame.event.post(click(board.detail_buttons.rects[1].center))             # Abandon
+    engine.handle_events()
+    assert not board.active_missions
+    engine.render()
+    pygame.event.post(click(board.detail_buttons.rects[2].center))             # Back
+    engine.handle_events()
+    assert board.viewing_details is False
+
+
+def test_the_keyboard_still_drives_the_board(engine, board):
+    from src.states.game_state import GameStates
+
+    board.handle_input(key(pygame.K_DOWN))
+    assert board.selected_mission_index == 1
+    board.handle_input(key(pygame.K_TAB))
+    assert board.current_tab == "active"
+    board.handle_input(key(pygame.K_TAB))
+    board.handle_input(key(pygame.K_RETURN))
+    assert board.viewing_details
+    board.handle_input(key(pygame.K_ESCAPE))
+    assert not board.viewing_details
+    board.handle_input(key(pygame.K_ESCAPE))
+    assert engine.current_state == GameStates.PLAYING
+
+
+def test_long_mission_text_wraps_inside_the_panel_and_scrolls(engine, board):
+    mission = board.available_missions[0]
+    mission.description = "A very long briefing that keeps going. " * 40
+    pygame.display.set_mode((1024, 640), pygame.RESIZABLE)
+    engine._on_window_resized()
+    board.viewing_details = True
+    engine.render()
+    ui = board._ui
+    lines = board._detail_lines(ui, mission, 900)
+    assert len(lines) > 12
+    assert all(ui.font(role).size(text)[0] <= 900 for text, role, _, _ in lines)
+    start = board.detail_scroll
+    board.handle_input(key(pygame.K_DOWN))
+    board.handle_input(key(pygame.K_DOWN))
+    engine.render()
+    assert board.detail_scroll == start + 2
+    for _ in range(200):
+        board.handle_input(key(pygame.K_DOWN))
+    engine.render()
+    last = board.detail_scroll
+    engine.render()
+    assert board.detail_scroll == last                                         # clamped, not running away
+    board.handle_input(key(pygame.K_PAGEUP))
+    assert board.detail_scroll < last
