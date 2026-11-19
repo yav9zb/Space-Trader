@@ -1394,41 +1394,37 @@ class PlayingState(State):
         screen_pos = station.position - camera_offset
         docking_manager = self.game.docking_manager
         
-        # Draw approach detection zone (light blue, dotted)
+        from pygame import Vector2
+        from ..ui import docking_visuals as dv
+        now = pygame.time.get_ticks() / 1000.0
+        center = (int(screen_pos.x), int(screen_pos.y))
+        state_name = docking_manager.get_docking_state().value
+        is_target = docking_manager.get_target_station() == station
+
+        # Approach zone, only for the station being approached
         approach_radius = station.size + docking_manager.approach_detection_range
-        if docking_manager.get_docking_state().value in ['approaching', 'docking', 'docked']:
-            if docking_manager.get_target_station() == station:
-                pygame.draw.circle(screen, (100, 150, 255), 
-                                 (int(screen_pos.x), int(screen_pos.y)),
-                                 int(approach_radius), 2)
-        
-        # Draw docking zone
+        if state_name in ['approaching', 'docking', 'docked'] and is_target:
+            dv.dashed_ring(screen, center, approach_radius, dv.APPROACH, -now * 15, 10, 14, 1)
+
+        # Docking zone, coloured by whether you can dock right now
         docking_radius = station.size + self.game.ship.size + docking_manager.docking_range_buffer
         distance = (self.game.ship.position - station.position).length()
-        
-        # Color based on docking status
-        if distance <= docking_radius:
-            ship_speed = self.game.ship.velocity.length()
-            if ship_speed <= docking_manager.max_docking_speed:
-                # Green - can dock
-                zone_color = (0, 255, 0)
-                zone_width = 3
-            else:
-                # Yellow - too fast
-                zone_color = (255, 255, 0)
-                zone_width = 2
-        else:
-            # Red - too far
-            zone_color = (255, 100, 100)
-            zone_width = 1
-            
-        # Only draw docking zone if approaching or nearby
-        if (distance <= approach_radius or 
-            docking_manager.get_target_station() == station):
-            pygame.draw.circle(screen, zone_color,
-                             (int(screen_pos.x), int(screen_pos.y)),
-                             int(docking_radius), zone_width)
-        
+        zone_color, _ = dv.zone_status(distance, docking_radius, self.game.ship.velocity.length(),
+                                       docking_manager.max_docking_speed)
+        if distance <= approach_radius or is_target:
+            dv.draw_zone(screen, center, docking_radius, zone_color, now,
+                         emphasis=1.0 if distance <= docking_radius else 0.5)
+
+        # While the docking sequence runs, pull the ship in along a beam
+        if is_target and state_name in ('docking', 'undocking'):
+            duration = max(0.001, docking_manager.docking_duration)
+            progress = min(1.0, docking_manager.docking_timer / duration)
+            port = Vector2(0, -station.size - 10).rotate(station.rotation) + screen_pos
+            ship_screen = self.game.ship.position - camera_offset
+            dv.draw_tractor_beam(screen, port, ship_screen, progress, now, reverse=state_name == 'undocking')
+            dv.draw_progress_arc(screen, center, station.size + 16,
+                                 progress if state_name == 'docking' else 1.0 - progress, dv.CAN_DOCK)
+
         # Draw status text for target station
         if docking_manager.get_target_station() == station:
             font = pygame.font.Font(None, 24)

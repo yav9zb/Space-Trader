@@ -3,7 +3,8 @@
 ## Beta 17
 
 ### Changed
-- **More visual polish.** Asteroids are lit, cratered rocks, with a pulsing green radiation glow on radioactive ones and a hot flickering glow on explosive ones. Black holes have a violet lensing glow, an orange accretion ring, a bright photon ring and a black core. Weapon shots have glows and tails and are colour-coded by who fired them: blue for you, green for patrols, red for everyone else. Missiles have a real exhaust flame. Status bars (HUD, mission progress, enemy and asteroid health) are lit bars with a trough, and a nearly empty bar pulses red.
+- **More visual polish.** Asteroids are lit, cratered rocks, with a pulsing green radiation glow on radioactive ones and a hot flickering glow on explosive ones. Black holes have a violet lensing glow, an orange accretion ring, a bright photon ring and a black core. Weapon shots have glows and tails and are colour-coded by who fired them: blue for you, green for patrols, red for everyone else. Missiles have a real exhaust flame. Status bars (HUD, mission progress, enemy and asteroid health) are lit bars with a trough, and a nearly empty bar pulses red. HUD and menu panels have a soft gradient and bright corner brackets, and screen titles have a shadow and faint glow.
+- **Docking looks the part.** The approach and docking zones are glowing rings with slowly turning dashes, green when you can dock, yellow when you are too fast and red when you are too far. While docking runs, a tractor beam with moving pulses of light pulls the ship in (the other way when undocking) and an arc around the station fills as it completes.
 
 ## Beta 16
 

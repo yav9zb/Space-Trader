@@ -448,3 +448,35 @@ def test_craters_are_drawn_and_depend_only_on_the_asteroid_not_on_chance():
     differing = sum(1 for x in range(100, 200) for y in range(100, 200)
                     if with_craters.get_at((x, y)) != without.get_at((x, y)))
     assert differing > 10
+
+
+# --- panels ---------------------------------------------------------------------------------
+
+def test_a_panel_is_lighter_at_the_top_translucent_and_rounded():
+    panel = gfx.panel_surface(200, 120, (10, 14, 30), 180, 10)
+    top, bottom = panel.get_at((100, 2)), panel.get_at((100, 117))
+    assert sum(top[:3]) > sum(bottom[:3])                                   # a soft gradient
+    assert top.a == bottom.a == 180                                         # same translucency throughout
+    assert panel.get_at((0, 0)).a == 0                                      # rounded corner is clear
+    assert gfx.panel_surface(200, 120, (10, 14, 30), 180, 10) is panel      # cached
+
+
+def test_corner_accents_mark_all_four_corners_and_leave_the_middle_alone():
+    s = screen(200, 120)
+    gfx.draw_corner_accents(s, pygame.Rect(10, 10, 180, 100), (255, 255, 255))
+    for corner in ((10, 10), (189, 10), (10, 109), (189, 109)):
+        assert sum(s.get_at(corner)[:3]) > 600
+    assert s.get_at((100, 60))[:3] == (0, 0, 0)
+    assert s.get_at((100, 10))[:3] == (0, 0, 0)                             # the edges between corners stay bare
+
+
+def test_menu_panels_get_the_gradient_and_corner_brackets():
+    from src.ui.menu_style import draw_panel, ACCENT_BLUE
+
+    s = screen(300, 200)
+    draw_panel(s, pygame.Rect(20, 20, 260, 160))
+    assert sum(s.get_at((150, 25))[:3]) > sum(s.get_at((150, 170))[:3])      # gradient
+    assert sum(s.get_at((20, 20))[:3]) > sum(ACCENT_BLUE)                    # a lightened corner bracket
+
+    tiny = screen(100, 60)
+    draw_panel(tiny, pygame.Rect(5, 5, 50, 30))                              # too small for brackets: no crash

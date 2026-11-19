@@ -219,14 +219,19 @@ class UITheme:
         else:
             pygame.draw.rect(surface, style['color'], rect, style['thickness'], border_radius=self.PANEL_RADIUS)
 
+        # Bright corner brackets give panels an instrument-panel finish
+        if element_type not in (UIElementType.STATUS_BAR, UIElementType.SELECTION_HIGHLIGHT,
+                                UIElementType.INPUT_BOX) and rect.width >= 60 and rect.height >= 40:
+            from . import gfx
+            gfx.draw_corner_accents(surface, rect, gfx.lighten(style['color'], 0.35))
+
     def draw_panel_background(self, surface: pygame.Surface, rect: pygame.Rect,
                             alpha: int = 180):
         """Draw a standard panel background."""
         if alpha < 255 and self.alpha_enabled:
-            panel_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-            pygame.draw.rect(panel_surface, (*self.colors['panel_bg'], alpha),
-                            (0, 0, rect.width, rect.height), border_radius=self.PANEL_RADIUS)
-            surface.blit(panel_surface, rect.topleft)
+            from . import gfx
+            surface.blit(gfx.panel_surface(rect.width, rect.height, self.colors['panel_bg'],
+                                           alpha, self.PANEL_RADIUS), rect.topleft)
         else:
             pygame.draw.rect(surface, self.colors['panel_bg'], rect, border_radius=self.PANEL_RADIUS)
     

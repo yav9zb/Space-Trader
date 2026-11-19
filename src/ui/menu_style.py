@@ -40,6 +40,11 @@ def draw_title(screen, title, subtitle=None, y=70):
     title_font = pygame.font.Font(None, 64)
     title_surface = title_font.render(title, True, TEXT_PRIMARY)
     title_rect = title_surface.get_rect(center=(screen.get_width() // 2, y))
+    # Soft shadow and a faint blue glow keep the title readable over stars
+    shadow = title_font.render(title, True, (0, 0, 12))
+    screen.blit(shadow, title_rect.move(3, 3))
+    from . import gfx
+    gfx.draw_glow(screen, title_rect.center, max(30, title_rect.height), ACCENT_BLUE, 0.12)
     screen.blit(title_surface, title_rect)
 
     pygame.draw.line(
@@ -61,10 +66,11 @@ def draw_title(screen, title, subtitle=None, y=70):
 
 def draw_panel(screen, rect, border_color=ACCENT_BLUE, bg_alpha=190, border_width=2):
     """Rounded, semi-transparent panel with an accent border."""
-    panel_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    pygame.draw.rect(panel_surface, (*PANEL_BG, bg_alpha), panel_surface.get_rect(), border_radius=PANEL_RADIUS)
-    screen.blit(panel_surface, rect.topleft)
+    from . import gfx
+    screen.blit(gfx.panel_surface(rect.width, rect.height, PANEL_BG, bg_alpha, PANEL_RADIUS), rect.topleft)
     pygame.draw.rect(screen, border_color, rect, border_width, border_radius=PANEL_RADIUS)
+    if rect.width >= 60 and rect.height >= 40:
+        gfx.draw_corner_accents(screen, rect, gfx.lighten(border_color, 0.35))
 
 
 def wrap_text(text, font, max_width):

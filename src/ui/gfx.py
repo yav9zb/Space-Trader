@@ -140,6 +140,37 @@ def draw_engine_flame(screen: pygame.Surface, pos, rotation: float, size: float,
 
 _vignettes = {}
 _rings = {}
+_panels = {}
+
+
+def panel_surface(width: int, height: int, background, alpha: int, radius: int) -> pygame.Surface:
+    """A translucent panel with a soft vertical gradient (a little lighter at
+    the top) and rounded corners. Cached by size, so panels cost one blit."""
+    width, height, alpha, radius = max(2, int(width)), max(2, int(height)), int(alpha), int(radius)
+    background = clamp_color(background)
+
+    def build():
+        surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        top = lighten(background, 0.16)
+        for y in range(height):
+            t = min(1.0, y / max(1, height * 0.55))
+            surface.fill((*mix(top, background, t), alpha), (0, y, width, 1))
+        mask = pygame.Surface((width, height), pygame.SRCALPHA)
+        pygame.draw.rect(mask, (255, 255, 255, 255), (0, 0, width, height), border_radius=radius)
+        surface.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        return surface
+
+    return _bounded(_panels, (width, height, background, alpha, radius), build)
+
+
+def draw_corner_accents(screen: pygame.Surface, rect, color, length: int = 10, thickness: int = 2):
+    """Short bright brackets on a panel's four corners."""
+    rect = pygame.Rect(rect)
+    length = max(4, min(length, rect.width // 3, rect.height // 3))
+    x0, y0, x1, y1 = rect.left, rect.top, rect.right - 1, rect.bottom - 1
+    for (cx, cy, dx, dy) in ((x0, y0, 1, 1), (x1, y0, -1, 1), (x0, y1, 1, -1), (x1, y1, -1, -1)):
+        pygame.draw.line(screen, color, (cx, cy), (cx + dx * length, cy), thickness)
+        pygame.draw.line(screen, color, (cx, cy), (cx, cy + dy * length), thickness)
 
 
 def ring_glow(radius: int, width: int, color) -> pygame.Surface:
@@ -217,3 +248,4 @@ def clear_caches():
     _shades.clear()
     _vignettes.clear()
     _rings.clear()
+    _panels.clear()
