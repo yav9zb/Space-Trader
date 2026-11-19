@@ -245,6 +245,10 @@ class GameEngine:
         
         # Update mission system
         self.mission_manager.update(self)
+
+        if self.current_state != GameStates.MAIN_MENU:
+            from src.achievements import achievements
+            achievements.tick(self.delta_time, self)
         
         # Update combat system
         combat_manager.update(self.delta_time, self)
@@ -392,6 +396,9 @@ class GameEngine:
 
         self.story_state.record_event("campaign_completed")
         legacy.record_completion(build_ending(self.story_state.flags).title)
+
+        from src.achievements import achievements
+        achievements.check(self)
         self.change_state(GameStates.VICTORY)
 
     def toggle_fullscreen(self):

@@ -24,13 +24,14 @@ This document tracks what's actually implemented versus genuinely still planned.
 - **Smuggling and market events** - contraband inspections at Guild stations, a pirate-market premium, Smuggling Run missions, and timed regional raids/shortages/embargoes shown as market news. Markets now actually refresh over time.
 - **Shifting borders and Liberation missions** - region control can change permanently (persisted); destroying a pirate stronghold frees its region. Player outposts are deferred until base building is integrated and saved.
 - **The full campaign** - four acts and 16 story missions across six station contacts, three paths (expose, join, stay independent), six endings, and New Game+ legacy perks. Starting a new game now gives a fresh ship in a clean universe.
+- **Achievements** - 18 achievements derived from saved game state, persisted across games, shown in the Logbook.
 - **Left-handed controls fix** - the default scheme shared keys between dock/trading and undock/upgrades, so a docked player could not undock; station services moved to Z/X/C/V.
 
 ## Planned / Not Yet Implemented
 
 ### Near-term
 - **Auto-Dock / Docking Assist** - manual docking is fully implemented; automated docking and configurable docking sensitivity are not.
-- **Steam Achievements / Cloud Saves** - optional Steamworks features, not implemented; would map onto the existing mission-completion events and save system respectively.
+- **Steam Achievements / Cloud Saves** - in-game achievements now exist and are passed to a Steam hook, but that hook is a stub: it has to be wired to the real Steamworks SDK (ISteamUserStats), which this codebase has no access to. Cloud saves are not implemented.
 
 ### Longer-term / Concept
 - **Advanced AI** - formation flying, tactical retreat, adaptive behavior, faction-aware coordination.

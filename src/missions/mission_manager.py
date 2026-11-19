@@ -580,6 +580,8 @@ class MissionManager:
             mission_id=mission.id,
         )
 
+        story_state.bump(f"completed_type:{mission.mission_type.value}")
+
         story_id = getattr(mission, "story_id", None)
         if story_id:
             story_state.finish_story_mission(story_id, completed=True)

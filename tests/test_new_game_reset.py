@@ -24,6 +24,7 @@ def isolated_legacy(tmp_path, monkeypatch):
     monkeypatch.setattr(legacy, "pending_perk", None)
     monkeypatch.setattr(legacy, "completions", 0)
     monkeypatch.setattr(legacy, "endings", [])
+    monkeypatch.setattr(legacy, "achievements", [])
 
 
 def test_a_new_game_does_not_keep_the_old_ships_wealth_or_upgrades(engine):
@@ -63,8 +64,10 @@ def test_the_ending_starts_victory_and_the_perk_applies_to_the_next_game(engine)
     engine.create_new_universe()
     engine.story_state.set_flag("path_expose")
     engine.story_state.set_flag("signal_open")
+    engine.story_state.set_flag("campaign_complete")
 
     engine.start_victory()
+    assert "signal" in legacy.achievements        # unlocked at once, not on the next tick
 
     assert engine.current_state == GameStates.VICTORY
     assert engine.story_state.count_events("campaign_completed") == 1

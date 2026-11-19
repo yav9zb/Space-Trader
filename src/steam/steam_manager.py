@@ -78,6 +78,14 @@ class SteamManager:
             print(f"Steamworks unavailable: {e}")
             self._lib = None
 
+    def unlock_achievement(self, achievement_id: str) -> bool:
+        """Report an achievement to Steam. Like the rest of this module this
+        is untested against the real SDK: with Steam absent it does nothing,
+        and the call that sets the achievement (ISteamUserStats) still has to
+        be wired up against the real SDK headers when it is added. Returns
+        True only if the unlock was actually sent."""
+        return False
+
     def shutdown(self):
         """Shut down the Steamworks API. Safe to call even if never initialized."""
         if self.enabled and self._lib:

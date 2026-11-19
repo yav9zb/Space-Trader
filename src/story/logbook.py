@@ -16,7 +16,7 @@ from .lore import (
 )
 from .npcs import NPCS, is_available
 
-TABS = ["Story", "Contacts", "Factions"]
+TABS = ["Story", "Contacts", "Factions", "Achievements"]
 
 Line = Tuple[str, str]
 
@@ -105,9 +105,26 @@ def _factions_page(game) -> List[Line]:
     return lines
 
 
+def _achievements_page(game) -> List[Line]:
+    from ..achievements import ACHIEVEMENTS, achievements
+
+    lines: List[Line] = [
+        ("body", f"{achievements.unlocked_count()} of {len(ACHIEVEMENTS)} unlocked"),
+        ("gap", ""),
+    ]
+    for achievement in ACHIEVEMENTS:
+        if achievements.is_unlocked(achievement.id):
+            lines.append(("heading", f"[x] {achievement.name}"))
+        else:
+            lines.append(("body", f"[ ] {achievement.name}"))
+        lines.append(("dim", achievement.description))
+    return lines
+
+
 def build_pages(game) -> Dict[str, List[Line]]:
     return {
         "Story": _story_page(game),
         "Contacts": _contacts_page(game),
         "Factions": _factions_page(game),
+        "Achievements": _achievements_page(game),
     }

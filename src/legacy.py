@@ -1,4 +1,5 @@
-"""New Game+: what carries over between playthroughs. Finishing the campaign
+"""What carries over between playthroughs: New Game+ perks and unlocked
+achievements. Finishing the campaign
 lets the player pick one legacy perk that is applied, once, to the next new
 game. It lives in its own small file in the user data directory so it
 survives new games and is never touched by save files.
@@ -31,6 +32,7 @@ class Legacy:
         self.completions = 0
         self.endings = []
         self.pending_perk: Optional[str] = None
+        self.achievements = []
         self.loaded = False
 
     def _file(self) -> str:
@@ -40,6 +42,7 @@ class Legacy:
 
     def load(self):
         self.completions, self.endings, self.pending_perk = 0, [], None
+        self.achievements = []
         try:
             with open(self._file(), "r") as handle:
                 data = json.load(handle)
@@ -47,6 +50,7 @@ class Legacy:
             self.endings = list(data.get("endings", []))
             perk = data.get("pending_perk")
             self.pending_perk = perk if perk in PERKS else None
+            self.achievements = [a for a in data.get("achievements", []) if isinstance(a, str)]
         except FileNotFoundError:
             pass
         except (OSError, ValueError, TypeError):
@@ -58,6 +62,7 @@ class Legacy:
             "completions": self.completions,
             "endings": self.endings,
             "pending_perk": self.pending_perk,
+            "achievements": self.achievements,
         }
         try:
             os.makedirs(os.path.dirname(os.path.abspath(self._file())), exist_ok=True)
@@ -78,6 +83,15 @@ class Legacy:
         if ending_title not in self.endings:
             self.endings.append(ending_title)
         self.save()
+
+    def unlock_achievement(self, achievement_id: str) -> bool:
+        """Remember an unlocked achievement. True if it was new."""
+        self._ensure_loaded()
+        if achievement_id in self.achievements:
+            return False
+        self.achievements.append(achievement_id)
+        self.save()
+        return True
 
     def choose_perk(self, perk_id: str):
         if perk_id not in PERKS:

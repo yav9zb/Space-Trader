@@ -12,6 +12,7 @@
 - **New Game+.** After the ending you can start a new game with one legacy perk: Veteran's Name (15 reputation), Old Money (20% more credits) or Friends in Every Port (+10 standing with every faction). The perk is kept in its own file, applies once, and survives restarts.
 - **New mission steps for the story:** destroy a named fleet at a station or in a sector, escort a trader past an ambush, and reach a far sector. Fleets and escorted traders come back as needed after loading a save.
 - The Logbook shows what to do next when an act's missions are all done, and lists every ledger entry you uncover.
+- **Achievements.** 18 achievements, from your first pirate kill to seeing all six endings, are tracked across games and shown in a new Logbook page. Each unlock is announced on screen and passed to Steam when Steam is running (the Steam side is untested without the SDK).
 
 ### Fixed
 - **Starting a new game kept your old ship.** Credits, cargo and upgrades carried over from the previous game, and ships from the old universe stayed in the world. A new game now starts with a fresh ship in a clean universe.

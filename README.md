@@ -82,6 +82,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Multiplayer**: Cooperative and competitive multiplayer modes
 - **Story Campaign**: A prologue and four acts (the ledger, the Guild's secret, a border war, and the signal) across 16 missions and six contacts, with six endings depending on your choices
 - **New Game+**: Finish the campaign and carry one legacy perk into your next game
+- **Achievements**: 18 achievements tracked across games and listed in the Logbook
 - **Visual Effects**: Enhanced explosions, particle systems, and environmental effects
 
 ## Controls
@@ -195,6 +196,7 @@ Produces a standalone build in `dist/` (`Space Trader.app` on macOS, an exe + fo
 - **Contacts** (`src/story/npcs.py`, `src/story/director.py`): Named station contacts and where they are placed
 - **Campaign content** (`src/story/chapters_acts.py`, `src/story/dialogue_acts.py`, `src/story/lore.py`): Acts 1-4 as data
 - **Endings and New Game+** (`src/story/endings.py`, `src/states/victory_state.py`, `src/legacy.py`): The ending screen and legacy perks
+- **Achievements** (`src/achievements.py`): Conditions over saved story state; unlocks persist in `legacy.json`
 - **Logbook** (`src/story/logbook.py`): Content for the Logbook screen
 
 ### Ship Systems
