@@ -273,6 +273,11 @@ class SaveSystem:
         # Load game state
         self._load_game_state_data(save_data.get("game_state", {}), game_engine)
 
+        # A story mission listed as active with no mission behind it (an older
+        # save made after dying) could never be offered again
+        from src.story.story_missions import reconcile_active_missions
+        reconcile_active_missions(game_engine)
+
         # Contacts for chapters reached but not yet placed (e.g. an older save)
         from src.story.director import ensure_npcs_placed
         ensure_npcs_placed(game_engine)

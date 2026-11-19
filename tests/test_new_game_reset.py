@@ -156,3 +156,76 @@ def test_loading_an_old_prologue_save_puts_the_player_into_act_one_with_contacts
     assert engine.story_state.chapter == "act_1"
     for npc in ("rourke", "voss", "kestrel"):
         assert engine.story_state.npc_stations.get(npc), f"{npc} was not placed after loading"
+
+
+def test_dying_keeps_active_story_missions_but_still_resets_ordinary_ones(engine):
+    """Respawning wipes credits, upgrades and ordinary missions. Story
+    missions are campaign progress: clearing them while StoryState still
+    lists them as active would leave the contact unable to offer them again."""
+    from src.missions.mission_types import Mission, MissionStatus
+    from src.story import director
+    from src.story.story_missions import start_story_mission
+    from src.systems.respawn_system import respawn_system
+
+    engine.create_new_universe()
+    engine.story_state.chapter = "act_1"
+    director.ensure_npcs_placed(engine)
+    assert start_story_mission("act1_2", engine)
+    ordinary = Mission()
+    ordinary.status = MissionStatus.IN_PROGRESS
+    engine.mission_manager.active_missions.append(ordinary)
+    engine.ship.credits = 90_000
+
+    respawn_system._reset_ship_to_safe_state(engine)
+
+    assert engine.ship.credits == 1000                               # the usual penalty still applies
+    assert ordinary not in engine.mission_manager.active_missions
+    story_ids = [getattr(m, "story_id", None) for m in engine.mission_manager.active_missions]
+    assert story_ids == ["act1_2"]
+    assert engine.story_state.active_story_missions == ["act1_2"]    # and the two stay in agreement
+
+
+def test_a_story_mission_can_still_be_finished_after_dying(engine):
+    from src.story import director
+    from src.story.story_missions import start_story_mission
+    from src.systems.respawn_system import respawn_system
+
+    engine.create_new_universe()
+    engine.story_state.chapter = "act_1"
+    director.ensure_npcs_placed(engine)
+    start_story_mission("act1_2", engine)
+    mission = next(m for m in engine.mission_manager.active_missions if m.story_id == "act1_2")
+
+    respawn_system._reset_ship_to_safe_state(engine)
+
+    engine.story_state.bump(f"docked_at:{mission.resolved['a']}")
+    engine.mission_manager.update(engine)
+    assert mission.stage_index == 1                                  # still progressing
+
+
+def test_loading_a_save_stuck_by_the_old_death_bug_lets_the_contact_offer_the_mission_again(engine, tmp_path):
+    """Saves made after dying mid-mission list the story mission as active with
+    no mission behind it."""
+    import json
+    from src.save_system import SaveSystem
+    from src.story import director
+    from src.story.dialogue import DialogueSession
+    from src.story.dialogue_data import NODES
+
+    engine.create_new_universe()
+    engine.story_state.chapter = "act_1"
+    director.ensure_npcs_placed(engine)
+    system = SaveSystem(str(tmp_path))
+    assert system.save_game(engine, "stuck")
+
+    path = tmp_path / "stuck.json"
+    data = json.loads(path.read_text())
+    data["story"]["active_story_missions"] = ["act1_2"]      # listed, but missions are empty
+    data["missions"]["active_missions"] = []
+    path.write_text(json.dumps(data))
+
+    assert system.load_game("stuck", engine)
+
+    assert engine.story_state.active_story_missions == []
+    offered = [c.text for c in DialogueSession(NODES, "voss_intro", engine).visible_choices()]
+    assert "What do you want from me?" in offered              # the offer is back

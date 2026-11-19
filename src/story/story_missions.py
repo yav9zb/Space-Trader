@@ -268,3 +268,16 @@ def start_story_mission(story_id: str, game_engine) -> bool:
     story.active_story_missions.append(story_id)
     story.record_event("story_mission_started", mission_id=story_id)
     return True
+
+
+def reconcile_active_missions(game_engine) -> list:
+    """Drop story missions StoryState calls active that are not actually in the
+    player's mission list. Respawning used to clear that list without telling
+    StoryState, which left such a mission impossible to offer again; saves made
+    in that state are repaired on load. Returns the ids that were dropped."""
+    story = game_engine.story_state
+    present = {getattr(m, "story_id", None) for m in game_engine.mission_manager.active_missions}
+    stuck = [mission_id for mission_id in story.active_story_missions if mission_id not in present]
+    for mission_id in stuck:
+        story.active_story_missions.remove(mission_id)
+    return stuck

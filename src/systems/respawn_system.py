@@ -125,8 +125,14 @@ class RespawnSystem:
             from ..missions.mission_manager import mission_manager
         except ImportError:
             from missions.mission_manager import mission_manager
+        # Story missions are campaign progress, not part of the penalty: they
+        # stay active (StoryState still lists them, so clearing them here would
+        # leave their contact unable to offer them again)
+        story_missions = [m for m in mission_manager.active_missions
+                          if getattr(m, "story_id", None)]
         mission_manager.available_missions.clear()
         mission_manager.active_missions.clear()
+        mission_manager.active_missions.extend(story_missions)
         mission_manager.completed_missions.clear()
         mission_manager.failed_missions.clear()
         mission_manager.last_generation_time = 0
@@ -229,7 +235,7 @@ class RespawnSystem:
             "• All upgrades removed", 
             "• Cargo lost",
             "• Fuel and ammo restored",
-            "• Missions reset"
+            "• Missions reset (story missions are kept)"
         ]
         
         y_offset = height // 2 + 60
