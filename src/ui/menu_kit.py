@@ -157,6 +157,42 @@ class Ui:
         draw_panel(screen, pygame.Rect(rect), border_color=border, bg_alpha=alpha,
                    border_width=max(1, self.px(2)), radius=self.px(10))
 
+    def info_row(self, screen, y: int, left: str, right: str = "", left_color=ACCENT_GOLD,
+                 right_color=ACCENT_GOLD, widest_units: int = 1400) -> int:
+        """A line with text at the left and right edges of the content. Returns its bottom y."""
+        width = self.content_width(widest_units)
+        x = (self.width - width) // 2
+        half = width // 2
+        rect = self.text(screen, left, "body", left_color, max_width=half, topleft=(x, y))
+        if right:
+            other = self.text(screen, right, "body", right_color, max_width=half - self.px(20), topright=(x + width, y))
+            return max(rect.bottom, other.bottom)
+        return rect.bottom
+
+    def split_panels(self, screen, top: int, bottom: int, titles: Sequence[str], active: Optional[int] = None,
+                     widest_units: int = 1400, weights=(1, 1)):
+        """Two side-by-side panels filling top..bottom, each with a heading.
+        `active` (0 or 1) gets the bright border. Returns [(panel, inner)] where
+        inner is the area below the heading."""
+        width = self.content_width(widest_units)
+        left = (self.width - width) // 2
+        gap = self.px(20)
+        usable = width - gap
+        first = round(usable * weights[0] / sum(weights))
+        columns = [(left, first), (left + first + gap, usable - first)]
+        height = max(self.px(80), bottom - top)
+        result = []
+        for index, (x, w) in enumerate(columns):
+            panel = pygame.Rect(x, top, w, height)
+            lit = active is None or active == index
+            self.panel(screen, panel, border=ACCENT_BLUE if lit else (70, 80, 100))
+            heading = self.text(screen, titles[index], "heading", TEXT_PRIMARY if lit else TEXT_DIM,
+                                max_width=w - self.px(32), topleft=(x + self.px(16), top + self.px(10)))
+            inner = pygame.Rect(x + self.px(14), heading.bottom + self.px(8), w - self.px(28),
+                                panel.bottom - self.px(12) - (heading.bottom + self.px(8)))
+            result.append((panel, inner))
+        return result
+
     def message(self, screen, text: str, color=ACCENT_GOLD):
         """A short notice boxed in the middle of the screen."""
         font = self.font("heading")
@@ -362,14 +398,16 @@ class RowList:
             index = self.offset + slot
             self.rects[index] = pygame.Rect(self.area.left, self.area.top + slot * (row + gap), self.area.width, row)
 
-    def draw_chrome(self, ui: Ui, screen, hovered: Optional[int] = None, fill_selected: bool = True):
+    def draw_chrome(self, ui: Ui, screen, hovered: Optional[int] = None, fill_selected: bool = True,
+                    accent=ACCENT_BLUE):
         """Highlight under the selected (and hovered) rows, and scroll arrows."""
         for index, rect in self.rects.items():
             if index == self.selected and fill_selected:
                 fill = pygame.Surface(rect.size, pygame.SRCALPHA)
-                pygame.draw.rect(fill, (60, 70, 110, 190), fill.get_rect(), border_radius=ui.px(7))
+                pygame.draw.rect(fill, (*gfx.mix((20, 24, 40), accent, 0.28), 200), fill.get_rect(),
+                                 border_radius=ui.px(7))
                 screen.blit(fill, rect.topleft)
-                pygame.draw.rect(screen, ACCENT_BLUE, rect, max(1, ui.px(2)), border_radius=ui.px(7))
+                pygame.draw.rect(screen, accent, rect, max(1, ui.px(2)), border_radius=ui.px(7))
             elif index == hovered:
                 fill = pygame.Surface(rect.size, pygame.SRCALPHA)
                 pygame.draw.rect(fill, (80, 160, 255, 22), fill.get_rect(), border_radius=ui.px(7))
@@ -432,6 +470,63 @@ class RowList:
         elif event.type == pygame.MOUSEWHEEL:
             self.selected = max(0, min(self.count - 1, self.selected - event.y))
             self.offset = scroll_window(self.count, self.selected, self.rows_visible, self.offset)
+        return None
+
+
+class ButtonBar:
+    """A row of buttons (Buy, Sell, Leave) for the actions a screen also binds
+    to keys. Click one to activate it."""
+
+    def __init__(self, labels: Sequence[str]):
+        self.labels = list(labels)
+        self.rects: List[pygame.Rect] = []
+        self.hover: Optional[int] = None
+        self.enabled = [True] * len(self.labels)
+
+    def layout(self, ui: Ui, area: pygame.Rect, height_units: int = 40, max_width_units: int = 1400):
+        area = pygame.Rect(area)
+        font = ui.font("small")
+        gap = ui.px(12)
+        widths = [font.size(label)[0] + ui.px(44) for label in self.labels]
+        total = sum(widths) + gap * (len(widths) - 1)
+        if total > area.width:                                   # squeeze to fit
+            factor = (area.width - gap * (len(widths) - 1)) / max(1, sum(widths))
+            widths = [int(w * factor) for w in widths]
+            total = sum(widths) + gap * (len(widths) - 1)
+        height = min(ui.px(height_units), area.height)
+        x = area.centerx - total // 2
+        y = area.centery - height // 2
+        self.rects = []
+        for width in widths:
+            self.rects.append(pygame.Rect(x, y, width, height))
+            x += width + gap
+
+    def draw(self, ui: Ui, screen):
+        font = ui.font("small")
+        for index, (label, rect) in enumerate(zip(self.labels, self.rects)):
+            enabled = self.enabled[index]
+            hot = enabled and index == self.hover
+            fill = pygame.Surface(rect.size, pygame.SRCALPHA)
+            pygame.draw.rect(fill, (60, 90, 150, 200) if hot else (20, 26, 46, 200), fill.get_rect(),
+                             border_radius=ui.px(8))
+            screen.blit(fill, rect.topleft)
+            pygame.draw.rect(screen, ACCENT_BLUE if enabled else (70, 80, 100), rect, max(1, ui.px(2)),
+                             border_radius=ui.px(8))
+            color = TEXT_PRIMARY if enabled else (95, 105, 125)
+            text = font.render(fit_text(label, font, rect.width - ui.px(16)), True, color)
+            screen.blit(text, text.get_rect(center=rect.center))
+
+    def handle(self, event, ui: Ui) -> Optional[int]:
+        """Returns the index of a clicked, enabled button."""
+        if event.type == pygame.MOUSEMOTION:
+            point = ui.to_px(event.pos)
+            self.hover = next((i for i, r in enumerate(self.rects) if r.collidepoint(point)), None)
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            point = ui.to_px(event.pos)
+            for index, rect in enumerate(self.rects):
+                if rect.collidepoint(point) and self.enabled[index]:
+                    MenuList._sound("ui_confirm", True)
+                    return index
         return None
 
 

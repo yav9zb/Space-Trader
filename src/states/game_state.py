@@ -1659,8 +1659,13 @@ class TradingState(State):
         # Get available commodities
         self.available_commodities = self.market.get_available_commodities() if self.market else []
 
+        from ..ui.menu_kit import ButtonBar, RowList, Ui, BASE_SIZE
         from ..ui.menu_style import MenuBackground
         self.background = MenuBackground()
+        self.market_list = RowList()
+        self.cargo_list = RowList()
+        self.buttons = ButtonBar(["Buy  (B)", "Sell  (S)", "Switch  (TAB)", "Leave  (ESC)"])
+        self._ui = Ui(BASE_SIZE)
         
     def update(self, delta_time):
         # Update message timer
@@ -1670,180 +1675,121 @@ class TradingState(State):
                 self.message = ""
         
     def render(self, screen):
-        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+        from ..ui.menu_kit import ui_for
+        from ..ui.menu_style import ACCENT_GOLD, TEXT_DIM
 
+        ui = self._ui = ui_for(screen, self.game)
         self.background.draw(screen)
 
-        # Fonts
-        header_font = pygame.font.Font(None, 32)
-        text_font = pygame.font.Font(None, 24)
-        small_font = pygame.font.Font(None, 20)
-
-        # Screen dimensions
-        width, height = screen.get_size()
-
-        # Title
         station_name = self.station.name if self.station else "Unknown Station"
         station_type = self.station.station_type.value if self.station else "Unknown"
-        title_bottom = draw_title(screen, "TRADING", subtitle=f"{station_name} - {station_type}", y=50)
+        top = ui.header(screen, "TRADING", subtitle=f"{station_name} - {station_type}")
+        top = ui.info_row(screen, top, f"Credits: {self.ship.credits:,}",
+                          f"Cargo: {self.ship.cargo_hold.get_cargo_summary()}")
 
-        # Credits and cargo info
-        credits_text = f"Credits: {self.ship.credits:,}"
-        cargo_summary = self.ship.cargo_hold.get_cargo_summary()
-        cargo_text = f"Cargo: {cargo_summary}"
+        # Stacked from the bottom: key hints, buttons, a message line, then the panels
+        footer_top = ui.footer(screen, "ARROWS navigate  |  TAB switch market / cargo  |  B buy  |  S sell  |  ESC leave")
+        buttons = pygame.Rect(0, footer_top - ui.px(40), ui.width, ui.px(40))
+        message = pygame.Rect(0, buttons.top - ui.px(30), ui.width, ui.px(26))
+        panels_bottom = message.top - ui.px(4)
 
-        credits_surface = text_font.render(credits_text, True, ACCENT_GOLD)
-        cargo_surface = text_font.render(cargo_text, True, ACCENT_GOLD)
+        (market_panel, market_inner), (cargo_panel, cargo_inner) = ui.split_panels(
+            screen, top + ui.px(10), panels_bottom, ["STATION MARKET", "YOUR CARGO"],
+            active=1 if self.viewing_cargo else 0)
 
-        info_y = title_bottom + 14
-        screen.blit(credits_surface, (20, info_y))
-        screen.blit(cargo_surface, (width - cargo_surface.get_width() - 20, info_y))
+        cargo_items = self.ship.cargo_hold.get_cargo_items()
+        for lst, count, inner, active in ((self.market_list, len(self.available_commodities) if self.market else 0,
+                                           market_inner, not self.viewing_cargo),
+                                          (self.cargo_list, len(cargo_items), cargo_inner, self.viewing_cargo)):
+            lst.set_count(count)
+            lst.selected = min(self.selected_commodity_index, max(0, count - 1)) if active else 0
+            room = pygame.Rect(inner)
+            room.height -= ui.px(16)                                  # room for the "1-7 of 9" counter
+            lst.layout(ui, room, row_units=54)
 
-        # Split screen layout
-        left_width = width // 2 - 30
-        right_width = width // 2 - 30
-        content_y = info_y + 34
+        self.market_list.draw_chrome(ui, screen, fill_selected=not self.viewing_cargo, accent=(80, 140, 255))
+        self.cargo_list.draw_chrome(ui, screen, fill_selected=self.viewing_cargo, accent=(90, 200, 120))
+        self._draw_market_rows(ui, screen)
+        self._draw_cargo_rows(ui, screen, cargo_items)
+        for lst, panel in ((self.market_list, market_panel), (self.cargo_list, cargo_panel)):
+            counter = lst.counter()
+            if counter:
+                ui.text(screen, counter, "tiny", TEXT_DIM, bottomright=(panel.right - ui.px(16), panel.bottom - ui.px(8)))
 
-        panel_bottom = height - 150  # leave room for the controls footer below
-        market_panel = pygame.Rect(20, content_y, left_width, panel_bottom - content_y)
-        cargo_panel = pygame.Rect(width // 2 + 10, content_y, right_width, panel_bottom - content_y)
-        draw_panel(screen, market_panel, border_color=ACCENT_BLUE if not self.viewing_cargo else (70, 80, 100))
-        draw_panel(screen, cargo_panel, border_color=ACCENT_BLUE if self.viewing_cargo else (70, 80, 100))
-
-        # Left panel - Station Market
-        market_header = header_font.render("STATION MARKET", True, TEXT_PRIMARY)
-        screen.blit(market_header, (market_panel.x + 16, content_y + 12))
-
-        # Right panel - Ship Cargo
-        cargo_header = header_font.render("YOUR CARGO", True, TEXT_PRIMARY)
-        screen.blit(cargo_header, (cargo_panel.x + 16, content_y + 12))
-
-        # Market commodities list - clip to the space inside its panel
-        list_top = content_y + 48
-        list_height = max(0, panel_bottom - 16 - list_top)
-        self._render_market_list(screen, market_panel.x + 16, list_top, left_width - 32, list_height, text_font, small_font)
-
-        # Ship cargo list
-        self._render_cargo_list(screen, cargo_panel.x + 16, list_top, right_width - 32, list_height, text_font, small_font)
-
-        # Controls and instructions
-        self._render_controls(screen, height, small_font)
-
-        # Transaction message
         if self.message:
-            msg_surface = text_font.render(self.message, True, ACCENT_GOLD)
-            msg_rect = msg_surface.get_rect(centerx=width//2, y=height - 80)
-            screen.blit(msg_surface, msg_rect)
-    
-    def _get_scroll_window(self, total, selected_index, max_visible):
-        """Get (start, end) indices for a scroll window centered on the selection."""
-        if total <= max_visible:
-            return 0, total
-        start = min(max(0, selected_index - max_visible // 2), total - max_visible)
-        return start, start + max_visible
+            ui.text(screen, self.message, "body", ACCENT_GOLD, max_width=ui.width - 2 * ui.margin(),
+                    center=message.center)
+        self.buttons.enabled = [not self.viewing_cargo, self.viewing_cargo, True, True]
+        self.buttons.layout(ui, buttons)
+        self.buttons.draw(ui, screen)
 
-    def _render_market_list(self, screen, x, y, width, height_limit, text_font, small_font):
-        """Render the station's market commodity list, scrolled to keep the selection visible."""
+    def _draw_market_rows(self, ui, screen):
+        from ..ui.menu_style import ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
         if not self.market:
             return
-
-        line_height = 40
-        max_visible = max(1, height_limit // line_height)
-        total = len(self.available_commodities)
-        start, end = self._get_scroll_window(total, self.selected_commodity_index, max_visible)
-
-        current_y = y
-        for i in range(start, end):
-            commodity = self.available_commodities[i]
-
-            # Highlight selected item if viewing market
-            if not self.viewing_cargo and i == self.selected_commodity_index:
-                pygame.draw.rect(screen, (50, 50, 100), (x-5, current_y-5, width, 30))
-
-            # Commodity name
-            name_surface = text_font.render(commodity.name, True, (255, 255, 255))
-            screen.blit(name_surface, (x, current_y))
-
-            # Prices
+        for index, rect in self.market_list.rects.items():
+            commodity = self.available_commodities[index]
+            selected = not self.viewing_cargo and index == self.selected_commodity_index
+            pad = ui.px(14)
+            ui.text(screen, commodity.name, 21, ACCENT_GOLD if selected else TEXT_PRIMARY, max_width=rect.width - 2 * pad,
+                    topleft=(rect.x + pad, rect.y + ui.px(6)))
             buy_price = self.market.get_buy_price(commodity.id)
             sell_price = self.market.get_sell_price(commodity.id)
+            ui.text(screen, f"Buy: {buy_price}   Sell: {sell_price}", "small", (200, 205, 215) if selected else TEXT_DIM,
+                    max_width=rect.width - 2 * pad, bottomleft=(rect.x + pad, rect.bottom - ui.px(6)))
 
-            price_text = f"Buy: {buy_price}  Sell: {sell_price}"
-            price_surface = small_font.render(price_text, True, (200, 200, 200))
-            screen.blit(price_surface, (x + 20, current_y + 18))
-
-            current_y += line_height
-
-        if total > max_visible:
-            scroll_text = f"{start + 1}-{end} of {total}"
-            scroll_surface = small_font.render(scroll_text, True, (150, 150, 150))
-            screen.blit(scroll_surface, (x, y + max_visible * line_height))
-
-    def _render_cargo_list(self, screen, x, y, width, height_limit, text_font, small_font):
-        """Render the ship's cargo list, scrolled to keep the selection visible."""
-        cargo_items = self.ship.cargo_hold.get_cargo_items()
-
+    def _draw_cargo_rows(self, ui, screen, cargo_items):
+        from ..ui.menu_style import ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
         if not cargo_items:
-            empty_surface = text_font.render("Cargo hold empty", True, (150, 150, 150))
-            screen.blit(empty_surface, (x, y))
+            rect = self.cargo_list.area
+            ui.text(screen, "Cargo hold empty", "body", TEXT_DIM, topleft=(rect.x + ui.px(4), rect.y + ui.px(6)))
             return
-
-        line_height = 40
-        max_visible = max(1, height_limit // line_height)
-        total = len(cargo_items)
-        start, end = self._get_scroll_window(total, self.selected_commodity_index, max_visible)
-
-        current_y = y
-        for i in range(start, end):
-            commodity, quantity = cargo_items[i]
-
-            # Highlight selected item if viewing cargo
-            if self.viewing_cargo and i == self.selected_commodity_index:
-                pygame.draw.rect(screen, (50, 100, 50), (x-5, current_y-5, width, 30))
-
-            # Commodity name and quantity
-            name_text = f"{commodity.name}"
-            quantity_text = f"x{quantity}"
-
-            name_surface = text_font.render(name_text, True, (255, 255, 255))
-            quantity_surface = text_font.render(quantity_text, True, (200, 200, 200))
-
-            screen.blit(name_surface, (x, current_y))
-            screen.blit(quantity_surface, (x + width - quantity_surface.get_width(), current_y))
-
-            # Value
+        for index, rect in self.cargo_list.rects.items():
+            commodity, quantity = cargo_items[index]
+            selected = self.viewing_cargo and index == self.selected_commodity_index
+            pad = ui.px(14)
+            quantity_rect = ui.text(screen, f"x{quantity}", 21, (200, 205, 215),
+                                    topright=(rect.right - pad, rect.y + ui.px(6)))
+            ui.text(screen, commodity.name, 21, ACCENT_GOLD if selected else TEXT_PRIMARY,
+                    max_width=rect.width - 3 * pad - quantity_rect.width, topleft=(rect.x + pad, rect.y + ui.px(6)))
             if self.market:
                 sell_price = self.market.get_sell_price(commodity.id)
                 if sell_price:
-                    value = sell_price * quantity
-                    value_text = f"Value: {value}"
-                    value_surface = small_font.render(value_text, True, (200, 200, 200))
-                    screen.blit(value_surface, (x + 20, current_y + 18))
+                    ui.text(screen, f"Value: {sell_price * quantity}", "small", (200, 205, 215) if selected else TEXT_DIM,
+                            bottomleft=(rect.x + pad, rect.bottom - ui.px(6)))
 
-            current_y += line_height
+    def _handle_mouse(self, event):
+        """Buttons, picking a row in either panel, and the wheel."""
+        if event.type == pygame.MOUSEWHEEL:
+            self._move_selection(-1 if event.y > 0 else 1)
+            return
+        pressed = self.buttons.handle(event, self._ui)
+        if pressed is not None:
+            (self._attempt_buy, self._attempt_sell, self._switch_panel,
+             lambda: self.game.change_state(GameStates.PLAYING))[pressed]()
+            return
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            index = self.market_list.index_at(self._ui, event.pos)
+            if index is not None:
+                self._select(index, cargo=False)
+                return
+            index = self.cargo_list.index_at(self._ui, event.pos)
+            if index is not None:
+                self._select(index, cargo=True)
 
-        if total > max_visible:
-            scroll_text = f"{start + 1}-{end} of {total}"
-            scroll_surface = small_font.render(scroll_text, True, (150, 150, 150))
-            screen.blit(scroll_surface, (x, y + max_visible * line_height))
-    
-    def _render_controls(self, screen, height, font):
-        """Render control instructions."""
-        controls = [
-            "ARROW KEYS: Navigate",
-            "TAB: Switch between Market/Cargo",
-            "B: Buy selected commodity",
-            "S: Sell selected commodity", 
-            "ESC: Exit trading"
-        ]
-        
-        current_y = height - 140
-        for control in controls:
-            surface = font.render(control, True, (180, 180, 180))
-            screen.blit(surface, (20, current_y))
-            current_y += 20
-        
+    def _select(self, index, cargo):
+        if cargo != self.viewing_cargo:
+            self.viewing_cargo = cargo
+        self.selected_commodity_index = index
+
+    def _switch_panel(self):
+        self.viewing_cargo = not self.viewing_cargo
+        self.selected_commodity_index = 0
+
     def handle_input(self, event):
+        if event.type in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN, pygame.MOUSEWHEEL):
+            self._handle_mouse(event)
+            return
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state(GameStates.PLAYING)
@@ -2022,8 +1968,13 @@ class UpgradeState(State):
         
         self.categories = list(self.upgrades_by_category.keys())
 
+        from ..ui.menu_kit import ButtonBar, RowList, Ui, BASE_SIZE
         from ..ui.menu_style import MenuBackground
         self.background = MenuBackground()
+        self.list = RowList()
+        self.category_buttons = ButtonBar(["Open  (ENTER)", "Leave  (ESC)"])
+        self.upgrade_buttons = ButtonBar(["Buy  (ENTER)", "Back  (BACKSPACE)", "Leave  (ESC)"])
+        self._ui = Ui(BASE_SIZE)
 
     def _get_current_faction_standing(self) -> int:
         """Standing with whichever faction controls this station's sector,
@@ -2042,212 +1993,147 @@ class UpgradeState(State):
                 self.message = ""
 
     def render(self, screen):
-        from ..ui.menu_style import draw_title, draw_panel, ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+        from ..ui.menu_kit import ui_for
+        from ..ui.menu_style import ACCENT_GOLD, TEXT_DIM
 
+        ui = self._ui = ui_for(screen, self.game)
         self.background.draw(screen)
 
-        # Fonts
-        header_font = pygame.font.Font(None, 32)
-        text_font = pygame.font.Font(None, 24)
-        small_font = pygame.font.Font(None, 20)
-
-        # Screen dimensions
-        width, height = screen.get_size()
-
-        # Title
         station_name = self.station.name if self.station else "Unknown Station"
         station_type = self.station.station_type.value if self.station else "Unknown"
-        title_bottom = draw_title(screen, "SHIP UPGRADES", subtitle=f"{station_name} - {station_type}", y=50)
-
-        # Credits and ship info
+        top = ui.header(screen, "SHIP UPGRADES", subtitle=f"{station_name} - {station_type}")
         ship_info = self.ship.get_ship_info()
-        credits_text = f"Credits: {ship_info['credits']:,}"
-        ship_text = f"Ship: Modified Trader (Upgrades: {ship_info['total_upgrade_value']:,} cr)"
+        top = ui.info_row(screen, top, f"Credits: {ship_info['credits']:,}",
+                          f"Upgrades installed: {ship_info['total_upgrade_value']:,} cr", right_color=TEXT_DIM)
 
-        credits_surface = text_font.render(credits_text, True, ACCENT_GOLD)
-        ship_surface = text_font.render(ship_text, True, TEXT_DIM)
+        footer_top = ui.footer(screen, "UP / DOWN navigate  |  ENTER " + (
+            "opens a category" if self.viewing_categories else "buys the upgrade  |  BACKSPACE goes back") + "  |  ESC leave")
+        buttons = pygame.Rect(0, footer_top - ui.px(40), ui.width, ui.px(40))
+        message = pygame.Rect(0, buttons.top - ui.px(30), ui.width, ui.px(26))
+        panels_bottom = message.top - ui.px(4)
 
-        info_y = title_bottom + 14
-        screen.blit(credits_surface, (20, info_y))
-        screen.blit(ship_surface, (width - ship_surface.get_width() - 20, info_y))
+        (stats_panel, stats_inner), (up_panel, up_inner) = ui.split_panels(
+            screen, top + ui.px(10), panels_bottom,
+            ["CURRENT SHIP STATS", "CATEGORIES" if self.viewing_categories else "UPGRADES"])
 
-        # Split screen layout
-        left_width = width // 2 - 30
-        right_width = width // 2 - 30
-        content_y = info_y + 34
-        panel_bottom = height - 140
+        self._draw_ship_stats(ui, screen, stats_inner, ship_info)
 
-        stats_panel = pygame.Rect(20, content_y, left_width, panel_bottom - content_y)
-        upgrades_panel = pygame.Rect(width // 2 + 10, content_y, right_width, panel_bottom - content_y)
-        draw_panel(screen, stats_panel)
-        draw_panel(screen, upgrades_panel, border_color=ACCENT_BLUE if not self.viewing_categories else (70, 80, 100))
+        count = self._row_count()
+        self.list.set_count(count)
+        self.list.selected = min(self.selected_category_index if self.viewing_categories else self.selected_upgrade_index,
+                                 max(0, count - 1))
+        room = pygame.Rect(up_inner)
+        room.height -= ui.px(16)
+        self.list.layout(ui, room, row_units=56)
+        self.list.draw_chrome(ui, screen, accent=(90, 200, 120) if self.viewing_categories else (80, 140, 255))
+        self._draw_upgrade_rows(ui, screen, room)
+        counter = self.list.counter()
+        if counter:
+            ui.text(screen, counter, "tiny", TEXT_DIM, bottomright=(up_panel.right - ui.px(16), up_panel.bottom - ui.px(8)))
 
-        # Left panel - Current Ship Stats
-        stats_header = header_font.render("CURRENT SHIP STATS", True, TEXT_PRIMARY)
-        screen.blit(stats_header, (stats_panel.x + 16, content_y + 12))
-
-        # Right panel - Available Upgrades
-        upgrades_header = header_font.render("AVAILABLE UPGRADES", True, TEXT_PRIMARY)
-        screen.blit(upgrades_header, (upgrades_panel.x + 16, content_y + 12))
-
-        # Ship stats list
-        self._render_ship_stats(screen, stats_panel.x + 16, content_y + 48, left_width - 32, text_font, small_font)
-
-        # Upgrades list
-        self._render_upgrades_list(screen, upgrades_panel.x + 16, content_y + 48, right_width - 32, text_font, small_font)
-
-        # Controls and instructions
-        self._render_controls(screen, height, small_font)
-
-        # Transaction message
         if self.message:
-            msg_surface = text_font.render(self.message, True, ACCENT_GOLD)
-            msg_rect = msg_surface.get_rect(centerx=width//2, y=height - 80)
-            screen.blit(msg_surface, msg_rect)
-    
-    def _render_ship_stats(self, screen, x, y, width, text_font, small_font):
-        """Render current ship statistics."""
-        ship_info = self.ship.get_ship_info()
-        effective_stats = self.ship.get_effective_stats()
-        
-        current_y = y
-        line_height = 25
-        
-        # Cargo
-        cargo_text = f"Cargo: {ship_info['cargo_used']}/{ship_info['cargo_capacity']} units"
-        cargo_surface = text_font.render(cargo_text, True, (255, 255, 255))
-        screen.blit(cargo_surface, (x, current_y))
-        current_y += line_height
-        
-        # Speed
-        speed_text = f"Max Speed: {ship_info['max_speed']:.0f} u/s"
-        speed_surface = text_font.render(speed_text, True, (255, 255, 255))
-        screen.blit(speed_surface, (x, current_y))
-        current_y += line_height
-        
-        # Thrust
-        thrust_text = f"Thrust: {ship_info['thrust_force']:.0f} N"
-        thrust_surface = text_font.render(thrust_text, True, (255, 255, 255))
-        screen.blit(thrust_surface, (x, current_y))
-        current_y += line_height
-        
-        # Hull
-        hull_text = f"Hull: {ship_info['hull_current']:.0f}/{ship_info['hull_max']:.0f} HP"
-        hull_surface = text_font.render(hull_text, True, (255, 255, 255))
-        screen.blit(hull_surface, (x, current_y))
-        current_y += line_height
-        
-        # Scanner
-        scanner_text = f"Scanner: {ship_info['scanner_range']:.0f} range"
-        scanner_surface = text_font.render(scanner_text, True, (255, 255, 255))
-        screen.blit(scanner_surface, (x, current_y))
-        current_y += line_height * 2
-        
-        # Installed upgrades
-        upgrade_header = small_font.render("Installed Upgrades:", True, (200, 200, 200))
-        screen.blit(upgrade_header, (x, current_y))
-        current_y += 20
-        
+            ui.text(screen, self.message, "body", ACCENT_GOLD, max_width=ui.width - 2 * ui.margin(), center=message.center)
+        bar = self.category_buttons if self.viewing_categories else self.upgrade_buttons
+        bar.layout(ui, buttons)
+        bar.draw(ui, screen)
+
+    def _row_count(self):
+        if self.viewing_categories:
+            return len(self.categories)
+        if self.selected_category_index < len(self.categories):
+            return len(self.upgrades_by_category[self.categories[self.selected_category_index]])
+        return 0
+
+    def _draw_ship_stats(self, ui, screen, inner, ship_info):
+        """Current ship statistics, then what is installed; stops where the panel ends."""
+        from ..ui.menu_style import TEXT_PRIMARY, TEXT_DIM
+        lines = [
+            (f"Cargo: {ship_info['cargo_used']}/{ship_info['cargo_capacity']} units", "body", TEXT_PRIMARY),
+            (f"Max Speed: {ship_info['max_speed']:.0f} u/s", "body", TEXT_PRIMARY),
+            (f"Thrust: {ship_info['thrust_force']:.0f} N", "body", TEXT_PRIMARY),
+            (f"Hull: {ship_info['hull_current']:.0f}/{ship_info['hull_max']:.0f} HP", "body", TEXT_PRIMARY),
+            (f"Scanner: {ship_info['scanner_range']:.0f} range", "body", TEXT_PRIMARY),
+            ("", "small", TEXT_DIM),
+            ("Installed upgrades", "small", (200, 205, 215)),
+        ]
         for category, upgrade_name in ship_info['upgrade_summary'].items():
-            upgrade_text = f"{category}: {upgrade_name}"
-            upgrade_surface = small_font.render(upgrade_text, True, (150, 150, 150))
-            screen.blit(upgrade_surface, (x + 10, current_y))
-            current_y += 18
-    
-    def _render_upgrades_list(self, screen, x, y, width, text_font, small_font):
-        """Render available upgrades list."""
-        from ..ui.menu_style import ACCENT_BLUE, ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
+            lines.append((f"{category}: {upgrade_name}", "small", TEXT_DIM))
+        y = inner.top
+        for text, role, color in lines:
+            height = ui.line_height(role) + ui.px(3)
+            if y + height > inner.bottom + ui.px(4):
+                ui.text(screen, "...", "small", TEXT_DIM, topleft=(inner.x + ui.px(10), min(y, inner.bottom - height)))
+                break
+            if text:
+                ui.text(screen, text, role, color, max_width=inner.width - ui.px(10),
+                        topleft=(inner.x + (ui.px(10) if role == "small" and text[0] != "I" else 0), y))
+            y += height
 
+    def _draw_upgrade_rows(self, ui, screen, room):
+        from ..ui.menu_style import ACCENT_GOLD, TEXT_PRIMARY, TEXT_DIM
         if not self.categories:
-            no_upgrades_surface = text_font.render("No upgrades available", True, TEXT_DIM)
-            screen.blit(no_upgrades_surface, (x, y))
+            ui.text(screen, "No upgrades available", "body", TEXT_DIM, topleft=(room.x + ui.px(4), room.y + ui.px(6)))
             return
-
-        current_y = y
-        line_height = 35
-
+        pad = ui.px(14)
         if self.viewing_categories:
-            # Show categories
-            for i, category in enumerate(self.categories):
-                is_selected = i == self.selected_category_index
-                # Highlight selected category
-                if is_selected:
-                    highlight_rect = pygame.Rect(x - 8, current_y - 5, width, line_height)
-                    pygame.draw.rect(screen, (40, 65, 45), highlight_rect, border_radius=6)
-                    pygame.draw.rect(screen, ACCENT_BLUE, highlight_rect, 2, border_radius=6)
+            for index, rect in self.list.rects.items():
+                category = self.categories[index]
+                selected = index == self.selected_category_index
+                ui.text(screen, category.value, 21, ACCENT_GOLD if selected else TEXT_PRIMARY,
+                        max_width=rect.width - 2 * pad, topleft=(rect.x + pad, rect.y + ui.px(6)))
+                n = len(self.upgrades_by_category[category])
+                ui.text(screen, f"{n} upgrade" + ("" if n == 1 else "s"), "small", TEXT_DIM,
+                        bottomleft=(rect.x + pad, rect.bottom - ui.px(6)))
+            return
+        category = self.categories[self.selected_category_index]
+        station_type = self.station.station_type.value if self.station else "Shipyard"
+        standing = self._get_current_faction_standing()
+        for index, rect in self.list.rects.items():
+            upgrade = self.upgrades_by_category[category][index]
+            selected = index == self.selected_upgrade_index
+            ui.text(screen, upgrade.name, 21, ACCENT_GOLD if selected else TEXT_PRIMARY,
+                    max_width=rect.width - 2 * pad, topleft=(rect.x + pad, rect.y + ui.px(6)))
+            price = self.upgrade_system.get_discounted_price(upgrade, station_type, standing)
+            text, color = f"{price:,} credits", ACCENT_GOLD
+            if price < upgrade.cost:
+                text += f" (was {upgrade.cost:,})"
+            elif price > upgrade.cost:
+                text += f" (base {upgrade.cost:,})"
+                color = (255, 120, 120)              # hostile-faction markup warning
+            ui.text(screen, text, "small", color, max_width=rect.width - 2 * pad,
+                    bottomleft=(rect.x + pad, rect.bottom - ui.px(6)))
 
-                # Category name
-                category_text = f"> {category.value}" if is_selected else category.value
-                category_surface = text_font.render(category_text, True, ACCENT_GOLD if is_selected else TEXT_PRIMARY)
-                screen.blit(category_surface, (x, current_y))
+    def _handle_mouse(self, event):
+        if event.type == pygame.MOUSEWHEEL:
+            self._move_selection(-1 if event.y > 0 else 1)
+            return
+        bar = self.category_buttons if self.viewing_categories else self.upgrade_buttons
+        pressed = bar.handle(event, self._ui)
+        if pressed is not None:
+            if self.viewing_categories:
+                (self._enter_category, lambda: self.game.change_state(GameStates.PLAYING))[pressed]()
+            else:
+                (self._attempt_purchase, self._back_to_categories,
+                 lambda: self.game.change_state(GameStates.PLAYING))[pressed]()
+            return
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            index = self.list.index_at(self._ui, event.pos)
+            if index is None:
+                return
+            if self.viewing_categories:
+                self.selected_category_index = index
+                self._enter_category()
+            else:
+                self.selected_upgrade_index = index
 
-                # Number of upgrades in category
-                upgrade_count = len(self.upgrades_by_category[category])
-                count_text = f"({upgrade_count} upgrades)"
-                count_surface = small_font.render(count_text, True, TEXT_DIM)
-                screen.blit(count_surface, (x + 20, current_y + 18))
+    def _back_to_categories(self):
+        self.viewing_categories = True
+        self.selected_upgrade_index = 0
 
-                current_y += line_height + 10
-        else:
-            # Show upgrades in selected category
-            if self.selected_category_index < len(self.categories):
-                selected_category = self.categories[self.selected_category_index]
-                category_upgrades = self.upgrades_by_category[selected_category]
-
-                for i, upgrade in enumerate(category_upgrades):
-                    is_selected = i == self.selected_upgrade_index
-                    # Highlight selected upgrade
-                    if is_selected:
-                        highlight_rect = pygame.Rect(x - 8, current_y - 5, width, line_height)
-                        pygame.draw.rect(screen, (65, 45, 40), highlight_rect, border_radius=6)
-                        pygame.draw.rect(screen, ACCENT_BLUE, highlight_rect, 2, border_radius=6)
-
-                    # Upgrade name
-                    name_surface = text_font.render(upgrade.name, True, ACCENT_GOLD if is_selected else TEXT_PRIMARY)
-                    screen.blit(name_surface, (x, current_y))
-
-                    # Price and details
-                    station_type = self.station.station_type.value if self.station else "Shipyard"
-                    discounted_price = self.upgrade_system.get_discounted_price(
-                        upgrade, station_type, self._get_current_faction_standing()
-                    )
-
-                    price_text = f"{discounted_price:,} credits"
-                    price_color = ACCENT_GOLD
-                    if discounted_price < upgrade.cost:
-                        price_text += f" (was {upgrade.cost:,})"
-                    elif discounted_price > upgrade.cost:
-                        price_text += f" (base {upgrade.cost:,})"
-                        price_color = (255, 120, 120)  # hostile-faction markup warning
-
-                    price_surface = small_font.render(price_text, True, price_color)
-                    screen.blit(price_surface, (x + 20, current_y + 18))
-
-                    current_y += line_height + 5
-    
-    def _render_controls(self, screen, height, font):
-        """Render control instructions."""
-        if self.viewing_categories:
-            controls = [
-                "ARROW KEYS: Navigate categories",
-                "ENTER: View category upgrades",
-                "ESC: Exit upgrades"
-            ]
-        else:
-            controls = [
-                "ARROW KEYS: Navigate upgrades",
-                "ENTER: Purchase upgrade",
-                "BACKSPACE: Back to categories",
-                "ESC: Exit upgrades"
-            ]
-        
-        current_y = height - 120
-        for control in controls:
-            surface = font.render(control, True, (180, 180, 180))
-            screen.blit(surface, (20, current_y))
-            current_y += 20
-    
     def handle_input(self, event):
+        if event.type in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN, pygame.MOUSEWHEEL):
+            self._handle_mouse(event)
+            return
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state(GameStates.PLAYING)
@@ -2266,8 +2152,7 @@ class UpgradeState(State):
                     
             elif event.key == pygame.K_BACKSPACE:
                 if not self.viewing_categories:
-                    self.viewing_categories = True
-                    self.selected_upgrade_index = 0
+                    self._back_to_categories()
     
     def _move_selection(self, direction):
         """Move the selection cursor up or down."""

@@ -330,3 +330,154 @@ def test_typing_a_name_on_the_save_screen_still_works(engine):
     for ch in "abc":
         state.handle_input(pygame.event.Event(pygame.KEYDOWN, key=ord(ch), unicode=ch))
     assert state.save_name == "abc"
+
+
+# --- trading and upgrades ------------------------------------------------------------------
+
+def _shipyard():
+    from src.entities.station import Station, StationType
+    return Station(300, 300, StationType.SHIPYARD)
+
+
+def _stock_cargo(engine, station):
+    engine.ship.credits = 50000
+    for commodity in station.market.get_available_commodities()[:4]:
+        engine.ship.cargo_hold.add_cargo(commodity.id, 2)
+
+
+@pytest.mark.parametrize("size", SIZES)
+def test_the_trading_screen_fits_every_window_size(engine, size):
+    from src.states.game_state import GameStates
+
+    pygame.display.set_mode(size, pygame.RESIZABLE)
+    engine._on_window_resized()
+    engine.create_new_universe(seed=4)
+    station = engine.universe.stations[0]
+    _stock_cargo(engine, station)
+    engine.change_state(GameStates.TRADING, station)
+    engine.fade_remaining = 0
+    engine.render()
+    state = engine.states[GameStates.TRADING]
+    window = pygame.Rect(0, 0, *size)
+    for rects in (state.market_list.rects, state.cargo_list.rects):
+        assert rects and all(window.contains(r) for r in rects.values())
+    assert all(window.contains(r) for r in state.buttons.rects)
+    assert max(r.bottom for r in state.market_list.rects.values()) < min(r.top for r in state.buttons.rects)
+    assert not any(a.colliderect(b) for a, b in zip(state.buttons.rects, state.buttons.rects[1:]))
+
+
+def test_trading_with_the_mouse_selects_buys_and_sells(engine):
+    from src.states.game_state import GameStates
+
+    engine.create_new_universe(seed=4)
+    station = engine.universe.stations[0]
+    engine.ship.credits = 50000
+    engine.change_state(GameStates.TRADING, station)
+    engine.fade_remaining = 0
+    engine.render()
+    state = engine.states[GameStates.TRADING]
+    assert state.cargo_list.count == 0
+
+    # pick the third market row and buy it with the Buy button
+    commodity = state.available_commodities[2]
+    pygame.event.clear()
+    pygame.event.post(click(state.market_list.rects[2].center))
+    engine.handle_events()
+    assert state.selected_commodity_index == 2 and state.viewing_cargo is False
+    engine.render()
+    credits_before = engine.ship.credits
+    pygame.event.post(click(state.buttons.rects[0].center))
+    engine.handle_events()
+    assert engine.ship.credits < credits_before
+    assert engine.ship.cargo_hold.get_cargo_items()[0][0].id == commodity.id
+
+    # the cargo row is now clickable; Sell sells it back
+    engine.render()
+    pygame.event.post(click(state.cargo_list.rects[0].center))
+    engine.handle_events()
+    assert state.viewing_cargo is True
+    engine.render()
+    pygame.event.post(click(state.buttons.rects[1].center))
+    engine.handle_events()
+    assert engine.ship.cargo_hold.get_cargo_items() == []
+
+
+def test_the_sell_button_is_disabled_on_the_market_side_and_leave_exits(engine):
+    from src.states.game_state import GameStates
+
+    engine.create_new_universe(seed=4)
+    engine.change_state(GameStates.TRADING, engine.universe.stations[0])
+    engine.fade_remaining = 0
+    engine.render()
+    state = engine.states[GameStates.TRADING]
+    assert state.buttons.enabled == [True, False, True, True]
+    pygame.event.clear()
+    pygame.event.post(click(state.buttons.rects[1].center))                # disabled: nothing happens
+    engine.handle_events()
+    assert engine.current_state == GameStates.TRADING
+    pygame.event.post(click(state.buttons.rects[3].center))
+    engine.handle_events()
+    assert engine.current_state == GameStates.PLAYING
+
+
+def test_the_trading_keys_still_work(engine):
+    from src.states.game_state import GameStates
+
+    engine.create_new_universe(seed=4)
+    engine.change_state(GameStates.TRADING, engine.universe.stations[0])
+    state = engine.states[GameStates.TRADING]
+    state.handle_input(key(pygame.K_DOWN))
+    assert state.selected_commodity_index == 1
+    state.handle_input(key(pygame.K_TAB))
+    assert state.viewing_cargo is True and state.selected_commodity_index == 0
+    state.handle_input(pygame.event.Event(pygame.MOUSEWHEEL, y=-1, x=0))
+    state.handle_input(key(pygame.K_ESCAPE))
+    assert engine.current_state == GameStates.PLAYING
+
+
+@pytest.mark.parametrize("size", SIZES)
+def test_the_upgrade_screen_fits_every_window_size(engine, size):
+    from src.states.game_state import GameStates
+
+    pygame.display.set_mode(size, pygame.RESIZABLE)
+    engine._on_window_resized()
+    engine.create_new_universe(seed=4)
+    engine.ship.credits = 50000
+    engine.change_state(GameStates.UPGRADES, _shipyard())
+    engine.fade_remaining = 0
+    state = engine.states[GameStates.UPGRADES]
+    window = pygame.Rect(0, 0, *size)
+    for viewing in (True, False):
+        state.viewing_categories = viewing
+        engine.render()
+        assert state.list.rects and all(window.contains(r) for r in state.list.rects.values())
+        bar = state.category_buttons if viewing else state.upgrade_buttons
+        assert all(window.contains(r) for r in bar.rects)
+
+
+def test_upgrades_by_mouse_open_a_category_then_buy_an_upgrade(engine):
+    from src.states.game_state import GameStates
+
+    engine.create_new_universe(seed=4)
+    engine.ship.credits = 50000
+    engine.change_state(GameStates.UPGRADES, _shipyard())
+    engine.fade_remaining = 0
+    engine.render()
+    state = engine.states[GameStates.UPGRADES]
+    assert state.viewing_categories
+
+    pygame.event.clear()
+    pygame.event.post(click(state.list.rects[0].center))                    # a category: opens it
+    engine.handle_events()
+    assert state.viewing_categories is False
+    engine.render()
+
+    credits_before = engine.ship.credits
+    pygame.event.post(click(state.upgrade_buttons.rects[0].center))         # Buy
+    engine.handle_events()
+    assert engine.ship.credits < credits_before
+
+    engine.render()
+    pygame.event.post(click(state.upgrade_buttons.rects[1].center))         # Back
+    engine.handle_events()
+    assert state.viewing_categories is True
