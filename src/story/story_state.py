@@ -53,6 +53,20 @@ class StoryState:
     def count_events(self, name: str) -> int:
         return self.event_counts.get(name, 0)
 
+    def bump(self, counter: str, amount: int = 1):
+        """Increment a named counter without logging an event. Used for
+        fine-grained counters such as "docked_at:<station>" that objectives
+        measure against a baseline."""
+        self.event_counts[counter] = self.event_counts.get(counter, 0) + amount
+
+    def finish_story_mission(self, mission_id: str, completed: bool):
+        """A story mission ended: completed ones are recorded, abandoned or
+        failed ones simply become startable again."""
+        if mission_id in self.active_story_missions:
+            self.active_story_missions.remove(mission_id)
+        if completed and mission_id not in self.completed_story_missions:
+            self.completed_story_missions.append(mission_id)
+
     # Dialogue / ledger / missions --------------------------------------------
 
     def mark_node_seen(self, node_id: str):

@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## Beta 9
+
+### Added
+- **The prologue.** Talk to Dock Master Hale to begin a three-mission opening chapter: earn a trader's license, find what Jessup Vane left in a rented berth, and meet the courier he trusted. Story missions appear in the Active tab of the Mission Board, show their current step in the Logbook, and are saved with the game. Abandoning one just lets you pick it up again from Hale.
+- **Story scenes** play automatically when you finish certain missions, and each step adds an entry to the ledger in your Logbook.
+
 
 ### Fixed
 - **Loaded games showed stations with a random look.** Stations kept their type, name and market after a load but came back with a random shape and color. They now look the way they did when you saved.

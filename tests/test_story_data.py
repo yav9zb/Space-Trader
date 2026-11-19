@@ -1,6 +1,7 @@
 """Validates the authored story data as a whole: dialogue graph, NPC roster,
 and the lore/flag/ledger references that tie them together."""
 
+from src.story.chapters import STORY_MISSIONS, STAGE_KINDS
 from src.story.dialogue import validate_nodes
 from src.story.dialogue_data import NODES
 from src.story.lore import CHAPTERS, LEDGER_ENTRIES, FACTION_BLURBS
@@ -15,6 +16,9 @@ def _all_effects():
         for choice in node.choices:
             for effect in choice.effects:
                 yield effect
+    for definition in STORY_MISSIONS.values():
+        for effect in definition.on_complete:
+            yield effect
 
 
 def test_dialogue_graph_has_no_authoring_errors():
@@ -35,6 +39,8 @@ def test_every_npc_has_dialogue_and_valid_placement_data():
 def test_every_node_is_reachable_from_an_npc():
     reachable = set()
     frontier = [n for npc in NPCS.values() for n in (npc.intro_node, npc.return_node)]
+    # Scenes opened automatically by effects (e.g. when a story mission completes)
+    frontier += [e["node"] for e in _all_effects() if e["type"] == "show_dialogue"]
     while frontier:
         node_id = frontier.pop()
         if node_id in reachable:
@@ -75,3 +81,44 @@ def test_rank_requirements_use_real_rank_names():
         for choice in node.choices:
             if "min_rank" in choice.requires:
                 assert choice.requires["min_rank"] in names
+
+
+def test_every_story_mission_is_well_formed():
+    from src.missions.rank_system import RANKS
+    import re
+    for mid, d in STORY_MISSIONS.items():
+        assert d.id == mid and d.title and d.description and d.stages
+        assert d.giver in NPCS, mid
+        for stage in d.stages:
+            assert stage.kind in STAGE_KINDS, (mid, stage.kind)
+            if stage.kind == "dock_at":
+                assert stage.params["waypoint"] in d.waypoints, mid
+            if stage.kind == "earn_rank":
+                assert stage.params["rank"] in dict(RANKS), mid
+            for key in re.findall(r"\{(\w+)\}", stage.text):
+                assert key in d.waypoints, (mid, key)
+        for key in re.findall(r"\{(\w+)\}", d.description):
+            assert key in d.waypoints, (mid, key)
+        for wp in d.waypoints.values():
+            assert 0 <= wp.min_ring <= wp.max_ring
+
+
+def test_every_story_mission_can_be_started_by_a_conversation():
+    started = {e["mission_id"] for e in _all_effects() if e["type"] == "start_story_mission"}
+    assert started == set(STORY_MISSIONS), set(STORY_MISSIONS) ^ started
+
+
+def test_dialogue_effects_reference_real_missions_and_scenes():
+    for effect in _all_effects():
+        if effect["type"] == "start_story_mission":
+            assert effect["mission_id"] in STORY_MISSIONS
+        if effect["type"] == "show_dialogue":
+            assert effect["node"] in NODES
+
+
+def test_station_tokens_refer_to_real_waypoints():
+    import re
+    valid = {f"{mid}.{key}" for mid, d in STORY_MISSIONS.items() for key in d.waypoints}
+    for node in NODES.values():
+        for token in re.findall(r"\{station:([^}]+)\}", node.text):
+            assert token in valid, (node.id, token)

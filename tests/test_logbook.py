@@ -89,3 +89,27 @@ def test_escape_returns_to_the_pause_menu():
     state = LogbookState(game)
     state.handle_input(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE))
     assert game.changed_to == [GameStates.PAUSED]
+
+
+def test_story_page_lists_active_and_completed_story_missions():
+    game = make_game()
+    game.story_state.completed_story_missions.append("prologue_1")
+    game.mission_manager.active_missions = [
+        SimpleNamespace(story_id="prologue_2", title="The First Entry",
+                        progress_description="Dock at Yard-12 and look for Vane's berth"),
+        SimpleNamespace(title="Ordinary delivery"),       # not a story mission
+    ]
+    text = text_of(build_pages(game)["Story"])
+    assert "The First Entry" in text
+    assert "Now: Dock at Yard-12" in text
+    assert "Completed: Honest Work" in text
+    assert "Ordinary delivery" not in text
+
+
+def test_prologue_summary_updates_once_the_prologue_is_complete():
+    game = make_game()
+    assert "Earn a trader's license" in text_of(build_pages(game)["Story"])
+    game.story_state.set_flag("prologue_complete")
+    text = text_of(build_pages(game)["Story"])
+    assert "Courier Reyes confirmed it" in text
+    assert "Earn a trader's license" not in text

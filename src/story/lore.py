@@ -17,6 +17,13 @@ CHAPTERS = {
     "act_4": ("Act 4: The Signal", "The last entry points past the edge of known space."),
 }
 
+# Shown in place of the prologue summary once its missions are done
+PROLOGUE_DONE_SUMMARY = (
+    "Courier Reyes confirmed it: Jessup Vane was killed, and the Guild buried "
+    "it as an accident. He was tracing where Guild money really goes. Hale "
+    "has nothing more for you until the ledger gives up its next secret."
+)
+
 LEDGER_ENTRIES = {
     "ledger_cover": (
         "The Ledger",
@@ -24,6 +31,18 @@ LEDGER_ENTRIES = {
         "coordinates, cargo tallies, and one word at the end of each line - "
         "Guild, Independent, or Pirate. Hale cannot make sense of it. "
         "Neither can you, yet.",
+    ),
+    "ledger_entry_1": (
+        "Entry One: The Berth",
+        "Vane's first coded line led to a rented berth and a locker. Inside: a "
+        "page in his shorthand and a note naming a courier, Reyes. 'Do not "
+        "trust the Guild with this.'",
+    ),
+    "ledger_entry_2": (
+        "Entry Two: Reyes",
+        "The courier Reyes confirms Vane was killed and that the Guild called it "
+        "an accident. He was tracing where Guild money really goes. She gave "
+        "you a copy of his last entry.",
     ),
 }
 

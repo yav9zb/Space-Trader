@@ -109,7 +109,7 @@ class DialogueState(State):
 
         # Body text, pageable. Takes only the height it needs (up to 55% of
         # the panel) so short lines leave the rest for choices.
-        lines = wrap_text(node.text, self.body_font, inner_w)
+        lines = wrap_text(self.session.current_text(), self.body_font, inner_w)
         visible_lines = max(1, min(len(lines), int(panel.height * 0.55) // body_lh))
         body_h = visible_lines * body_lh
         max_scroll = max(0, len(lines) - visible_lines)

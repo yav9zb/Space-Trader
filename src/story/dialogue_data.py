@@ -71,6 +71,9 @@ _add(Node(
         {"type": "set_flag", "name": "hale_told_ledger"},
     ],
     choices=[
+        Choice("I will earn that license.", next=None,
+               requires={"not_story_started": "prologue_1"},
+               effects=[{"type": "start_story_mission", "mission_id": "prologue_1"}]),
         Choice("I will be back.", next=None),
     ],
 ))
@@ -82,6 +85,9 @@ _add(Node(
     "contracts and come back with a trader's license.",
     on_enter=[{"type": "set_flag", "name": "hale_told_ledger"}],
     choices=[
+        Choice("I will earn that license.", next=None,
+               requires={"not_story_started": "prologue_1"},
+               effects=[{"type": "start_story_mission", "mission_id": "prologue_1"}]),
         Choice("Fair enough.", next=None),
     ],
 ))
@@ -91,8 +97,12 @@ _add(Node(
     "Back again, captain. Anything to report?",
     choices=[
         Choice("I have earned my trader's license.", next="hale_ready",
-               requires={"min_rank": "Trader", "not_flag": "hale_ready_ack"}),
-        Choice("Remind me about the ledger.", next="hale_ledger"),
+               requires={"story_active": "prologue_1", "min_rank": "Trader"}),
+        Choice("I found Vane's locker.", next="hale_locker",
+               requires={"flag": "prologue_entry_found", "not_story_started": "prologue_3"}),
+        Choice("I met the courier.", next="hale_epilogue",
+               requires={"flag": "prologue_complete", "not_flag": "prologue_epilogue_seen"}),
+        Choice("About that ledger...", next="hale_ledger"),
         Choice("Where did you find it?", next="hale_friend"),
         Choice("Just passing through.", next=None),
     ],
@@ -102,10 +112,71 @@ _add(Node(
     "hale_ready", HALE,
     "So you have. A trader's license means somebody trusts you with cargo. "
     "That is a start.\n\n"
-    "I need time with the first entry before I send you anywhere near it. "
-    "Keep trading, keep your head down, and check in with me again soon.",
-    on_enter=[{"type": "set_flag", "name": "hale_ready_ack"}],
+    "I have been through the first entry line by line. It points to a berth at "
+    "{station:prologue_2.a}. If Jessup left anything behind, it will be there. "
+    "Go and look, then come back and tell me what you find.",
+    on_enter=[
+        {"type": "bump_counter", "name": "story:hale_license_shown"},
+        {"type": "start_story_mission", "mission_id": "prologue_2"},
+    ],
     choices=[
-        Choice("I will keep my head down.", next=None),
+        Choice("I will look into it.", next=None),
+    ],
+))
+
+_add(Node(
+    "hale_locker", HALE,
+    "A locker, a page, and a name: Reyes. I have heard that name. A courier, "
+    "Independent, runs sealed parcels between the quiet stations. If Jessup "
+    "trusted anyone, it was her.\n\n"
+    "She is waiting at {station:prologue_3.b}. Go and see her. And captain - "
+    "be careful what you say about the Guild out there.",
+    on_enter=[{"type": "start_story_mission", "mission_id": "prologue_3"}],
+    choices=[
+        Choice("I will be careful.", next=None),
+    ],
+))
+
+_add(Node(
+    "hale_epilogue", HALE,
+    "Reyes told you that? Then Jessup was right to be afraid, and so are we. "
+    "I have been a dock master for forty years and I have never wanted so "
+    "badly to be wrong.\n\n"
+    "That is all I can ask of you for now. When the ledger gives up its next "
+    "secret, I will find you. Fly safe, captain.",
+    on_enter=[{"type": "set_flag", "name": "prologue_epilogue_seen"}],
+    choices=[
+        Choice("I will be ready.", next=None),
+    ],
+))
+
+# --- Scenes shown automatically when a story mission completes ---------------
+
+_add(Node(
+    "cache_found", "Dockhand Pell",
+    "You are the one asking about Vane's berth? He paid for it a year in "
+    "advance and never used it twice. There is a locker. He told me the key "
+    "was the ship itself, so I suppose you have it.\n\n"
+    "Inside: a folded page in the same shorthand as the ledger, and one line "
+    "in plain writing. 'If you are reading this, go to Reyes. Do not trust the "
+    "Guild with this.' I did not read the rest. I never read what is not mine.",
+    choices=[
+        Choice("Thank you.", next=None),
+    ],
+))
+
+_add(Node(
+    "courier_meeting", "Courier Reyes",
+    "You took your time. Vane said someone would come, though he thought it "
+    "would be sooner.\n\n"
+    "He is dead, you know. Not drifted, not lost. The Guild called it an "
+    "accident because that is the tidiest word. He kept his accounts in that "
+    "shorthand because he was tracing where Guild money really goes, and it "
+    "does not go where the Guild says it does.\n\n"
+    "I will not say more here. Take this copy of his last entry and keep it "
+    "close. When you know what you want to do about it, find Hale. He will "
+    "know who else to trust.",
+    choices=[
+        Choice("I will find out who did this.", next=None),
     ],
 ))

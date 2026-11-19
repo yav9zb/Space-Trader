@@ -12,6 +12,7 @@ class MissionType(Enum):
     SUPPLY_RUN = "Supply Run"
     EXPLORATION = "Exploration"
     EMERGENCY_DELIVERY = "Emergency Delivery"
+    STORY = "Story"
 
 
 class MissionStatus(Enum):
@@ -319,6 +320,7 @@ class Mission:
         instance is created without calling them and its state restored
         from the saved fields instead."""
         from . import specific_missions  # noqa: F401 - registers subclasses
+        from ..story import story_missions  # noqa: F401 - registers StoryMission
 
         target = Mission.REGISTRY.get(data.get("class"), cls)
         mission = target.__new__(target)

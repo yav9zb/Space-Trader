@@ -225,6 +225,7 @@ class DockingManager:
 
         from ..story.story_state import story_state
         story_state.record_event("docked", station=self.target_station.name)
+        story_state.bump(f"docked_at:{self.target_station.name}")
 
     def _initiate_undocking(self, ship):
         """Begin the undocking sequence."""

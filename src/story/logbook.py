@@ -9,7 +9,8 @@ from ..factions import (
     get_controlling_faction, FACTION_TRADE_GUILD, FACTION_INDEPENDENT, FACTION_PIRATE,
 )
 from .director import find_station_by_name
-from .lore import CHAPTERS, LEDGER_ENTRIES, FACTION_BLURBS
+from .chapters import STORY_MISSIONS
+from .lore import CHAPTERS, LEDGER_ENTRIES, FACTION_BLURBS, PROLOGUE_DONE_SUMMARY
 from .npcs import NPCS, is_available
 
 TABS = ["Story", "Contacts", "Factions"]
@@ -20,7 +21,23 @@ Line = Tuple[str, str]
 def _story_page(game) -> List[Line]:
     story = game.story_state
     title, summary = CHAPTERS.get(story.chapter, CHAPTERS["prologue"])
+    if story.chapter == "prologue" and story.has_flag("prologue_complete"):
+        summary = PROLOGUE_DONE_SUMMARY
     lines: List[Line] = [("heading", title), ("body", summary), ("gap", "")]
+
+    lines.append(("heading", "Story missions"))
+    active = [m for m in getattr(game.mission_manager, "active_missions", [])
+              if getattr(m, "story_id", None)]
+    for mission in active:
+        lines.append(("body", mission.title))
+        lines.append(("dim", f"Now: {mission.progress_description}"))
+    for mission_id in story.completed_story_missions:
+        definition = STORY_MISSIONS.get(mission_id)
+        if definition:
+            lines.append(("dim", f"Completed: {definition.title}"))
+    if not active and not story.completed_story_missions:
+        lines.append(("dim", "None yet."))
+    lines.append(("gap", ""))
 
     lines.append(("heading", "Ledger entries"))
     if story.ledger_entries:

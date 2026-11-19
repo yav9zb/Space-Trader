@@ -398,6 +398,16 @@ class MissionManager:
         
         return False, "Failed to accept mission"
     
+    def start_story_mission(self, mission, ship) -> bool:
+        """Put an authored story mission straight into the active list. Story
+        missions are handed out in conversation rather than taken from the
+        board, so they bypass the board's active-mission cap."""
+        if not mission.accept(ship):
+            return False
+        self.active_missions.append(mission)
+        logger.info(f"Story mission started: {mission.title}")
+        return True
+
     def abandon_mission(self, mission_id: str, ship, game_engine=None) -> tuple[bool, str]:
         """Abandon an active mission."""
         mission = self.get_mission_by_id(mission_id, self.active_missions)
@@ -413,6 +423,11 @@ class MissionManager:
 
         self.active_missions.remove(mission)
         self.failed_missions.append(mission)
+
+        story_id = getattr(mission, "story_id", None)
+        if story_id:
+            from ..story.story_state import story_state
+            story_state.finish_story_mission(story_id, completed=False)
 
         logger.info(f"Mission abandoned: {mission.title} (Penalty: {penalty.credits} credits)")
         return True, f"Mission abandoned. Penalty: {penalty.credits} credits"
@@ -445,6 +460,12 @@ class MissionManager:
             mission_id=mission.id,
         )
 
+        story_id = getattr(mission, "story_id", None)
+        if story_id:
+            story_state.finish_story_mission(story_id, completed=True)
+            if game_engine is not None:
+                mission.run_completion_effects(game_engine)
+
         logger.info(f"Mission completed: {mission.title} (Reward: {mission.reward.credits} credits, Reputation: +{mission.reward.reputation_bonus})")
 
     def fail_mission(self, mission: Mission, ship, game_engine=None):
@@ -459,6 +480,11 @@ class MissionManager:
             ship.credits = max(0, ship.credits - mission.penalty.credits)
             self.reputation = max(0, self.reputation - mission.penalty.reputation_loss)
             self._adjust_faction_standing_for_mission(mission, game_engine, -2)
+
+        story_id = getattr(mission, "story_id", None)
+        if story_id:
+            from ..story.story_state import story_state
+            story_state.finish_story_mission(story_id, completed=False)
 
         logger.info(f"Mission failed: {mission.title}")
 

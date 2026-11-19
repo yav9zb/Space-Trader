@@ -67,7 +67,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Factions**: Space is divided into Trade Guild, Independent, and Pirate Territory sectors, shown in the Navigation HUD, with different trader and bandit density. The starting area is always safe.
 - **Reputation and Ranks**: Overall reputation (Rookie to Legend) gates the top tier of ship upgrades; separate standing with each faction gates some missions and adjusts upgrade prices.
 - **Neutral Traders**: Unarmed ships fly between stations. Attacking one plunders credits but costs reputation.
-- **Station Contacts**: Named characters wait at some stations; dock and press the Talk key to start a conversation. The Logbook (pause menu) tracks the story, contacts you have met, and faction standing. A story campaign is being built on this foundation.
+- **Station Contacts**: Named characters wait at some stations; dock and press the Talk key to start a conversation. The Logbook (pause menu) tracks the story, contacts you have met, and faction standing. The prologue of a story campaign is playable: talk to Dock Master Hale to begin; more chapters are in progress.
 
 #### User Interface
 - **Minimap**: Real-time minimap showing nearby objects and ship position
@@ -79,7 +79,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 
 - **Advanced AI**: Improved enemy tactics and faction-based behaviors
 - **Multiplayer**: Cooperative and competitive multiplayer modes
-- **Story Campaign**: The conversation, contact, and logbook systems exist; the authored missions and chapters are in progress
+- **Story Campaign**: The prologue is playable; Acts 1-4 (the Guild's secret, a border war, and the signal) are in progress
 - **Visual Effects**: Enhanced explosions, particle systems, and environmental effects
 
 ## Controls
@@ -187,6 +187,7 @@ Produces a standalone build in `dist/` (`Space Trader.app` on macOS, an exe + fo
 - **Factions** (`src/factions.py`): Deterministic faction control over the sector grid, plus price/spawn multipliers
 - **Story State** (`src/story/story_state.py`): Saved campaign flags, chapter, contact placements, and event counts
 - **Dialogue** (`src/story/dialogue.py`, `src/story/dialogue_data.py`): Choice/requirement/effect engine and the authored conversations
+- **Story Missions** (`src/story/chapters.py`, `objectives.py`, `story_missions.py`): Authored missions as data (stages, waypoints, effects) run as normal missions
 - **Contacts** (`src/story/npcs.py`, `src/story/director.py`): Named station contacts and where they are placed
 - **Logbook** (`src/story/logbook.py`): Content for the Logbook screen
 
