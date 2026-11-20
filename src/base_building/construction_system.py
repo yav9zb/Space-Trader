@@ -272,16 +272,27 @@ class ConstructionSystem:
         if not base:
             return
         
+        self.draw_world(screen, camera_offset)
+        
+        # Draw construction menu
+        if self.show_construction_menu:
+            self._draw_construction_menu(screen)
+    
+    def draw_world(self, screen, camera_offset: Vector2) -> None:
+        """Draw the grid and the placement preview, the parts that sit in the
+        world (a screen that draws its own panels uses just this)."""
+        if not self.is_construction_active or not self.selected_base_id:
+            return
+        base = self.base_manager.get_base(self.selected_base_id)
+        if not base:
+            return
+        
         # Draw grid
         if self.show_grid:
             self._draw_construction_grid(screen, base, camera_offset)
         
         # Draw preview
         self._draw_construction_preview(screen, base, camera_offset)
-        
-        # Draw construction menu
-        if self.show_construction_menu:
-            self._draw_construction_menu(screen)
     
     def _draw_construction_grid(self, screen, base: PlayerBase, camera_offset: Vector2) -> None:
         """Draw construction grid."""

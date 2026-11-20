@@ -1,5 +1,10 @@
 # Changelog
 
+## Beta 23
+
+### Changed
+- **The base construction screen (B) was rebuilt like the other menus.** Its tabs, panels, help and status line fit the window, are drawn at the screen's real pixels, and the tabs can be clicked (Q, W and E still work). The base is centred in the view, and the mouse now lines up with the grid at any zoom. Escape leaves in one press (it used to switch construction off first and leave a blank screen), and with no base it says so instead of showing an empty screen. Nothing in a run creates a base yet, so for now that is what you will see.
+
 ## Beta 22
 
 ### Fixed

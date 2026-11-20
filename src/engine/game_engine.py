@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 NATIVE_STATES = frozenset({
     GameStates.MAIN_MENU, GameStates.GAME_OVER, GameStates.SAVE_GAME, GameStates.LOAD_GAME,
     GameStates.TRADING, GameStates.UPGRADES, GameStates.SETTINGS, GameStates.MISSIONS,
-    GameStates.DIALOGUE, GameStates.LOGBOOK, GameStates.VICTORY,
+    GameStates.DIALOGUE, GameStates.LOGBOOK, GameStates.VICTORY, GameStates.BASE_CONSTRUCTION,
 })
 
 

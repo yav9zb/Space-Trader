@@ -1,558 +1,441 @@
 """
-Base Construction State - Handles the base building interface.
+Base Construction State - the base building interface (opened with B).
+
+Laid out with the menu kit, like the other screens: panels, tabs and text are
+measured from the window and drawn at the screen's real pixels. The base itself
+(its grid and the construction preview) is world drawing, so it is drawn at
+point size and scaled up behind the panels, as flight is.
 """
 
 import pygame
 from pygame import Vector2
-from enum import Enum, auto
-from typing import Optional, Dict, Any
+from typing import Optional
 
 try:
     from ..states.game_state import State, GameStates
     from ..base_building.base_manager import base_manager
     from ..base_building.construction_system import ConstructionSystem, ConstructionMode
     from ..base_building.resource_production import ProductionSystem
-    from ..base_building.base_entity import ModuleType
-    from ..input.control_schemes import control_scheme_manager
+    from ..ui import menu_kit
+    from ..ui.menu_style import MenuBackground, ACCENT_GOLD, ACCENT_BLUE, TEXT_PRIMARY, TEXT_DIM
 except ImportError:
     from states.game_state import State, GameStates
     from base_building.base_manager import base_manager
     from base_building.construction_system import ConstructionSystem, ConstructionMode
     from base_building.resource_production import ProductionSystem
-    from base_building.base_entity import ModuleType
-    from input.control_schemes import control_scheme_manager
+    from ui import menu_kit
+    from ui.menu_style import MenuBackground, ACCENT_GOLD, ACCENT_BLUE, TEXT_PRIMARY, TEXT_DIM
+
+TABS = [("construction", "Construction"), ("production", "Production"), ("management", "Management")]
+
+GOOD = (120, 230, 150)
+WARN = (255, 215, 90)
+BAD = (255, 120, 120)
+
+HELP_SECTIONS = [
+    ("Construction controls", [
+        "1-7: select a module type",
+        "Left click: place or remove a module",
+        "P: place mode   R: remove mode",
+        "Tab: show or hide the grid",
+        "Mouse wheel: zoom",
+    ]),
+    ("Module types", [
+        "1 Habitat (crew quarters)",
+        "2 Power generator",
+        "3 Storage (resources)",
+        "4 Refinery (processes materials)",
+        "5 Factory (advanced production)",
+        "6 Turret (defense)",
+        "7 Trade hub (trading)",
+    ]),
+    ("Tips", [
+        "Build power generators first",
+        "Monitor resource flows",
+        "Plan production chains",
+    ]),
+]
 
 
 class BaseConstructionState(State):
     """Game state for base construction and management."""
-    
+
     def __init__(self, game, base_id: str = None, previous_state=None):
         super().__init__(game)
-        self.base_id = base_id
         self.previous_state = previous_state or GameStates.PLAYING
-        
+
         # Initialize construction system
         self.construction_system = ConstructionSystem(base_manager)
         self.production_system = ProductionSystem()
-        
+
+        # With no base given, work on the active one, else the nearest to the ship
+        self.base_id = base_id or self._default_base_id()
+
         # UI state
         self.show_base_info = True
-        self.show_production_info = False
         self.show_help = False
         self.selected_tab = "construction"  # construction, production, management
-        
-        # Camera control for construction view
-        self.camera_speed = 200
+
+        # View of the base: zoom, and the mouse position in the world
         self.zoom_level = 1.0
         self.min_zoom = 0.5
         self.max_zoom = 2.0
-        
-        # Mouse state
         self.mouse_world_pos = Vector2(0, 0)
-        self.is_dragging = False
-        self.drag_start = Vector2(0, 0)
-        
-        # Activate construction for the specified base
+
+        # Layout, set by render and used by clicks and tests
+        self.tab_rects = []
+        self.help_overflows = False
+        self.panel_overflows = False
+        self.background = MenuBackground()
+        self._ui = menu_kit.Ui(menu_kit.BASE_SIZE)
+        self._world = None
+
+        # Activate construction for the base
         if self.base_id:
             self.construction_system.activate_construction(self.base_id)
-    
+
+    # Which base -----------------------------------------------------------------------
+
+    def _ship_position(self) -> Vector2:
+        ship = getattr(self.game, "ship", None)
+        return Vector2(ship.position) if ship is not None else Vector2(0, 0)
+
+    def _default_base_id(self) -> Optional[str]:
+        active = base_manager.get_active_base()
+        if active is not None and base_manager.active_base_id in base_manager.bases:
+            return base_manager.active_base_id
+        nearest = base_manager.get_nearest_base(self._ship_position())
+        if nearest:
+            return nearest[0]
+        return next(iter(base_manager.bases), None)
+
+    def _base(self):
+        return base_manager.get_base(self.base_id) if self.base_id else None
+
+    # Update -----------------------------------------------------------------------------
+
     def update(self, delta_time):
         """Update construction state."""
-        # Update base manager
-        if hasattr(self.game, 'player') and hasattr(self.game.player, 'position'):
-            player_pos = self.game.player.position
-        else:
-            player_pos = Vector2(0, 0)
-        
-        base_manager.update(delta_time, player_pos)
-        
-        # Update production system
+        base_manager.update(delta_time, self._ship_position())
         self.production_system.update_production(base_manager.bases, delta_time)
-        
-        # Update mouse world position
+
         self._update_mouse_world_position()
-        
-        # Update construction system
+
         if self.construction_system.is_construction_active:
             self.construction_system.update_mouse_position(self.mouse_world_pos)
             self.construction_system.process_build_queue()
-    
+
+    def _view_points(self):
+        """The window size in points: what the mouse and the world are measured in."""
+        return Vector2(self.game.screen.get_size())
+
+    def _camera_offset(self) -> Vector2:
+        """World position of the view's top-left corner: the base sits in the
+        middle of the window, whatever the zoom."""
+        base = self._base()
+        centre = base.position if base is not None else Vector2(0, 0)
+        return centre - self._view_points() / (2 * self.zoom_level)
+
     def _update_mouse_world_position(self):
-        """Update mouse world position based on camera."""
-        mouse_pos = pygame.mouse.get_pos()
-        camera_offset = getattr(self.game, 'camera_offset', Vector2(0, 0))
-        
-        # Apply zoom
-        screen_center = Vector2(self.game.screen.get_width() // 2, self.game.screen.get_height() // 2)
-        mouse_relative = Vector2(mouse_pos) - screen_center
-        mouse_relative /= self.zoom_level
-        
-        self.mouse_world_pos = camera_offset + screen_center + mouse_relative
-    
+        """The world position under the mouse."""
+        self.mouse_world_pos = self._camera_offset() + Vector2(pygame.mouse.get_pos()) / self.zoom_level
+
+    # Drawing ----------------------------------------------------------------------------
+
     def render(self, screen):
-        """Render construction interface."""
-        # Clear screen
-        screen.fill((20, 20, 40))
-        
-        # Get camera offset
-        camera_offset = getattr(self.game, 'camera_offset', Vector2(0, 0))
-        
-        # Draw bases
-        if hasattr(self.game, 'player'):
-            player_pos = self.game.player.position
+        """Render the construction interface."""
+        ui = self._ui = menu_kit.ui_for(screen, self.game)
+        base = self._base()
+        if base is not None:
+            self._draw_world(ui, screen)
         else:
-            player_pos = Vector2(0, 0)
-        
-        base_manager.draw(screen, camera_offset, player_pos)
-        
-        # Draw construction interface
-        if self.construction_system.is_construction_active:
-            self.construction_system.draw_construction_interface(screen, camera_offset)
-        
-        # Draw UI panels
-        self._draw_ui_panels(screen)
-        
-        # Draw help overlay
+            self.background.draw(screen)
+
+        top = ui.header(screen, "BASE CONSTRUCTION", subtitle=base.name if base is not None else None)
+        footer_top = ui.footer(screen, self._footer_hint(base))
+        self.panel_overflows = False
+
+        if base is None:
+            self.tab_rects = []
+            self._draw_empty(ui, screen, top, footer_top)
+        else:
+            top = self._draw_tabs(ui, screen, top)
+            self._draw_panels(ui, screen, base, top, footer_top)
+
         if self.show_help:
-            self._draw_help_overlay(screen)
-    
-    def _draw_ui_panels(self, screen):
-        """Draw UI panels for base management."""
-        if not pygame.font.get_init():
-            return
-        
-        screen_rect = screen.get_rect()
-        
-        # Main info panel (left side)
-        if self.show_base_info:
-            self._draw_base_info_panel(screen)
-        
-        # Tab system (top)
-        self._draw_tab_bar(screen)
-        
-        # Content based on selected tab
-        if self.selected_tab == "construction":
-            # Construction interface is handled by construction_system
-            pass
-        elif self.selected_tab == "production":
-            self._draw_production_panel(screen)
-        elif self.selected_tab == "management":
-            self._draw_management_panel(screen)
-        
-        # Status bar (bottom)
-        self._draw_status_bar(screen)
-    
-    def _draw_base_info_panel(self, screen):
-        """Draw base information panel."""
-        if not self.base_id:
-            return
-        
-        base = base_manager.get_base(self.base_id)
-        if not base:
-            return
-        
-        panel_width = 250
-        panel_height = 300
-        panel_x = 10
-        panel_y = 60
-        
-        # Panel background
-        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
-        pygame.draw.rect(screen, (40, 40, 60), panel_rect)
-        pygame.draw.rect(screen, (100, 100, 120), panel_rect, 2)
-        
-        font = pygame.font.Font(None, 20)
-        small_font = pygame.font.Font(None, 16)
-        
-        y_offset = panel_y + 10
-        
-        # Base name
-        name_text = font.render(base.name, True, (255, 255, 255))
-        screen.blit(name_text, (panel_x + 10, y_offset))
-        y_offset += 25
-        
-        # Position
-        pos_text = small_font.render(f"Position: ({base.position.x:.0f}, {base.position.y:.0f})", 
-                                   True, (200, 200, 200))
-        screen.blit(pos_text, (panel_x + 10, y_offset))
-        y_offset += 20
-        
-        # Power status
-        power_color = (0, 255, 0) if base.power_generation >= base.power_consumption else (255, 255, 0)
-        power_text = small_font.render(f"Power: {base.power_generation}/{base.power_consumption}", 
-                                     True, power_color)
-        screen.blit(power_text, (panel_x + 10, y_offset))
-        y_offset += 15
-        
-        # Power bar
-        bar_width = panel_width - 20
-        bar_height = 8
-        bar_rect = pygame.Rect(panel_x + 10, y_offset, bar_width, bar_height)
-        pygame.draw.rect(screen, (60, 60, 60), bar_rect)
-        
-        if base.power_consumption > 0:
-            power_ratio = min(1.0, base.power_generation / base.power_consumption)
-            fill_width = int(bar_width * power_ratio)
-            fill_rect = pygame.Rect(panel_x + 10, y_offset, fill_width, bar_height)
-            fill_color = (0, 255, 0) if power_ratio >= 1.0 else (255, 255, 0)
-            pygame.draw.rect(screen, fill_color, fill_rect)
-        
-        y_offset += 20
-        
-        # Crew status
-        crew_text = small_font.render(f"Crew: {base.crew_count}/{base.crew_capacity}", 
-                                    True, (200, 200, 200))
-        screen.blit(crew_text, (panel_x + 10, y_offset))
-        y_offset += 20
-        
-        # Module count
-        unique_modules = set(base.modules.values())
-        module_text = small_font.render(f"Modules: {len(unique_modules)}", 
-                                      True, (200, 200, 200))
-        screen.blit(module_text, (panel_x + 10, y_offset))
-        y_offset += 20
-        
-        # Defense rating
-        defense_text = small_font.render(f"Defense: {base.defense_rating}", 
-                                       True, (200, 200, 200))
-        screen.blit(defense_text, (panel_x + 10, y_offset))
-        y_offset += 20
-        
-        # Resources (top 5)
-        y_offset += 10
-        resources_title = small_font.render("Resources:", True, (255, 255, 255))
-        screen.blit(resources_title, (panel_x + 10, y_offset))
-        y_offset += 15
-        
-        sorted_resources = sorted(base.stored_resources.items(), 
-                                key=lambda x: x[1], reverse=True)[:5]
-        
-        for resource, amount in sorted_resources:
-            if y_offset < panel_y + panel_height - 20:
-                res_text = small_font.render(f"  {resource}: {amount}", 
-                                           True, (180, 180, 180))
-                screen.blit(res_text, (panel_x + 15, y_offset))
-                y_offset += 15
-    
-    def _draw_tab_bar(self, screen):
-        """Draw tab bar for different interfaces."""
-        tab_width = 120
-        tab_height = 30
-        tab_y = 10
-        start_x = (screen.get_width() - 3 * tab_width) // 2
-        
-        tabs = [
-            ("construction", "Construction"),
-            ("production", "Production"),
-            ("management", "Management")
-        ]
-        
-        font = pygame.font.Font(None, 20)
-        
-        for i, (tab_id, tab_name) in enumerate(tabs):
-            tab_x = start_x + i * tab_width
-            tab_rect = pygame.Rect(tab_x, tab_y, tab_width, tab_height)
-            
-            # Tab background
-            if self.selected_tab == tab_id:
-                pygame.draw.rect(screen, (80, 80, 100), tab_rect)
-                text_color = (255, 255, 255)
-            else:
-                pygame.draw.rect(screen, (60, 60, 80), tab_rect)
-                text_color = (200, 200, 200)
-            
-            pygame.draw.rect(screen, (100, 100, 120), tab_rect, 1)
-            
-            # Tab text
-            text = font.render(tab_name, True, text_color)
-            text_rect = text.get_rect(center=tab_rect.center)
-            screen.blit(text, text_rect)
-    
-    def _draw_production_panel(self, screen):
-        """Draw production information panel."""
-        if not self.base_id:
-            return
-        
-        base = base_manager.get_base(self.base_id)
-        if not base:
-            return
-        
-        panel_width = 400
-        panel_height = 350
-        panel_x = screen.get_width() - panel_width - 10
-        panel_y = 60
-        
-        # Panel background
-        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
-        pygame.draw.rect(screen, (40, 40, 60), panel_rect)
-        pygame.draw.rect(screen, (100, 100, 120), panel_rect, 2)
-        
-        font = pygame.font.Font(None, 18)
-        
-        y_offset = panel_y + 10
-        
-        # Title
-        title_text = font.render("Production Status", True, (255, 255, 255))
-        screen.blit(title_text, (panel_x + 10, y_offset))
-        y_offset += 25
-        
-        # Get production status
-        status = self.production_system.get_production_status(base)
-        
-        # Summary
-        summary_text = font.render(f"Active: {status['active_productions']}  "
-                                 f"Idle: {status['idle_modules']}", 
-                                 True, (200, 200, 200))
-        screen.blit(summary_text, (panel_x + 10, y_offset))
-        y_offset += 20
-        
-        # Module details
-        for module_id, module_status in status['module_status'].items():
-            if y_offset >= panel_y + panel_height - 30:
-                break
-            
-            if module_status['status'] == 'producing':
-                progress = module_status['progress']
-                progress_text = font.render(f"Producing... {progress:.1%}", 
-                                          True, (0, 255, 0))
-                screen.blit(progress_text, (panel_x + 10, y_offset))
-                
-                # Progress bar
-                bar_width = panel_width - 20
-                bar_height = 6
-                bar_rect = pygame.Rect(panel_x + 10, y_offset + 15, bar_width, bar_height)
-                pygame.draw.rect(screen, (60, 60, 60), bar_rect)
-                
-                fill_width = int(bar_width * progress)
-                fill_rect = pygame.Rect(panel_x + 10, y_offset + 15, fill_width, bar_height)
-                pygame.draw.rect(screen, (0, 255, 0), fill_rect)
-                
-                y_offset += 30
-            else:
-                idle_text = font.render("Idle", True, (255, 255, 0))
-                screen.blit(idle_text, (panel_x + 10, y_offset))
-                y_offset += 20
-    
-    def _draw_management_panel(self, screen):
-        """Draw base management panel."""
-        if not self.base_id:
-            return
-        
-        base = base_manager.get_base(self.base_id)
-        if not base:
-            return
-        
-        panel_width = 350
-        panel_height = 300
-        panel_x = screen.get_width() - panel_width - 10
-        panel_y = 60
-        
-        # Panel background
-        panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
-        pygame.draw.rect(screen, (40, 40, 60), panel_rect)
-        pygame.draw.rect(screen, (100, 100, 120), panel_rect, 2)
-        
-        font = pygame.font.Font(None, 18)
-        
-        y_offset = panel_y + 10
-        
-        # Title
-        title_text = font.render("Base Management", True, (255, 255, 255))
-        screen.blit(title_text, (panel_x + 10, y_offset))
-        y_offset += 25
-        
-        # Get optimization suggestions
-        suggestions = self.production_system.optimize_production_chain(base)
-        
-        if suggestions:
-            suggestions_title = font.render("Optimization Suggestions:", True, (255, 255, 200))
-            screen.blit(suggestions_title, (panel_x + 10, y_offset))
-            y_offset += 20
-            
-            for suggestion in suggestions[:8]:  # Show max 8 suggestions
-                if y_offset >= panel_y + panel_height - 30:
-                    break
-                
-                # Wrap long suggestions
-                if len(suggestion) > 45:
-                    suggestion = suggestion[:42] + "..."
-                
-                sugg_text = font.render(f"- {suggestion}", True, (200, 200, 200))
-                screen.blit(sugg_text, (panel_x + 15, y_offset))
-                y_offset += 15
-        else:
-            no_sugg_text = font.render("Base is operating efficiently!", 
-                                     True, (0, 255, 0))
-            screen.blit(no_sugg_text, (panel_x + 10, y_offset))
-    
-    def _draw_status_bar(self, screen):
-        """Draw status bar at bottom of screen."""
-        status_height = 30
-        status_y = screen.get_height() - status_height
-        status_rect = pygame.Rect(0, status_y, screen.get_width(), status_height)
-        
-        pygame.draw.rect(screen, (30, 30, 50), status_rect)
-        pygame.draw.line(screen, (100, 100, 120), 
-                        (0, status_y), (screen.get_width(), status_y), 1)
-        
-        font = pygame.font.Font(None, 18)
-        
-        # Construction mode info
+            self._draw_help(ui, screen)
+
+    def _footer_hint(self, base):
+        if base is None:
+            return "ESC: back"
+        return "Q / W / E or click: tab  |  F1: help  |  F2: base panel  |  TAB: grid  |  1-7: module  |  ESC: leave"
+
+    def _draw_world(self, ui, screen):
+        """The base and the construction grid, drawn in points at the current
+        zoom and scaled to the screen behind the panels."""
+        view = self._view_points() / self.zoom_level
+        size = (max(1, int(view.x)), max(1, int(view.y)))
+        if self._world is None or self._world.get_size() != size:
+            self._world = pygame.Surface(size)
+        world = self._world
+        world.fill((14, 16, 30))
+
+        camera_offset = self._camera_offset()
+        base_manager.draw(world, camera_offset, self._ship_position())
         if self.construction_system.is_construction_active:
-            mode_text = f"Mode: {self.construction_system.construction_mode.value.title()}"
-            if self.construction_system.construction_mode == ConstructionMode.PLACE:
-                module_name = self.construction_system.selected_module_type.value.replace('_', ' ').title()
-                mode_text += f" - {module_name}"
-            
-            mode_surface = font.render(mode_text, True, (255, 255, 255))
-            screen.blit(mode_surface, (10, status_y + 8))
-        
-        # Controls hint
-        controls_text = "F1: Help  Tab: Toggle Grid  ESC: Exit  1-7: Module Types"
-        controls_surface = font.render(controls_text, True, (150, 150, 150))
-        controls_rect = controls_surface.get_rect()
-        controls_rect.right = screen.get_width() - 10
-        controls_rect.centery = status_y + status_height // 2
-        screen.blit(controls_surface, controls_rect)
-    
-    def _draw_help_overlay(self, screen):
-        """Draw help overlay."""
-        overlay_width = 500
-        overlay_height = 400
-        overlay_x = (screen.get_width() - overlay_width) // 2
-        overlay_y = (screen.get_height() - overlay_height) // 2
-        
-        overlay_rect = pygame.Rect(overlay_x, overlay_y, overlay_width, overlay_height)
-        
-        # Semi-transparent background
-        overlay_surface = pygame.Surface((screen.get_width(), screen.get_height()))
-        overlay_surface.set_alpha(128)
-        overlay_surface.fill((0, 0, 0))
-        screen.blit(overlay_surface, (0, 0))
-        
-        # Help panel
-        pygame.draw.rect(screen, (40, 40, 60), overlay_rect)
-        pygame.draw.rect(screen, (100, 100, 120), overlay_rect, 3)
-        
-        font = pygame.font.Font(None, 20)
-        small_font = pygame.font.Font(None, 16)
-        
-        y_offset = overlay_y + 20
-        
-        # Title
-        title_text = font.render("Base Construction Help", True, (255, 255, 255))
-        title_rect = title_text.get_rect(centerx=overlay_rect.centerx)
-        title_rect.y = y_offset
-        screen.blit(title_text, title_rect)
-        y_offset += 40
-        
-        # Help sections
-        help_sections = [
-            ("Construction Controls:", [
-                "1-7: Select module type",
-                "Left Click: Place/Remove module",
-                "Right Click: Cancel construction",
-                "P: Place mode",
-                "R: Remove mode",
-                "Tab: Toggle grid"
-            ]),
-            ("Module Types:", [
-                "1: Habitat (crew quarters)",
-                "2: Power Generator",
-                "3: Storage (resource storage)",
-                "4: Refinery (process materials)",
-                "5: Factory (advanced production)",
-                "6: Turret (defense)",
-                "7: Trade Hub (trading)"
-            ]),
-            ("Tips:", [
-                "Build power generators first",
-                "Connect modules with power grid",
-                "Monitor resource flows",
-                "Plan production chains"
-            ])
+            self.construction_system.draw_world(world, camera_offset)
+
+        if world.get_size() == screen.get_size():
+            screen.blit(world, (0, 0))
+        else:
+            pygame.transform.smoothscale(world, screen.get_size(), screen)
+
+    def _draw_empty(self, ui, screen, top, footer_top):
+        width = min(ui.content_width(), ui.px(760))
+        lines = [
+            ("No base to build on", "heading", ACCENT_GOLD),
+            ("Base construction is still being connected to the rest of the game, and nothing in a run creates a base yet.", "body", TEXT_PRIMARY),
+            ("Claimed outposts earn credits, but they are separate from this screen for now.", "body", TEXT_DIM),
         ]
-        
-        for section_title, items in help_sections:
-            if y_offset >= overlay_y + overlay_height - 40:
-                break
-            
-            section_text = font.render(section_title, True, (255, 255, 200))
-            screen.blit(section_text, (overlay_x + 20, y_offset))
-            y_offset += 25
-            
-            for item in items:
-                if y_offset >= overlay_y + overlay_height - 40:
-                    break
-                
-                item_text = small_font.render(f"  - {item}", True, (200, 200, 200))
-                screen.blit(item_text, (overlay_x + 30, y_offset))
-                y_offset += 18
-            
-            y_offset += 10
-        
-        # Close instruction
-        close_text = small_font.render("Press F1 again to close", True, (150, 150, 150))
-        close_rect = close_text.get_rect(centerx=overlay_rect.centerx)
-        close_rect.bottom = overlay_rect.bottom - 10
-        screen.blit(close_text, close_rect)
-    
+        inner = width - ui.px(48)
+        wrapped = []
+        for text, role, color in lines:
+            wrapped += [(line, role, color) for line in ui.wrap(text, role, inner)]
+            wrapped.append(("", "gap", color))
+        height = sum(ui.px(10) if role == "gap" else ui.line_height(role) for _, role, _ in wrapped) + ui.px(48)
+        panel = pygame.Rect(0, 0, width, height)
+        panel.center = (ui.width // 2, (top + footer_top) // 2)
+        ui.panel(screen, panel)
+        y = panel.top + ui.px(24)
+        for line, role, color in wrapped:
+            if role == "gap":
+                y += ui.px(10)
+                continue
+            y = ui.text(screen, line, role, color, topleft=(panel.left + ui.px(24), y)).bottom
+
+    def _draw_tabs(self, ui, screen, top) -> int:
+        font = ui.font("heading")
+        x = ui.margin()
+        self.tab_rects = []
+        for tab_id, name in TABS:
+            selected = tab_id == self.selected_tab
+            surface = font.render(name, True, ACCENT_GOLD if selected else TEXT_DIM)
+            rect = surface.get_rect(topleft=(x, top))
+            screen.blit(surface, rect)
+            self.tab_rects.append(rect.inflate(ui.px(16), ui.px(8)))
+            if selected:
+                pygame.draw.line(screen, ACCENT_GOLD, (rect.left, rect.bottom + ui.px(2)),
+                                 (rect.right, rect.bottom + ui.px(2)), max(1, ui.px(2)))
+            x = rect.right + ui.px(34)
+        return top + font.get_linesize() + ui.px(14)
+
+    def _draw_panels(self, ui, screen, base, top, bottom):
+        bottom = max(top + ui.px(80), bottom)
+        side = min(ui.px(420), ui.width // 3)
+        margin = ui.margin()
+
+        if self.show_base_info:
+            info = pygame.Rect(margin, top, side, bottom - top)
+            ui.panel(screen, info)
+            self._draw_base_info(ui, screen, base, info.inflate(-ui.px(28), -ui.px(24)))
+
+        panel = pygame.Rect(ui.width - margin - side, top, side, bottom - top)
+        ui.panel(screen, panel)
+        area = panel.inflate(-ui.px(28), -ui.px(24))
+        if self.selected_tab == "construction":
+            self._draw_construction(ui, screen, area)
+        elif self.selected_tab == "production":
+            self._draw_production(ui, screen, base, area)
+        else:
+            self._draw_management(ui, screen, base, area)
+
+    # A small vertical layout for the panels. Each item is
+    # ("title", text), ("kv", label, value, color), ("text", text, color), ("bar", fraction, color),
+    # ("gap",). It stops, with an ellipsis, at the bottom of the area.
+
+    def _draw_items(self, ui, screen, area, items, wrap_role="small") -> bool:
+        y = area.top
+        row = ui.line_height("small") + ui.px(3)
+        for item in items:
+            kind = item[0]
+            if kind == "gap":
+                y += ui.px(8)
+                continue
+            if kind == "title":
+                need = ui.line_height("body") + ui.px(6)
+            elif kind == "bar":
+                need = ui.px(14)
+            else:
+                need = row
+            if y + need > area.bottom:
+                ui.text(screen, "...", "small", TEXT_DIM, topleft=(area.left, max(area.top, area.bottom - row)))
+                return True
+            if kind == "title":
+                rect = ui.text(screen, item[1], "body", ACCENT_GOLD, max_width=area.width, topleft=(area.left, y))
+                y = rect.bottom + ui.px(6)
+            elif kind == "kv":
+                _, label, value, color = item
+                value_rect = ui.text(screen, str(value), "small", color, max_width=area.width // 2,
+                                     topright=(area.right, y))
+                ui.text(screen, label, "small", TEXT_DIM, max_width=area.width - value_rect.width - ui.px(10),
+                        topleft=(area.left, y))
+                y += row
+            elif kind == "bar":
+                _, fraction, color = item
+                trough = pygame.Rect(area.left, y + ui.px(2), area.width, ui.px(8))
+                pygame.draw.rect(screen, (40, 46, 66), trough, border_radius=ui.px(3))
+                fill = trough.copy()
+                fill.width = int(trough.width * max(0.0, min(1.0, fraction)))
+                if fill.width:
+                    pygame.draw.rect(screen, color, fill, border_radius=ui.px(3))
+                y += need
+            else:                                                   # text, wrapped
+                _, text, color = item
+                for line in ui.wrap(text, wrap_role, area.width):
+                    if y + row > area.bottom:
+                        ui.text(screen, "...", "small", TEXT_DIM,
+                                topleft=(area.left, max(area.top, area.bottom - row)))
+                        return True
+                    ui.text(screen, line, wrap_role, color, topleft=(area.left, y))
+                    y += row
+        return False
+
+    def _draw_base_info(self, ui, screen, base, area):
+        generation, consumption = base.power_generation, base.power_consumption
+        powered = generation >= consumption
+        items = [
+            ("title", base.name),
+            ("kv", "Position", f"({base.position.x:.0f}, {base.position.y:.0f})", TEXT_PRIMARY),
+            ("kv", "Power", f"{generation} / {consumption}", GOOD if powered else WARN),
+        ]
+        if consumption > 0:
+            items.append(("bar", min(1.0, generation / consumption), GOOD if powered else WARN))
+        items += [
+            ("kv", "Crew", f"{base.crew_count} / {base.crew_capacity}", TEXT_PRIMARY),
+            ("kv", "Modules", len(set(base.modules.values())), TEXT_PRIMARY),
+            ("kv", "Defense", base.defense_rating, TEXT_PRIMARY),
+            ("gap",),
+            ("title", "Resources"),
+        ]
+        resources = sorted(base.stored_resources.items(), key=lambda entry: entry[1], reverse=True)[:6]
+        if resources:
+            items += [("kv", name, amount, TEXT_PRIMARY) for name, amount in resources]
+        else:
+            items.append(("text", "Nothing stored yet.", TEXT_DIM))
+        self.panel_overflows |= self._draw_items(ui, screen, area, items)
+
+    def _draw_construction(self, ui, screen, area):
+        system = self.construction_system
+        items = [("title", "Construction"),
+                 ("kv", "Mode", system.construction_mode.value.title(), TEXT_PRIMARY)]
+        if system.construction_mode == ConstructionMode.PLACE:
+            info = system.get_construction_info()
+            name = system.selected_module_type.value.replace("_", " ").title()
+            affordable = info.get("can_afford", False)
+            items += [("gap",), ("title", name), ("text", "Cost", TEXT_DIM)]
+            for resource, amount in info.get("cost", {}).items():
+                items.append(("kv", f"  {resource}", amount, GOOD if affordable else BAD))
+            items += [("gap",), ("text", "Gives", TEXT_DIM)]
+            for label, key in (("Power generated", "power_generation"), ("Power used", "power_consumption"),
+                               ("Storage", "storage_capacity"), ("Crew", "crew_capacity"),
+                               ("Defense", "defense_rating")):
+                if info.get(key, 0) > 0:
+                    items.append(("kv", f"  {label}", info[key], TEXT_PRIMARY))
+        elif system.construction_mode == ConstructionMode.REMOVE:
+            items += [("gap",), ("text", "Click a module to remove it.", TEXT_PRIMARY)]
+        items += [("gap",), ("text", "Left click: build or remove.  P: place.  R: remove.  1-7: module type.", TEXT_DIM)]
+        self.panel_overflows |= self._draw_items(ui, screen, area, items)
+
+    def _draw_production(self, ui, screen, base, area):
+        status = self.production_system.get_production_status(base)
+        items = [("title", "Production"),
+                 ("kv", "Active", status["active_productions"], GOOD),
+                 ("kv", "Idle", status["idle_modules"], WARN), ("gap",)]
+        if not status["module_status"]:
+            items.append(("text", "No production modules yet. Build a refinery or a factory.", TEXT_DIM))
+        for number, module_status in enumerate(status["module_status"].values(), 1):
+            if module_status["status"] == "producing":
+                progress = module_status["progress"]
+                items += [("kv", f"Module {number}", f"Producing {progress:.0%}", GOOD), ("bar", progress, GOOD)]
+            else:
+                items.append(("kv", f"Module {number}", "Idle", WARN))
+        self.panel_overflows |= self._draw_items(ui, screen, area, items)
+
+    def _draw_management(self, ui, screen, base, area):
+        items = [("title", "Management")]
+        suggestions = self.production_system.optimize_production_chain(base)
+        if suggestions:
+            items.append(("text", "Suggestions", TEXT_DIM))
+            items += [("text", f"- {suggestion}", TEXT_PRIMARY) for suggestion in suggestions[:8]]
+        else:
+            items.append(("text", "Base is operating efficiently.", GOOD))
+        self.panel_overflows |= self._draw_items(ui, screen, area, items)
+
+    def _draw_help(self, ui, screen):
+        veil = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        veil.fill((0, 0, 0, 150))
+        screen.blit(veil, (0, 0))
+
+        width = min(ui.width - 2 * ui.margin(), ui.px(760))
+        height = min(ui.height - 2 * ui.margin(), ui.px(640))
+        panel = pygame.Rect(0, 0, width, height)
+        panel.center = (ui.width // 2, ui.height // 2)
+        ui.panel(screen, panel, border=ACCENT_GOLD, alpha=235)
+        ui.text(screen, "Base construction help", "heading", TEXT_PRIMARY, midtop=(panel.centerx, panel.top + ui.px(14)))
+
+        area = pygame.Rect(panel.left + ui.px(24), panel.top + ui.px(64), width - ui.px(48), height - ui.px(100))
+        items = []
+        for title, lines in HELP_SECTIONS:
+            items.append(("title", title))
+            items += [("text", line, TEXT_PRIMARY) for line in lines]
+            items.append(("gap",))
+        self.help_overflows = self._draw_items(ui, screen, area, items)
+        ui.text(screen, "F1 or ESC: close", "small", TEXT_DIM, midbottom=(panel.centerx, panel.bottom - ui.px(10)))
+
+    # Input ------------------------------------------------------------------------------
+
+    def _leave(self):
+        self.construction_system.deactivate_construction()
+        self.game.change_state(self.previous_state)
+
     def handle_input(self, event):
         """Handle input events."""
-        # Let construction system handle input first
-        if self.construction_system.handle_input(event):
+        # Leaving and the tabs come first, so a click on a tab never builds
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            if self.show_help:
+                self.show_help = False
+            else:
+                self._leave()
             return
-        
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.show_help:
+            if self._handle_tab_click(event.pos):
+                return
+
+        # Then the construction system
+        if not self.show_help and self.construction_system.handle_input(event):
+            return
+
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                # Return to previous state
-                self.construction_system.deactivate_construction()
-                self.game.change_state(self.previous_state)
-            
-            elif event.key == pygame.K_F1:
+            if event.key == pygame.K_F1:
                 self.show_help = not self.show_help
-            
             elif event.key == pygame.K_F2:
                 self.show_base_info = not self.show_base_info
-            
-            elif event.key == pygame.K_F3:
-                self.show_production_info = not self.show_production_info
-            
-            # Tab switching
             elif event.key == pygame.K_q:
                 self.selected_tab = "construction"
             elif event.key == pygame.K_w:
                 self.selected_tab = "production"
             elif event.key == pygame.K_e:
                 self.selected_tab = "management"
-        
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Left click
-                # Check if clicking on tabs
-                mouse_pos = pygame.mouse.get_pos()
-                if self._handle_tab_click(mouse_pos):
-                    return
-        
+
         elif event.type == pygame.MOUSEWHEEL:
-            # Zoom control
             zoom_factor = 1.1 if event.y > 0 else 1.0 / 1.1
             self.zoom_level = max(self.min_zoom, min(self.max_zoom, self.zoom_level * zoom_factor))
-    
-    def _handle_tab_click(self, mouse_pos):
-        """Handle clicks on tab bar."""
-        tab_width = 120
-        tab_height = 30
-        tab_y = 10
-        start_x = (self.game.screen.get_width() - 3 * tab_width) // 2
-        
-        tabs = ["construction", "production", "management"]
-        
-        for i, tab_id in enumerate(tabs):
-            tab_x = start_x + i * tab_width
-            tab_rect = pygame.Rect(tab_x, tab_y, tab_width, tab_height)
-            
-            if tab_rect.collidepoint(mouse_pos):
+
+    def _handle_tab_click(self, pos) -> bool:
+        """Handle a click on the tab row (pos is in window points)."""
+        point = self._ui.to_px(pos)
+        for (tab_id, _), rect in zip(TABS, self.tab_rects):
+            if rect.collidepoint(point):
                 self.selected_tab = tab_id
                 return True
-        
         return False
