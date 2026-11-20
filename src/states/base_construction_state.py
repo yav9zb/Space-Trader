@@ -44,7 +44,7 @@ BAD = (255, 120, 120)
 
 HELP_SECTIONS = [
     ("Building", [
-        "1-5 or click the list: choose a module",
+        f"1-{len(BUILDABLE)} or click the list: choose a module",
         "Click the grid: build it there (credits from your ship, goods from the base)",
         "R: remove mode (refunds half)   P: place mode",
         "TAB: show or hide the grid   Mouse wheel: zoom",
@@ -52,6 +52,12 @@ HELP_SECTIONS = [
     ("Supplying", [
         "Modules need goods from the base's own storage, so haul them here",
         "Storage tab: RIGHT or ENTER deposits, LEFT withdraws (hold SHIFT for all)",
+    ]),
+    ("Defending", [
+        "Pirates raid bases that have something built, every ten minutes or so",
+        "Turrets shoot raiders; each working one stands against a share of a raid",
+        "A raid that gets through knocks modules out and steals goods; they mend afterwards",
+        "Raiders that find you near the base fight you too",
     ]),
     ("Running it", [
         "Modules take time to build, and need power from generators",
@@ -184,7 +190,7 @@ class BaseConstructionState(State):
 
     def _footer_hint(self):
         if self.selected_tab == "build":
-            return "1-5: module  |  click the grid: build  |  R: remove  |  TAB: grid  |  Q / W / E: tabs  |  F1: help  |  ESC: leave"
+            return f"1-{len(BUILDABLE)}: module  |  click the grid: build  |  R: remove  |  TAB: grid  |  Q / W / E: tabs  |  F1: help  |  ESC: leave"
         if self.selected_tab == "storage":
             return "UP / DOWN: goods  |  RIGHT: deposit  |  LEFT: withdraw  |  SHIFT: all  |  Q / W / E: tabs  |  ESC: leave"
         return "Q / W / E: tabs  |  F1: help  |  ESC: leave"
@@ -379,6 +385,7 @@ class BaseConstructionState(State):
             ("kv", "Storage", f"{used} / {capacity}", WARN if capacity and used >= capacity else TEXT_PRIMARY),
             ("bar", used / capacity if capacity else 0.0, ACCENT_BLUE),
             ("kv", "Modules", len(base.unique_modules()), TEXT_PRIMARY),
+            *self._defense_items(base),
             ("kv", "Your credits", f"{self._credits():,}", TEXT_PRIMARY),
             ("gap",), ("title", "In storage"),
         ]
@@ -388,6 +395,20 @@ class BaseConstructionState(State):
         else:
             items.append(("text", "Nothing stored yet.", TEXT_DIM))
         self.panel_overflows |= self._draw_items(ui, screen, area, items)
+
+    def _defense_items(self, base):
+        from ..base_building import raids
+        threat = raids.threat_of(raids.raid_roster(raids.raid_level(base)))
+        rating = base.defense_rating()
+        items = []
+        if base.under_attack:
+            items.append(("text", "UNDER ATTACK", BAD))
+        items.append(("kv", "Turrets", f"{len(base.working_turrets())} / {len(base.turrets())}", TEXT_PRIMARY))
+        items.append(("kv", "Defense", f"{rating} / {threat}", GOOD if rating >= threat else WARN))
+        knocked_out = base.wrecked_count()
+        if knocked_out:
+            items.append(("kv", "Knocked out", knocked_out, BAD))
+        return items
 
     # Build --------------------------------------------------------------------------------------------------------------
 

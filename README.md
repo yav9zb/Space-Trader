@@ -53,6 +53,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Found a Base**: press B in open space (away from stations, with 4,000 credits) to found a base. It starts with a command center and a small starter kit
 - **Build It Up**: pay for power generators, storage, mining facilities, refineries and factories with your credits plus goods you haul to the base. Modules take time to build and need power
 - **It Runs Itself**: mining makes metal ore, a refinery turns ore into electronics, a factory turns electronics and ore into machinery, all while you fly. Collect the goods from the Storage tab and sell them at a station
+- **Raids and Turrets**: pirates raid bases that have something built, and bigger bases draw bigger raids. Build turrets to shoot them down; a raid that gets through steals goods and knocks modules out until they mend. Fly in to help, or let the turrets handle it while you are away
 - **Saved With The Game**: up to three bases, shown on the radar
 
 #### Difficulty & Accessibility

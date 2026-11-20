@@ -61,7 +61,7 @@ class Projectile:
         owner = self.owner
         if hasattr(owner, "cargo_hold"):
             return (60, 170, 255), (220, 245, 255)
-        if hasattr(owner, "faction"):          # patrols (bandits have no faction)
+        if hasattr(owner, "faction") or getattr(owner, "friendly", False):   # patrols, base turrets
             return (70, 220, 120), (225, 255, 235)
         return (230, 60, 40), (255, 215, 190)
 

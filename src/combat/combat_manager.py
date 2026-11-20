@@ -94,6 +94,9 @@ class CombatManager:
                 continue
             self._check_patrol_combat(patrol, ship, game_engine)
 
+        # The player's bases: raids come, and the turrets shoot the raiders
+        self._update_base_defenses(delta_time, ship)
+
         # Update explosions
         self._update_explosions(delta_time)
         from ..ui.floating_text import floating_texts
@@ -199,7 +202,10 @@ class CombatManager:
         """Check bandit combat interactions."""
         # Check bandit weapon hits on the player and on escorted traders
         escorted = [t for t in self.active_traders if t.escort_id and t.alive]
-        hits = bandit.weapon_system.check_hits([ship] + escorted + self.active_patrols)
+        targets = [ship] + escorted + self.active_patrols
+        if bandit.raid_base is not None and bandit.weapon_system.projectiles:
+            targets += bandit.raid_base.hit_targets()          # a raider's shots land on the base
+        hits = bandit.weapon_system.check_hits(targets)
         for projectile, target in hits:
             damage = projectile.damage
             if target is ship:
@@ -228,6 +234,16 @@ class CombatManager:
             ship.velocity += separation_vec * 100
             bandit.velocity -= separation_vec * 50
     
+    def _update_base_defenses(self, delta_time: float, ship):
+        """Raids and base turrets. Turret kills pay nothing: the base is not the player."""
+        from ..base_building.base_manager import base_manager
+        if not base_manager.bases:
+            return
+        now = pygame.time.get_ticks() / 1000.0
+        for projectile, bandit in base_manager.update_defense(delta_time, ship.position, self, now):
+            if bandit.take_damage(projectile.damage):
+                self._create_explosion(bandit.position, bandit.base_size * 2)
+
     def _check_patrol_combat(self, patrol: PatrolShip, ship, game_engine):
         """Patrol fire hits bandits (never bounty targets, which are the
         player's to collect) and, when the patrol is hostile, the player."""

@@ -227,6 +227,9 @@ class PlayingState(State):
         from ..base_building.base_manager import base_manager
         base_manager.update(delta_time, self.game.ship.position)
         self._announce_base_in_range(base_manager)
+        for text, color in base_manager.pop_events():
+            from ..ui.notifications import notifications
+            notifications.push(text, duration=7.0, color=color)
         
         # Update docking system
         self.game.docking_manager.update(

@@ -2,6 +2,13 @@
 
 ## Beta 25
 
+### Added
+- **Raids, and turrets to stop them.** Pirates now come for a base that has something built, every ten to fifteen minutes. Bigger bases draw bigger raids, from two scouts up to a boss with escorts.
+  - If you are near, the raiders are real ships: they fly in, aim at the base, and shoot its modules. Anything knocked out stops working (a generator stops powering, storage stops holding) and mends by itself once the shooting stops. Raiders that find you close to the base fight you too, and they do not run when hurt.
+  - **Turret** (key 6 in the build list, 2,500 credits plus 2 machinery and 2 electronics): a base turret that shoots raiders in range, leading moving ships. It needs power (at least half of full power to fire). Turrets do not pay a bounty, count toward your kills or touch bounty targets, which stay yours to collect.
+  - If you are away, the raid is settled on numbers: each working turret stands against a share of the raid. Enough turrets and nothing is lost; too few and goods are stolen (up to 30 percent of each stock) and modules are knocked out. Fly far away in the middle of a raid and the rest of it is settled the same way. Raiders that have not won after four minutes give up.
+  - The base screen shows your turrets, your defense against the next raid's strength, and anything knocked out, with an UNDER ATTACK line during a raid. You are told when a raid starts and how it ended. Raid countdowns and module damage are saved.
+
 ### Fixed
 - **A base factory lost money.** It turned 2 electronics and 1 metal ore (worth 700) into 1 machinery (worth 400). It now makes 2 machinery from the same inputs. A test now checks that no recipe makes goods worth less than it uses.
 - **Boxes behind text on Retina Macs.** The sharp-pixel path scaled the world onto a surface whose transparency was left at zero, and text drawn over it then took its own colour for the whole rectangle around each letter instead of blending. Headings, tabs and key hints over the world could show a pale box behind them. The surface is now made opaque after the world is scaled onto it, in the flight path and in the base screen.

@@ -7,11 +7,15 @@ draw power, and the production modules turn goods into other goods on their own.
 Goods are the game's real commodities, keyed by commodity id.
 """
 
+import math
+
 import pygame
 from pygame import Vector2
 from enum import Enum
 from typing import Dict, List, Optional
 from dataclasses import dataclass, field
+
+from ..combat.weapons import WeaponSystem, create_weapon
 
 
 class ModuleType(Enum):
@@ -22,6 +26,7 @@ class ModuleType(Enum):
     MINING_FACILITY = "mining_facility"
     REFINERY = "refinery"
     FACTORY = "factory"
+    TURRET = "turret"
 
 
 # What the player can build, in the order of the number keys
@@ -31,12 +36,39 @@ BUILDABLE = [
     ModuleType.MINING_FACILITY,
     ModuleType.REFINERY,
     ModuleType.FACTORY,
+    ModuleType.TURRET,
 ]
 
 CORE_POWER = 60            # the command center runs on its own reactor
 GRID_SIZE = 50             # pixels per grid cell
 MAX_GRID = 20              # the grid is 20 x 20 cells around the command center
 MAX_CYCLES_PER_UPDATE = 500
+
+TURRET_RANGE = 900.0       # how far a turret shoots
+TURRET_DEFENSE = 200       # what one working turret is worth against a raid (see raids.py)
+TURRET_MIN_POWER = 0.5     # a turret needs at least this share of full power to fire
+REPAIR_RATE = 0.01         # share of its hull a module mends per second, when no raid is on
+RESTORE_AT = 0.5           # a knocked-out module works again once it is mended this far
+
+
+class Shooter:
+    """What a turret's shots belong to (it is friendly, so its shots are drawn as one)."""
+    friendly = True
+
+    def __init__(self, module):
+        self.module = module
+
+
+class ModuleTarget:
+    """A module as something a raider's shots can hit: a position, a radius, and damage."""
+
+    def __init__(self, module, position: Vector2, radius: float):
+        self.module = module
+        self.position = position
+        self.size = radius
+
+    def take_damage(self, damage: float) -> bool:
+        return self.module.take_damage(damage)
 
 
 @dataclass(frozen=True)
@@ -60,6 +92,8 @@ class ModuleStats:
     size: int = 1                             # grid cells per side
     recipe: Optional[Recipe] = None
     blurb: str = ""
+    max_hull: int = 300                       # damage it takes before it is knocked out
+    weapon: str = ""                          # a turret's weapon
 
 
 class BaseModule:
@@ -68,7 +102,8 @@ class BaseModule:
     MODULE_DEFINITIONS = {
         ModuleType.COMMAND_CENTER: ModuleStats(
             label="Command Center", short="CMD", power_consumption=20, power_generation=CORE_POWER,
-            storage_capacity=40, size=2, blurb="The heart of the base. It cannot be removed."),
+            storage_capacity=40, size=2, max_hull=800,
+            blurb="The heart of the base. It cannot be removed."),
         ModuleType.POWER_GENERATOR: ModuleStats(
             label="Power Generator", short="PWR", power_generation=100,
             cost_credits=1500, cost_goods={"fuel_cells": 4}, build_time=45.0,
@@ -92,6 +127,11 @@ class BaseModule:
             cost_credits=6500, cost_goods={"metal_ore": 12, "electronics": 8}, build_time=150.0,
             recipe=Recipe({"electronics": 2, "metal_ore": 1}, {"machinery": 2}, 25.0),
             blurb="Turns 2 electronics and 1 metal ore into 2 machinery."),
+        ModuleType.TURRET: ModuleStats(
+            label="Turret", short="TUR", power_consumption=25,
+            cost_credits=2500, cost_goods={"machinery": 2, "electronics": 2}, build_time=40.0,
+            max_hull=250, weapon="basic_laser",
+            blurb="Shoots raiders. Needs power. A base with none is easy prey."),
     }
 
     COLORS = {
@@ -101,6 +141,7 @@ class BaseModule:
         ModuleType.MINING_FACILITY: (190, 120, 70),
         ModuleType.REFINERY: (255, 150, 100),
         ModuleType.FACTORY: (170, 120, 255),
+        ModuleType.TURRET: (240, 90, 90),
     }
 
     _label_cache: Dict[tuple, pygame.Surface] = {}
@@ -121,6 +162,18 @@ class BaseModule:
         self.blocked = False                       # a finished cycle with nowhere to put its goods
         self.waiting_for: Dict[str, int] = {}
 
+        # Damage: a module at no hull is knocked out until it has mended
+        self.hull = float(self.stats.max_hull)
+        self.wrecked = False
+
+        # Turrets
+        self.aim = Vector2(0, -1)
+        self.weapon_system: Optional[WeaponSystem] = None
+        if self.stats.weapon:
+            self.weapon_system = WeaponSystem()
+            self.weapon_system.add_weapon(create_weapon(self.stats.weapon))
+        self.shooter = Shooter(self)
+
     # State ------------------------------------------------------------------------------
 
     @property
@@ -131,7 +184,26 @@ class BaseModule:
 
     @property
     def is_operational(self) -> bool:
-        return self.is_constructed and self.efficiency > 0
+        return self.is_constructed and not self.wrecked and self.efficiency > 0
+
+    @property
+    def is_turret(self) -> bool:
+        return self.weapon_system is not None
+
+    def take_damage(self, damage: float) -> bool:
+        """Returns True if this blow knocked the module out."""
+        self.hull = max(0.0, self.hull - damage)
+        if self.hull <= 0 and not self.wrecked:
+            self.wrecked = True
+            return True
+        return False
+
+    def mend(self, delta_time: float) -> None:
+        """Repair a little. A knocked-out module works again once it is half mended."""
+        full = float(self.stats.max_hull)
+        self.hull = min(full, self.hull + full * REPAIR_RATE * delta_time)
+        if self.wrecked and self.hull >= full * RESTORE_AT:
+            self.wrecked = False
 
     @property
     def is_powered(self) -> bool:
@@ -139,6 +211,8 @@ class BaseModule:
 
     def update(self, delta_time: float) -> None:
         """Advance construction."""
+        if self.weapon_system is not None:
+            self.weapon_system.update(delta_time)
         if not self.is_constructed:
             self.construction_time_elapsed += delta_time
             if self.construction_time_elapsed >= self.stats.build_time:
@@ -184,6 +258,16 @@ class BaseModule:
         pygame.draw.rect(screen, tuple(min(255, int(c * 1.25)) for c in color), rect, 2)
         label = self._label()
         screen.blit(label, label.get_rect(center=rect.center))
+        if self.is_turret:
+            tip = Vector2(rect.center) + self.aim * (rect.width * 0.55)
+            pygame.draw.line(screen, (255, 210, 200), rect.center, (int(tip.x), int(tip.y)), 3)
+        if self.wrecked:
+            pygame.draw.rect(screen, (230, 70, 60), rect, 2)
+        if self.hull < self.stats.max_hull:
+            share = self.hull / self.stats.max_hull
+            pygame.draw.rect(screen, (50, 20, 20), (rect.left, rect.top - 6, rect.width, 4))
+            pygame.draw.rect(screen, (235, 90, 70) if share < 0.5 else (235, 200, 80),
+                             (rect.left, rect.top - 6, int(rect.width * share), 4))
         # Status light: green running, amber waiting or blocked, red without power
         if not self.is_operational:
             light = (255, 80, 70)
@@ -192,6 +276,22 @@ class BaseModule:
         else:
             light = (90, 235, 130)
         pygame.draw.circle(screen, light, (rect.left + 6, rect.top + 6), 3)
+
+
+class RaidFocus:
+    """What raiders aim for: the base's command center."""
+    is_raid_target = True
+
+    def __init__(self, base):
+        self.base = base
+
+    @property
+    def position(self) -> Vector2:
+        return self.base.position + Vector2(self.base.grid_size, self.base.grid_size)
+
+    @property
+    def size(self) -> float:
+        return self.base.grid_size
 
 
 class PlayerBase:
@@ -208,6 +308,11 @@ class PlayerBase:
         self.power_consumption = 0
         self.power_ratio = 1.0
         self.base_size = 100
+
+        # Raids (see raids.py): the countdown to the next one, and whether one is on now
+        self.raid_timer: Optional[float] = None
+        self.under_attack = False
+        self.focus = RaidFocus(self)
 
         core = BaseModule(ModuleType.COMMAND_CENTER, 0, 0)
         core.is_constructed = True
@@ -251,7 +356,8 @@ class PlayerBase:
 
     @property
     def storage_capacity(self) -> int:
-        return sum(m.stats.storage_capacity for m in self.unique_modules() if m.is_constructed)
+        return sum(m.stats.storage_capacity for m in self.unique_modules()
+                   if m.is_constructed and not m.wrecked)
 
     @property
     def used_capacity(self) -> int:
@@ -344,9 +450,11 @@ class PlayerBase:
         modules = self.unique_modules()
         for module in modules:
             module.update(delta_time)
+            if not self.under_attack and delta_time > 0 and (module.hull < module.stats.max_hull):
+                module.mend(delta_time)
 
-        self.power_generation = sum(m.stats.power_generation for m in modules if m.is_constructed)
-        self.power_consumption = sum(m.stats.power_consumption for m in modules if m.is_constructed)
+        self.power_generation = sum(m.stats.power_generation for m in modules if m.is_constructed and not m.wrecked)
+        self.power_consumption = sum(m.stats.power_consumption for m in modules if m.is_constructed and not m.wrecked)
         self.power_ratio = 1.0 if self.power_consumption <= 0 else min(
             1.0, self.power_generation / self.power_consumption)
         for module in modules:
@@ -399,6 +507,8 @@ class PlayerBase:
                 continue
             if not module.is_constructed:
                 state = f"Building {module.construction_progress:.0%}"
+            elif module.wrecked:
+                state = "Knocked out"
             elif not module.is_operational:
                 state = "No power"
             elif module.blocked:
@@ -412,6 +522,49 @@ class PlayerBase:
                 state = f"Working {module.cycle_progress / recipe.seconds:.0%}"
             lines.append({"label": module.stats.label, "state": state, "module": module})
         return lines
+
+    # Defense ----------------------------------------------------------------------------------------
+
+    def turrets(self) -> List[BaseModule]:
+        return [m for m in self.unique_modules() if m.is_turret]
+
+    def working_turrets(self) -> List[BaseModule]:
+        return [m for m in self.turrets() if m.is_operational and m.efficiency >= TURRET_MIN_POWER]
+
+    def defense_rating(self) -> int:
+        """What the base can stand against: one working turret is worth TURRET_DEFENSE."""
+        return len(self.working_turrets()) * TURRET_DEFENSE
+
+    def wrecked_count(self) -> int:
+        return sum(1 for m in self.unique_modules() if m.wrecked)
+
+    def hit_targets(self) -> List[ModuleTarget]:
+        """The parts of the base a raider's shots can hit."""
+        return [ModuleTarget(m, m.get_world_position(self.position, self.grid_size),
+                             m.stats.size * self.grid_size / 2)
+                for m in self.unique_modules() if m.is_constructed]
+
+    def defend(self, targets, now: float) -> List[tuple]:
+        """The turrets fire at the nearest of `targets` in range (leading a moving one)
+        and return the (projectile, target) pairs that hit."""
+        hits = []
+        for turret in self.turrets():
+            centre = turret.get_world_position(self.position, self.grid_size)
+            if turret in self.working_turrets():
+                nearest, best = None, TURRET_RANGE * TURRET_RANGE
+                for target in targets:
+                    d2 = (target.position - centre).length_squared()
+                    if d2 < best:
+                        nearest, best = target, d2
+                if nearest is not None:
+                    speed = turret.weapon_system.weapons[0].stats.projectile_speed
+                    lead = nearest.position + getattr(nearest, "velocity", Vector2()) * (math.sqrt(best) / speed)
+                    aim = lead - centre
+                    if aim.length_squared() > 0:
+                        turret.aim = aim.normalize()
+                        turret.weapon_system.fire_weapons(centre, turret.aim, turret.shooter, now)
+            hits += turret.weapon_system.check_hits(targets)
+        return hits
 
     # Drawing --------------------------------------------------------------------------------------
 
@@ -427,6 +580,8 @@ class PlayerBase:
         for module in self.unique_modules():
             module.draw(screen, module.get_world_position(self.position, self.grid_size),
                         camera_offset, self.grid_size)
+            if module.is_turret:
+                module.weapon_system.draw(screen, camera_offset)
 
         font = pygame.font.Font(None, 24)
         name = font.render(self.name, True, (235, 240, 250))

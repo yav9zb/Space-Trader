@@ -7,8 +7,9 @@ from pygame import Vector2
 from typing import Dict, List, Optional, Any, Tuple
 
 from .base_entity import PlayerBase, BaseModule, ModuleType
+from .raids import RaidDirector
 
-SAVE_VERSION = 2
+SAVE_VERSION = 3
 
 
 class BaseManager:
@@ -18,6 +19,10 @@ class BaseManager:
         self.bases: Dict[str, PlayerBase] = {}
         self.active_base_id: Optional[str] = None
         self.next_base_id = 1
+
+        # Raids: what happened, for the game to tell the player, and the thing that sends them
+        self.events: List[Tuple[str, tuple]] = []
+        self.raids = RaidDirector(self.events)
 
         # Rules for founding a base
         self.founding_cost = 4000
@@ -34,6 +39,8 @@ class BaseManager:
         self.bases.clear()
         self.active_base_id = None
         self.next_base_id = 1
+        self.events.clear()
+        self.raids.reset()
 
     # Founding ---------------------------------------------------------------------------------------
 
@@ -104,6 +111,26 @@ class BaseManager:
         for base in self.bases.values():
             base.update(delta_time)
 
+    def update_defense(self, delta_time: float, player_position: Vector2, combat, now: float) -> list:
+        """Raids come and go, and the turrets fire. Returns the turret hits on raiders and other
+        bandits, as (projectile, bandit) pairs, for the combat manager to apply."""
+        if not self.bases:
+            return []
+        from ..entities.bandit import BanditState
+        self.raids.update(delta_time, self.bases, player_position, combat)
+        targets = [b for b in combat.active_bandits
+                   if b.state != BanditState.DISABLED and not (b.bounty_id or b.stronghold_id)]
+        hits = []
+        for base in self.bases.values():
+            hits += base.defend(targets, now)
+        return hits
+
+    def pop_events(self) -> List[Tuple[str, tuple]]:
+        """What happened since the last call."""
+        events = list(self.events)
+        self.events.clear()
+        return events
+
     def draw(self, screen, camera_offset: Vector2, player_position: Vector2 = None) -> None:
         for base in self.bases.values():
             base.draw(screen, camera_offset)
@@ -117,6 +144,8 @@ class BaseManager:
                 "name": base.name,
                 "position": [base.position.x, base.position.y],
                 "stored_resources": dict(base.stored_resources),
+                "raid_timer": base.raid_timer,
+                "core_hull": base.modules[(0, 0)].hull,
                 "modules": [{
                     "type": module.module_type.value,
                     "x": int(module.grid_position.x),
@@ -125,6 +154,7 @@ class BaseManager:
                     "done": module.is_constructed,
                     "cycle_running": module.cycle_running,
                     "cycle_progress": module.cycle_progress,
+                    "hull": module.hull,
                 } for module in base.unique_modules() if module.module_type != ModuleType.COMMAND_CENTER],
             }
         return {"version": SAVE_VERSION, "bases": bases, "active_base_id": self.active_base_id,
@@ -138,12 +168,19 @@ class BaseManager:
                 x, y = data["position"]
                 base = PlayerBase(x, y, data["name"])
                 base.stored_resources = {str(c): int(n) for c, n in data.get("stored_resources", {}).items()}
+                timer = data.get("raid_timer")
+                base.raid_timer = None if timer is None else float(timer)
+                core = base.modules[(0, 0)]
+                core.hull = max(0.0, min(float(data.get("core_hull", core.hull)), core.stats.max_hull))
+                core.wrecked = core.hull <= 0
                 for entry in data.get("modules", []):
                     module = BaseModule(ModuleType(entry["type"]), int(entry["x"]), int(entry["y"]))
                     module.construction_time_elapsed = float(entry.get("built", 0.0))
                     module.is_constructed = bool(entry.get("done", False))
                     module.cycle_running = bool(entry.get("cycle_running", False))
                     module.cycle_progress = float(entry.get("cycle_progress", 0.0))
+                    module.hull = max(0.0, min(float(entry.get("hull", module.hull)), module.stats.max_hull))
+                    module.wrecked = module.hull <= 0
                     base._place(module)
                 base.update(0.0)
                 loaded[base_id] = base

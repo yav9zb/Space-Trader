@@ -58,6 +58,7 @@ class BanditShip:
         self.name = None
         self.bounty_id = None
         self.stronghold_id = None     # set for a liberation mission's fleet
+        self.raid_base = None         # set for a raider: the player base it is attacking
 
         # AI state
         self.state = BanditState.PATROLLING
@@ -234,6 +235,9 @@ class BanditShip:
 
         focus = player_ship
         best = (player_ship.position - self.position).length()
+        if self.raid_base is not None and best > self.attack_range:
+            # A raider goes for the base, and only turns on a player who is on top of it
+            return self.raid_base.focus
         for trader in combat_manager.active_traders:
             if trader.escort_id and trader.alive:
                 distance = (trader.position - self.position).length()
@@ -251,8 +255,14 @@ class BanditShip:
         distance_to_player = (player_ship.position - self.position).length()
         hull_percentage = self.current_hull / self.max_hull
         
+        # Raiders press the attack on the base and do not run
+        if getattr(player_ship, "is_raid_target", False):
+            self.state = BanditState.ATTACKING if distance_to_player <= self.attack_range else BanditState.HUNTING
+            self.target = player_ship
+            return
+
         # Check if we should flee
-        if hull_percentage <= self.flee_threshold and self.state != BanditState.FLEEING:
+        if self.raid_base is None and hull_percentage <= self.flee_threshold and self.state != BanditState.FLEEING:
             self.state = BanditState.FLEEING
             return
         
