@@ -617,6 +617,8 @@ class GameEngine:
         # Nothing from the old universe may follow the player into the new one
         from src.combat.combat_manager import combat_manager
         combat_manager.clear_all()
+        from src.base_building.base_manager import base_manager
+        base_manager.reset()
 
         # A new game starts with a new ship. It is re-initialised in place so
         # everything already holding a reference to it stays valid.

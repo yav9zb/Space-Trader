@@ -37,6 +37,7 @@ COLORS = {
     "hazard": (95, 100, 120),
     "blackhole": (170, 100, 255),
     "objective": (255, 215, 120),
+    "base": (120, 230, 150),
 }
 
 Contact = Tuple[str, Vector2]       # (kind, world position)
@@ -74,6 +75,10 @@ def gather_contacts(game_engine, view_radius: float) -> List[Contact]:
     for hole in combat_manager.active_black_holes:
         if near(hole.position):
             contacts.append(("blackhole", Vector2(hole.position)))
+    from ..base_building.base_manager import base_manager
+    for base in base_manager.bases.values():
+        if near(base.position):
+            contacts.append(("base", Vector2(base.position)))
     for _, position in objective_pointer.all_objectives(game_engine):
         contacts.append(("objective", Vector2(position)))
     return contacts
@@ -169,6 +174,10 @@ class Minimap:
             pygame.draw.polygon(surface, gfx.darken(color, 0.5), pts, edge)
         elif kind == "trader":
             pygame.draw.circle(surface, color, (x, y), n(2))
+        elif kind == "base":
+            half = n(4)
+            pygame.draw.rect(surface, color, (x - half, y - half, 2 * half + 1, 2 * half + 1), max(edge, n(2)))
+            pygame.draw.circle(surface, color, (x, y), max(1, n(1)))
         elif kind == "blackhole":
             pygame.draw.circle(surface, (0, 0, 0), (x, y), n(4))
             pygame.draw.circle(surface, color, (x, y), n(5), edge)
@@ -182,7 +191,7 @@ class Minimap:
 
     # Marker order: things you need to see last, so nothing important is hidden
     ORDER = ["hazard", "planet", "hazard_radioactive", "hazard_explosive", "blackhole", "station",
-             "trader", "patrol", "hostile", "objective"]
+             "base", "trader", "patrol", "hostile", "objective"]
 
     def draw(self, screen, ship, stations, planets, contacts: Optional[Iterable[Contact]] = None):
         surface = self.surface

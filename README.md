@@ -50,8 +50,10 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **Enhanced HUD**: Comprehensive status display, navigation info, and system indicators
 
 #### Base Building
-- **Player Bases**: Construct and manage stations with 14 module types
-- **Power & Resources**: Power generation/consumption, resource storage, and production chains
+- **Found a Base**: press B in open space (away from stations, with 4,000 credits) to found a base. It starts with a command center and a small starter kit
+- **Build It Up**: pay for power generators, storage, mining facilities, refineries and factories with your credits plus goods you haul to the base. Modules take time to build and need power
+- **It Runs Itself**: mining makes metal ore, a refinery turns ore into electronics, a factory turns electronics and ore into machinery, all while you fly. Collect the goods from the Storage tab and sell them at a station
+- **Saved With The Game**: up to three bases, shown on the radar
 
 #### Difficulty & Accessibility
 - **5 Difficulty Levels**: Peaceful, Easy, Normal, Hard, and Extreme, scaling hazard frequency, enemy spawns, damage, mission time/rewards, and repair/upgrade costs
@@ -99,7 +101,7 @@ Two control schemes are available (Settings > Controls) - the exact bindings for
 | Trading / Upgrades / Missions / Talk (when docked) | T / U / M / N | X / C / V / Z |
 | Cloak / Repair | C / R | E / Q |
 | Call for backup (Captain rank) | H | H |
-| Base construction | B | B |
+| Base (found, build, storage) | B | B |
 | Toggle large map | Tab | Tab |
 | Pause | Esc | Esc |
 

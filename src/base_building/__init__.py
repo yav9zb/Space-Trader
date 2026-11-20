@@ -1,23 +1,18 @@
 """
-Base Building System for Space Trader
-
-This module provides a comprehensive base building system allowing players to:
-- Construct and manage space stations and outposts
-- Build modular facilities for production, storage, and defense
-- Create automated trading networks
-- Establish supply chains and resource production
+Player bases for Space Trader: found a base in open space, build modules with
+credits and hauled goods, and let it produce goods for you to collect.
 """
 
-from .base_entity import PlayerBase, BaseModule, ModuleType
-from .base_manager import BaseManager
+from .base_entity import PlayerBase, BaseModule, ModuleType, BUILDABLE
+from .base_manager import BaseManager, base_manager
 from .construction_system import ConstructionSystem
-from .resource_production import ProductionSystem
 
 __all__ = [
     'PlayerBase',
-    'BaseModule', 
+    'BaseModule',
     'ModuleType',
+    'BUILDABLE',
     'BaseManager',
+    'base_manager',
     'ConstructionSystem',
-    'ProductionSystem'
 ]

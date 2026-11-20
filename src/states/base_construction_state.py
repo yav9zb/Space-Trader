@@ -1,10 +1,14 @@
 """
-Base Construction State - the base building interface (opened with B).
+Base screen (opened with B): found a base where you are, or manage the one
+you are next to.
 
-Laid out with the menu kit, like the other screens: panels, tabs and text are
-measured from the window and drawn at the screen's real pixels. The base itself
-(its grid and the construction preview) is world drawing, so it is drawn at
-point size and scaled up behind the panels, as flight is.
+Laid out with the menu kit, like the other screens: panels, tabs, lists and
+buttons are measured from the window and drawn at the screen's real pixels. The
+base itself (its grid and the placement preview) is world drawing, so it is
+drawn at point size and scaled up behind the panels, as flight is.
+
+Tabs: Build (pick a module, click the grid), Storage (move goods between the
+ship's hold and the base), Production (what each module is doing).
 """
 
 import pygame
@@ -14,165 +18,178 @@ from typing import Optional
 try:
     from ..states.game_state import State, GameStates
     from ..base_building.base_manager import base_manager
+    from ..base_building.base_entity import BaseModule, BUILDABLE
     from ..base_building.construction_system import ConstructionSystem, ConstructionMode
-    from ..base_building.resource_production import ProductionSystem
+    from ..base_building import transfer
     from ..ui import menu_kit
     from ..ui.menu_style import MenuBackground, ACCENT_GOLD, ACCENT_BLUE, TEXT_PRIMARY, TEXT_DIM
 except ImportError:
     from states.game_state import State, GameStates
     from base_building.base_manager import base_manager
+    from base_building.base_entity import BaseModule, BUILDABLE
     from base_building.construction_system import ConstructionSystem, ConstructionMode
-    from base_building.resource_production import ProductionSystem
+    from base_building import transfer
     from ui import menu_kit
     from ui.menu_style import MenuBackground, ACCENT_GOLD, ACCENT_BLUE, TEXT_PRIMARY, TEXT_DIM
 
-TABS = [("construction", "Construction"), ("production", "Production"), ("management", "Management")]
+DEFAULT_ZOOM = 0.8          # a little out, so a whole base fits between the panels
+
+TABS = [("build", "Build"), ("storage", "Storage"), ("production", "Production")]
 
 GOOD = (120, 230, 150)
 WARN = (255, 215, 90)
 BAD = (255, 120, 120)
 
 HELP_SECTIONS = [
-    ("Construction controls", [
-        "1-7: select a module type",
-        "Left click: place or remove a module",
-        "P: place mode   R: remove mode",
-        "Tab: show or hide the grid",
-        "Mouse wheel: zoom",
+    ("Building", [
+        "1-5 or click the list: choose a module",
+        "Click the grid: build it there (credits from your ship, goods from the base)",
+        "R: remove mode (refunds half)   P: place mode",
+        "TAB: show or hide the grid   Mouse wheel: zoom",
     ]),
-    ("Module types", [
-        "1 Habitat (crew quarters)",
-        "2 Power generator",
-        "3 Storage (resources)",
-        "4 Refinery (processes materials)",
-        "5 Factory (advanced production)",
-        "6 Turret (defense)",
-        "7 Trade hub (trading)",
+    ("Supplying", [
+        "Modules need goods from the base's own storage, so haul them here",
+        "Storage tab: RIGHT or ENTER deposits, LEFT withdraws (hold SHIFT for all)",
     ]),
-    ("Tips", [
-        "Build power generators first",
-        "Monitor resource flows",
-        "Plan production chains",
+    ("Running it", [
+        "Modules take time to build, and need power from generators",
+        "Mining makes metal ore; a refinery makes electronics; a factory makes machinery",
+        "Production stops when storage is full",
+        "Collect what it makes from the Storage tab, and sell it at a station",
     ]),
 ]
 
 
+def _goods_text(goods, base=None) -> str:
+    return ", ".join(f"{amount} {transfer.commodity_name(commodity_id)}" for commodity_id, amount in goods.items())
+
+
 class BaseConstructionState(State):
-    """Game state for base construction and management."""
+    """Found a base here, or manage the one in reach."""
 
     def __init__(self, game, base_id: str = None, previous_state=None):
         super().__init__(game)
         self.previous_state = previous_state or GameStates.PLAYING
 
-        # Initialize construction system
-        self.construction_system = ConstructionSystem(base_manager)
-        self.production_system = ProductionSystem()
-
-        # With no base given, work on the active one, else the nearest to the ship
+        self.construction_system = ConstructionSystem(base_manager, wallet=game.ship)
         self.base_id = base_id or self._default_base_id()
 
-        # UI state
         self.show_base_info = True
         self.show_help = False
-        self.selected_tab = "construction"  # construction, production, management
+        self.selected_tab = "build"
+        self.status = ""                                 # the last thing that happened, shown in the panel
 
-        # View of the base: zoom, and the mouse position in the world
-        self.zoom_level = 1.0
+        self.zoom_level = DEFAULT_ZOOM
         self.min_zoom = 0.5
         self.max_zoom = 2.0
         self.mouse_world_pos = Vector2(0, 0)
+        self.view_center = None          # where the base sits on screen, in points (between the panels)
 
         # Layout, set by render and used by clicks and tests
         self.tab_rects = []
+        self.panel_rects = []
         self.help_overflows = False
         self.panel_overflows = False
+        self.found_requirements = []
         self.background = MenuBackground()
         self._ui = menu_kit.Ui(menu_kit.BASE_SIZE)
         self._world = None
 
-        # Activate construction for the base
+        # Widgets
+        self.module_list = menu_kit.RowList(len(BUILDABLE), wrap_keys=True)
+        self.storage_list = menu_kit.RowList(0, wrap_keys=True)
+        self.storage_buttons = menu_kit.ButtonBar(["Deposit 1", "Deposit all", "Withdraw 1", "Withdraw all"])
+        self.found_buttons = menu_kit.ButtonBar(["Found base", "Cancel"])
+
         if self.base_id:
             self.construction_system.activate_construction(self.base_id)
 
-    # Which base -----------------------------------------------------------------------
+    # Which base -----------------------------------------------------------------------------------------
 
     def _ship_position(self) -> Vector2:
-        ship = getattr(self.game, "ship", None)
-        return Vector2(ship.position) if ship is not None else Vector2(0, 0)
+        return Vector2(self.game.ship.position)
 
     def _default_base_id(self) -> Optional[str]:
-        active = base_manager.get_active_base()
-        if active is not None and base_manager.active_base_id in base_manager.bases:
-            return base_manager.active_base_id
-        nearest = base_manager.get_nearest_base(self._ship_position())
-        if nearest:
-            return nearest[0]
-        return next(iter(base_manager.bases), None)
+        """The base within reach of the ship, if there is one."""
+        nearby = base_manager.base_in_range(self._ship_position())
+        return nearby[0] if nearby else None
 
     def _base(self):
         return base_manager.get_base(self.base_id) if self.base_id else None
 
-    # Update -----------------------------------------------------------------------------
+    def _credits(self) -> int:
+        return int(self.game.ship.credits)
+
+    # Update ----------------------------------------------------------------------------------------------
 
     def update(self, delta_time):
-        """Update construction state."""
+        """The base keeps working while you look at it."""
         base_manager.update(delta_time, self._ship_position())
-        self.production_system.update_production(base_manager.bases, delta_time)
-
         self._update_mouse_world_position()
-
         if self.construction_system.is_construction_active:
             self.construction_system.update_mouse_position(self.mouse_world_pos)
-            self.construction_system.process_build_queue()
 
     def _view_points(self):
-        """The window size in points: what the mouse and the world are measured in."""
         return Vector2(self.game.screen.get_size())
 
     def _camera_offset(self) -> Vector2:
-        """World position of the view's top-left corner: the base sits in the
-        middle of the window, whatever the zoom."""
+        """World position of the view's top-left corner: the base sits at
+        `view_center` (the free space between the panels), whatever the zoom."""
         base = self._base()
         centre = base.position if base is not None else Vector2(0, 0)
-        return centre - self._view_points() / (2 * self.zoom_level)
+        on_screen = self.view_center if self.view_center is not None else self._view_points() / 2
+        return centre - Vector2(on_screen) / self.zoom_level
+
+    def _panel_side(self, ui) -> int:
+        return min(ui.px(380), int(ui.width / 3.2))
+
+    def _set_view_center(self, ui):
+        """Put the base in the middle of the space the panels leave free."""
+        margin, side = ui.margin(), self._panel_side(ui)
+        left = margin + side if self.show_base_info else margin
+        right = ui.width - margin - side
+        self.view_center = Vector2((left + right) / 2, ui.height / 2) / ui.ratio
 
     def _update_mouse_world_position(self):
-        """The world position under the mouse."""
         self.mouse_world_pos = self._camera_offset() + Vector2(pygame.mouse.get_pos()) / self.zoom_level
 
-    # Drawing ----------------------------------------------------------------------------
+    # Drawing -----------------------------------------------------------------------------------------------
 
     def render(self, screen):
-        """Render the construction interface."""
         ui = self._ui = menu_kit.ui_for(screen, self.game)
         base = self._base()
+        self.panel_rects = []
+        self.panel_overflows = False
         if base is not None:
+            self._set_view_center(ui)
             self._draw_world(ui, screen)
         else:
             self.background.draw(screen)
 
-        top = ui.header(screen, "BASE CONSTRUCTION", subtitle=base.name if base is not None else None)
-        footer_top = ui.footer(screen, self._footer_hint(base))
-        self.panel_overflows = False
-
         if base is None:
+            top = ui.header(screen, "FOUND A BASE", subtitle="Where you are now")
+            footer_top = ui.footer(screen, "ENTER: found it  |  ESC: cancel")
             self.tab_rects = []
-            self._draw_empty(ui, screen, top, footer_top)
+            self._draw_found(ui, screen, top, footer_top)
         else:
+            top = ui.header(screen, "BASE", subtitle=base.name)
+            footer_top = ui.footer(screen, self._footer_hint())
             top = self._draw_tabs(ui, screen, top)
             self._draw_panels(ui, screen, base, top, footer_top)
 
         if self.show_help:
             self._draw_help(ui, screen)
 
-    def _footer_hint(self, base):
-        if base is None:
-            return "ESC: back"
-        return "Q / W / E or click: tab  |  F1: help  |  F2: base panel  |  TAB: grid  |  1-7: module  |  ESC: leave"
+    def _footer_hint(self):
+        if self.selected_tab == "build":
+            return "1-5: module  |  click the grid: build  |  R: remove  |  TAB: grid  |  Q / W / E: tabs  |  F1: help  |  ESC: leave"
+        if self.selected_tab == "storage":
+            return "UP / DOWN: goods  |  RIGHT: deposit  |  LEFT: withdraw  |  SHIFT: all  |  Q / W / E: tabs  |  ESC: leave"
+        return "Q / W / E: tabs  |  F1: help  |  ESC: leave"
 
     def _draw_world(self, ui, screen):
-        """The base and the construction grid, drawn in points at the current
-        zoom and scaled to the screen behind the panels."""
+        """The base and its grid, drawn in points at the current zoom and scaled
+        to the screen behind the panels."""
         view = self._view_points() / self.zoom_level
         size = (max(1, int(view.x)), max(1, int(view.y)))
         if self._world is None or self._world.get_size() != size:
@@ -182,7 +199,7 @@ class BaseConstructionState(State):
 
         camera_offset = self._camera_offset()
         base_manager.draw(world, camera_offset, self._ship_position())
-        if self.construction_system.is_construction_active:
+        if self.construction_system.is_construction_active and self.selected_tab == "build":
             self.construction_system.draw_world(world, camera_offset)
 
         if world.get_size() == screen.get_size():
@@ -190,28 +207,74 @@ class BaseConstructionState(State):
         else:
             pygame.transform.smoothscale(world, screen.get_size(), screen)
 
-    def _draw_empty(self, ui, screen, top, footer_top):
-        width = min(ui.content_width(), ui.px(760))
-        lines = [
-            ("No base to build on", "heading", ACCENT_GOLD),
-            ("Base construction is still being connected to the rest of the game, and nothing in a run creates a base yet.", "body", TEXT_PRIMARY),
-            ("Claimed outposts earn credits, but they are separate from this screen for now.", "body", TEXT_DIM),
-        ]
+    # Found a base -------------------------------------------------------------------------------------------------
+
+    def _founding(self):
+        ok, reasons = base_manager.can_found(self._ship_position(), self.game.universe.stations, self._credits())
+        return ok, reasons
+
+    def _draw_found(self, ui, screen, top, footer_top):
+        ok, reasons = self._founding()
+        cost = base_manager.founding_cost
+        kit = base_manager.starter_goods
+
+        width = min(ui.content_width(), ui.px(820))
         inner = width - ui.px(48)
+        body = [
+            ("A base builds, powers itself and produces goods while you fly. You supply it with goods and collect what it makes.", TEXT_PRIMARY),
+            (f"Founding one costs {cost:,} credits and comes with a command center and a starter kit: {_goods_text(kit)}.", TEXT_DIM),
+        ]
         wrapped = []
-        for text, role, color in lines:
-            wrapped += [(line, role, color) for line in ui.wrap(text, role, inner)]
-            wrapped.append(("", "gap", color))
-        height = sum(ui.px(10) if role == "gap" else ui.line_height(role) for _, role, _ in wrapped) + ui.px(48)
+        for text, color in body:
+            wrapped += [(line, "body", color) for line in ui.wrap(text, "body", inner)] + [("", "gap", color)]
+        checks = [(f"Credits: {self._credits():,} of {cost:,}", self._credits() >= cost)]
+        for reason in reasons:
+            if "credits" not in reason.lower():
+                checks.append((reason, False))
+        if ok:
+            checks.append(("This is a good place for a base.", True))
+
+        height = (sum(ui.px(10) if role == "gap" else ui.line_height(role) for _, role, _ in wrapped)
+                  + len(checks) * (ui.line_height("body") + ui.px(4)) + ui.px(56))
         panel = pygame.Rect(0, 0, width, height)
-        panel.center = (ui.width // 2, (top + footer_top) // 2)
+        panel.centerx = ui.width // 2
+        panel.top = top + max(0, (footer_top - top - height - ui.px(70)) // 2)
         ui.panel(screen, panel)
+        self.panel_rects.append(panel)
+
         y = panel.top + ui.px(24)
         for line, role, color in wrapped:
             if role == "gap":
                 y += ui.px(10)
                 continue
             y = ui.text(screen, line, role, color, topleft=(panel.left + ui.px(24), y)).bottom
+        for text, good in checks:
+            rect = ui.text(screen, text, "body", GOOD if good else BAD, max_width=inner,
+                           topleft=(panel.left + ui.px(24), y))
+            y = rect.bottom + ui.px(4)
+        self.found_requirements = checks
+
+        strip = pygame.Rect(panel.left, panel.bottom + ui.px(12), panel.width, ui.px(50))
+        self.found_buttons.enabled = [ok, True]
+        self.found_buttons.layout(ui, strip)
+        self.found_buttons.draw(ui, screen)
+
+    def found_base(self) -> bool:
+        """Found a base at the ship's position, if the rules allow."""
+        ship = self.game.ship
+        base_id = base_manager.found_base(self._ship_position(), self.game.universe.stations, ship)
+        if base_id is None:
+            return False
+        self.base_id = base_id
+        self.construction_system.activate_construction(base_id)
+        self.selected_tab = "build"
+        self.zoom_level = DEFAULT_ZOOM
+        self.status = ""
+        from ..ui.notifications import notifications
+        notifications.push(f"Base founded: {base_manager.get_base(base_id).name}", duration=6.0, color=(150, 230, 170))
+        return True
+
+    # Panels ---------------------------------------------------------------------------------------------------------
 
     def _draw_tabs(self, ui, screen, top) -> int:
         font = ui.font("heading")
@@ -231,23 +294,25 @@ class BaseConstructionState(State):
 
     def _draw_panels(self, ui, screen, base, top, bottom):
         bottom = max(top + ui.px(80), bottom)
-        side = min(ui.px(420), ui.width // 3)
+        side = self._panel_side(ui)
         margin = ui.margin()
 
         if self.show_base_info:
             info = pygame.Rect(margin, top, side, bottom - top)
             ui.panel(screen, info)
+            self.panel_rects.append(info)
             self._draw_base_info(ui, screen, base, info.inflate(-ui.px(28), -ui.px(24)))
 
         panel = pygame.Rect(ui.width - margin - side, top, side, bottom - top)
         ui.panel(screen, panel)
+        self.panel_rects.append(panel)
         area = panel.inflate(-ui.px(28), -ui.px(24))
-        if self.selected_tab == "construction":
-            self._draw_construction(ui, screen, area)
-        elif self.selected_tab == "production":
-            self._draw_production(ui, screen, base, area)
+        if self.selected_tab == "build":
+            self._draw_build(ui, screen, base, area)
+        elif self.selected_tab == "storage":
+            self._draw_storage(ui, screen, base, area)
         else:
-            self._draw_management(ui, screen, base, area)
+            self._draw_production(ui, screen, base, area)
 
     # A small vertical layout for the panels. Each item is
     # ("title", text), ("kv", label, value, color), ("text", text, color), ("bar", fraction, color),
@@ -301,87 +366,218 @@ class BaseConstructionState(State):
         return False
 
     def _draw_base_info(self, ui, screen, base, area):
-        generation, consumption = base.power_generation, base.power_consumption
-        powered = generation >= consumption
+        powered = base.power_ratio >= 1.0
+        capacity = base.storage_capacity
+        used = base.used_capacity
         items = [
             ("title", base.name),
-            ("kv", "Position", f"({base.position.x:.0f}, {base.position.y:.0f})", TEXT_PRIMARY),
-            ("kv", "Power", f"{generation} / {consumption}", GOOD if powered else WARN),
+            ("kv", "Power", f"{base.power_generation} / {base.power_consumption}", GOOD if powered else WARN),
+            ("bar", min(1.0, base.power_ratio), GOOD if powered else WARN),
+            ("kv", "Storage", f"{used} / {capacity}", WARN if capacity and used >= capacity else TEXT_PRIMARY),
+            ("bar", used / capacity if capacity else 0.0, ACCENT_BLUE),
+            ("kv", "Modules", len(base.unique_modules()), TEXT_PRIMARY),
+            ("kv", "Your credits", f"{self._credits():,}", TEXT_PRIMARY),
+            ("gap",), ("title", "In storage"),
         ]
-        if consumption > 0:
-            items.append(("bar", min(1.0, generation / consumption), GOOD if powered else WARN))
-        items += [
-            ("kv", "Crew", f"{base.crew_count} / {base.crew_capacity}", TEXT_PRIMARY),
-            ("kv", "Modules", len(set(base.modules.values())), TEXT_PRIMARY),
-            ("kv", "Defense", base.defense_rating, TEXT_PRIMARY),
-            ("gap",),
-            ("title", "Resources"),
-        ]
-        resources = sorted(base.stored_resources.items(), key=lambda entry: entry[1], reverse=True)[:6]
-        if resources:
-            items += [("kv", name, amount, TEXT_PRIMARY) for name, amount in resources]
+        goods = sorted(base.stored_resources.items(), key=lambda entry: transfer.commodity_name(entry[0]))
+        if goods:
+            items += [("kv", transfer.commodity_name(c), n, TEXT_PRIMARY) for c, n in goods]
         else:
             items.append(("text", "Nothing stored yet.", TEXT_DIM))
         self.panel_overflows |= self._draw_items(ui, screen, area, items)
 
-    def _draw_construction(self, ui, screen, area):
+    # Build --------------------------------------------------------------------------------------------------------------
+
+    def _module_row_text(self, base, module_type):
+        stats = BaseModule.MODULE_DEFINITIONS[module_type]
+        return stats.label, f"{stats.cost_credits:,} cr"
+
+    def _draw_build(self, ui, screen, base, area):
         system = self.construction_system
-        items = [("title", "Construction"),
-                 ("kv", "Mode", system.construction_mode.value.title(), TEXT_PRIMARY)]
-        if system.construction_mode == ConstructionMode.PLACE:
-            info = system.get_construction_info()
-            name = system.selected_module_type.value.replace("_", " ").title()
-            affordable = info.get("can_afford", False)
-            items += [("gap",), ("title", name), ("text", "Cost", TEXT_DIM)]
-            for resource, amount in info.get("cost", {}).items():
-                items.append(("kv", f"  {resource}", amount, GOOD if affordable else BAD))
-            items += [("gap",), ("text", "Gives", TEXT_DIM)]
-            for label, key in (("Power generated", "power_generation"), ("Power used", "power_consumption"),
-                               ("Storage", "storage_capacity"), ("Crew", "crew_capacity"),
-                               ("Defense", "defense_rating")):
-                if info.get(key, 0) > 0:
-                    items.append(("kv", f"  {label}", info[key], TEXT_PRIMARY))
-        elif system.construction_mode == ConstructionMode.REMOVE:
-            items += [("gap",), ("text", "Click a module to remove it.", TEXT_PRIMARY)]
-        items += [("gap",), ("text", "Left click: build or remove.  P: place.  R: remove.  1-7: module type.", TEXT_DIM)]
-        self.panel_overflows |= self._draw_items(ui, screen, area, items)
+        ui.text(screen, "Build", "body", ACCENT_GOLD, topleft=area.topleft)
+        list_top = area.top + ui.line_height("body") + ui.px(6)
+        row_units = 30
+        list_height = len(BUILDABLE) * (ui.px(row_units) + ui.px(4))
+        # On a short window the list shares the panel with the details below it
+        list_height = min(list_height, max(ui.px(row_units), int((area.bottom - list_top) * 0.5)))
+        list_area = pygame.Rect(area.left, list_top, area.width, list_height)
+        self.module_list.set_count(len(BUILDABLE))
+        self.module_list.selected = BUILDABLE.index(system.selected_module_type)
+        self.module_list.layout(ui, list_area, row_units)
+        self.module_list.draw_chrome(ui, screen)
+        credits = self._credits()
+        for index, rect in self.module_list.rects.items():
+            module_type = BUILDABLE[index]
+            label, price = self._module_row_text(base, module_type)
+            affordable = base.can_afford_module(module_type, credits)
+            color = TEXT_PRIMARY if affordable else (150, 155, 170)
+            price_rect = ui.text(screen, price, "small", GOOD if affordable else BAD,
+                                 midright=(rect.right - ui.px(10), rect.centery))
+            ui.text(screen, f"{index + 1}  {label}", "small", color,
+                    max_width=rect.width - price_rect.width - ui.px(30), midleft=(rect.left + ui.px(10), rect.centery))
+
+        detail = pygame.Rect(area.left, self.module_list.area.bottom + ui.px(12), area.width,
+                             area.bottom - (self.module_list.area.bottom + ui.px(12)))
+        info = system.get_construction_info()
+        items = []
+        if system.construction_mode == ConstructionMode.REMOVE:
+            items += [("title", "Remove mode"), ("text", "Click a module to take it down. Half its cost comes back.", TEXT_PRIMARY),
+                      ("text", "P: back to building.", TEXT_DIM)]
+        else:
+            missing = info["missing"]
+            items.append(("title", info["label"]))
+            items.append(("text", info["blurb"], TEXT_DIM))
+            items.append(("kv", "Credits", f"{info['cost_credits']:,}", BAD if "credits" in missing else GOOD))
+            for commodity_id, amount in info["cost_goods"].items():
+                have = base.get_resource_amount(commodity_id)
+                items.append(("kv", transfer.commodity_name(commodity_id), f"{amount} (base has {have})",
+                              BAD if commodity_id in missing else GOOD))
+            items.append(("kv", "Build time", f"{info['build_time']:.0f} s", TEXT_PRIMARY))
+            if info["power_generation"]:
+                items.append(("kv", "Power made", info["power_generation"], TEXT_PRIMARY))
+            if info["power_consumption"]:
+                items.append(("kv", "Power used", info["power_consumption"], TEXT_PRIMARY))
+            if info["storage_capacity"]:
+                items.append(("kv", "Storage added", info["storage_capacity"], TEXT_PRIMARY))
+            if missing:
+                items.append(("text", "Haul the missing goods to this base (Storage tab).", WARN))
+            else:
+                items.append(("text", "Click the grid to build it.", GOOD))
+        if self.status:
+            items += [("gap",), ("text", self.status, TEXT_PRIMARY)]
+        self.panel_overflows |= self._draw_items(ui, screen, detail, items)
+
+    # Storage -------------------------------------------------------------------------------------------------------------
+
+    def storage_rows(self):
+        """[(commodity_id, in the hold, in the base)] for everything in either place."""
+        base = self._base()
+        ship_goods = transfer.depositable(self.game.ship)
+        ids = set(ship_goods) | set(base.stored_resources if base else {})
+        rows = [(c, ship_goods.get(c, 0), base.get_resource_amount(c) if base else 0) for c in ids]
+        return sorted(rows, key=lambda row: transfer.commodity_name(row[0]))
+
+    def selected_commodity(self):
+        rows = self.storage_rows()
+        if not rows:
+            return None
+        return rows[max(0, min(self.storage_list.selected, len(rows) - 1))][0]
+
+    def move_goods(self, direction: int, everything: bool = False) -> int:
+        """Deposit (direction > 0) or withdraw (direction < 0) the selected goods. Returns how many moved."""
+        base, commodity_id = self._base(), self.selected_commodity()
+        if base is None or commodity_id is None:
+            return 0
+        amount = 10 ** 6 if everything else 1
+        if direction > 0:
+            moved = transfer.deposit(self.game.ship, base, commodity_id, amount)
+            verb = "Deposited"
+            if not moved:
+                self.status = "Nothing to deposit, or the base is full."
+        else:
+            moved = transfer.withdraw(self.game.ship, base, commodity_id, amount)
+            verb = "Withdrew"
+            if not moved:
+                self.status = "Nothing to withdraw, or your hold is full."
+        if moved:
+            self.status = f"{verb} {moved} {transfer.commodity_name(commodity_id)}."
+        return moved
+
+    def _draw_storage(self, ui, screen, base, area):
+        hold = self.game.ship.cargo_hold
+        ui.text(screen, "Storage", "body", ACCENT_GOLD, topleft=area.topleft)
+        line = ui.line_height("small")
+        y = area.top + ui.line_height("body") + ui.px(4)
+        ui.text(screen, f"Hold {hold.get_used_capacity()} / {hold.capacity}", "small", TEXT_PRIMARY,
+                topleft=(area.left, y))
+        ui.text(screen, f"Base {base.used_capacity} / {base.storage_capacity}", "small", TEXT_PRIMARY,
+                topright=(area.right, y))
+        y += line + ui.px(8)
+
+        # Column heads
+        col = max(ui.px(60), area.width // 5)
+        ui.text(screen, "Hold", "tiny", TEXT_DIM, topright=(area.right - col - ui.px(10), y))
+        ui.text(screen, "Base", "tiny", TEXT_DIM, topright=(area.right - ui.px(10), y))
+        y += ui.line_height("tiny") + ui.px(4)
+
+        button_row = ui.px(36)
+        buttons_height = 2 * button_row + ui.px(8)
+        status_height = line + ui.px(8)
+        list_area = pygame.Rect(area.left, y, area.width, max(ui.px(40), area.bottom - y - buttons_height - status_height - ui.px(8)))
+        rows = self.storage_rows()
+        self.storage_list.set_count(len(rows))
+        self.storage_list.layout(ui, list_area, 28)
+        self.storage_list.draw_chrome(ui, screen)
+        if not rows:
+            ui.text(screen, "Nothing in the hold or the base.", "small", TEXT_DIM, topleft=(list_area.left, list_area.top))
+        for index, rect in self.storage_list.rects.items():
+            commodity_id, in_hold, in_base = rows[index]
+            ui.text(screen, str(in_base), "small", TEXT_PRIMARY, midright=(rect.right - ui.px(10), rect.centery))
+            ui.text(screen, str(in_hold), "small", TEXT_PRIMARY, midright=(rect.right - col - ui.px(10), rect.centery))
+            ui.text(screen, transfer.commodity_name(commodity_id), "small", TEXT_PRIMARY,
+                    max_width=rect.width - 2 * col - ui.px(30), midleft=(rect.left + ui.px(10), rect.centery))
+        counter = self.storage_list.counter()
+        if counter:
+            ui.text(screen, counter, "tiny", TEXT_DIM, bottomright=(area.right, list_area.bottom + ui.px(1)))
+
+        status_top = list_area.bottom + ui.px(6)
+        if self.status:
+            ui.text(screen, self.status, "small", WARN if "Nothing" in self.status else GOOD, max_width=area.width,
+                    topleft=(area.left, status_top))
+        selected = self.selected_commodity()
+        row = next((r for r in rows if r[0] == selected), (None, 0, 0))
+        self.storage_buttons.enabled = [row[1] > 0, row[1] > 0, row[2] > 0, row[2] > 0]
+        # Two rows of two: Deposit and Deposit all above Withdraw and Withdraw all
+        gap = ui.px(8)
+        width = (area.width - gap) // 2
+        top = area.bottom - buttons_height
+        self.storage_buttons.rects = [
+            pygame.Rect(area.left + column * (width + gap), top + line_no * (button_row + ui.px(8)), width, button_row)
+            for line_no in range(2) for column in range(2)]
+        self.storage_buttons.draw(ui, screen)
+
+    # Production ----------------------------------------------------------------------------------------------------------
 
     def _draw_production(self, ui, screen, base, area):
-        status = self.production_system.get_production_status(base)
-        items = [("title", "Production"),
-                 ("kv", "Active", status["active_productions"], GOOD),
-                 ("kv", "Idle", status["idle_modules"], WARN), ("gap",)]
-        if not status["module_status"]:
-            items.append(("text", "No production modules yet. Build a refinery or a factory.", TEXT_DIM))
-        for number, module_status in enumerate(status["module_status"].values(), 1):
-            if module_status["status"] == "producing":
-                progress = module_status["progress"]
-                items += [("kv", f"Module {number}", f"Producing {progress:.0%}", GOOD), ("bar", progress, GOOD)]
-            else:
-                items.append(("kv", f"Module {number}", "Idle", WARN))
+        items = [("title", "Production")]
+        report = base.production_report()
+        if not report:
+            items.append(("text", "Nothing here produces goods yet. Build a Mining Facility (3).", TEXT_DIM))
+        for line in report:
+            module = line["module"]
+            working = line["state"].startswith("Working")
+            items.append(("kv", line["label"], line["state"],
+                          GOOD if working else (WARN if not line["state"].startswith("Building") else TEXT_PRIMARY)))
+            recipe = module.stats.recipe
+            if module.is_constructed and recipe is not None:
+                items.append(("bar", module.cycle_progress / recipe.seconds if module.cycle_running else 0.0, GOOD))
+            elif not module.is_constructed:
+                items.append(("bar", module.construction_progress, ACCENT_BLUE))
+            items.append(("text", self._recipe_text(recipe), TEXT_DIM))
+            items.append(("gap",))
+        if base.power_ratio < 1.0:
+            items.append(("text", f"Not enough power: everything runs at {base.power_ratio:.0%}. Build a Power Generator (1).", WARN))
         self.panel_overflows |= self._draw_items(ui, screen, area, items)
 
-    def _draw_management(self, ui, screen, base, area):
-        items = [("title", "Management")]
-        suggestions = self.production_system.optimize_production_chain(base)
-        if suggestions:
-            items.append(("text", "Suggestions", TEXT_DIM))
-            items += [("text", f"- {suggestion}", TEXT_PRIMARY) for suggestion in suggestions[:8]]
-        else:
-            items.append(("text", "Base is operating efficiently.", GOOD))
-        self.panel_overflows |= self._draw_items(ui, screen, area, items)
+    @staticmethod
+    def _recipe_text(recipe) -> str:
+        if not recipe.inputs:
+            return f"Makes {_goods_text(recipe.outputs)} every {recipe.seconds:.0f} s"
+        return f"{_goods_text(recipe.inputs)} -> {_goods_text(recipe.outputs)} every {recipe.seconds:.0f} s"
+
+    # Help ------------------------------------------------------------------------------------------------------------------
 
     def _draw_help(self, ui, screen):
         veil = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
         veil.fill((0, 0, 0, 150))
         screen.blit(veil, (0, 0))
 
-        width = min(ui.width - 2 * ui.margin(), ui.px(760))
+        width = min(ui.width - 2 * ui.margin(), ui.px(820))
         height = min(ui.height - 2 * ui.margin(), ui.px(640))
         panel = pygame.Rect(0, 0, width, height)
         panel.center = (ui.width // 2, ui.height // 2)
         ui.panel(screen, panel, border=ACCENT_GOLD, alpha=235)
-        ui.text(screen, "Base construction help", "heading", TEXT_PRIMARY, midtop=(panel.centerx, panel.top + ui.px(14)))
+        ui.text(screen, "Bases", "heading", TEXT_PRIMARY, midtop=(panel.centerx, panel.top + ui.px(14)))
 
         area = pygame.Rect(panel.left + ui.px(24), panel.top + ui.px(64), width - ui.px(48), height - ui.px(100))
         items = []
@@ -392,47 +588,119 @@ class BaseConstructionState(State):
         self.help_overflows = self._draw_items(ui, screen, area, items)
         ui.text(screen, "F1 or ESC: close", "small", TEXT_DIM, midbottom=(panel.centerx, panel.bottom - ui.px(10)))
 
-    # Input ------------------------------------------------------------------------------
+    # Input ------------------------------------------------------------------------------------------------------------------
 
     def _leave(self):
         self.construction_system.deactivate_construction()
         self.game.change_state(self.previous_state)
 
+    def _over_panel(self, pos) -> bool:
+        point = self._ui.to_px(pos)
+        return any(rect.collidepoint(point) for rect in self.panel_rects)
+
     def handle_input(self, event):
         """Handle input events."""
-        # Leaving and the tabs come first, so a click on a tab never builds
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             if self.show_help:
                 self.show_help = False
             else:
                 self._leave()
             return
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.show_help:
-            if self._handle_tab_click(event.pos):
-                return
-
-        # Then the construction system
-        if not self.show_help and self.construction_system.handle_input(event):
+        if self.show_help:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_F1:
+                self.show_help = False
             return
 
+        if self._base() is None:
+            self._handle_found_input(event)
+            return
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self._handle_tab_click(event.pos):
+            return
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_F1:
-                self.show_help = not self.show_help
-            elif event.key == pygame.K_F2:
+                self.show_help = True
+                return
+            if event.key == pygame.K_F2:
                 self.show_base_info = not self.show_base_info
-            elif event.key == pygame.K_q:
-                self.selected_tab = "construction"
-            elif event.key == pygame.K_w:
-                self.selected_tab = "production"
-            elif event.key == pygame.K_e:
-                self.selected_tab = "management"
+                return
+            tab = {pygame.K_q: "build", pygame.K_w: "storage", pygame.K_e: "production"}.get(event.key)
+            if tab:
+                self.selected_tab = tab
+                return
+        if event.type == pygame.MOUSEWHEEL and not self._wheel_over_panel():
+            factor = 1.1 if event.y > 0 else 1.0 / 1.1
+            self.zoom_level = max(self.min_zoom, min(self.max_zoom, self.zoom_level * factor))
+            return
 
-        elif event.type == pygame.MOUSEWHEEL:
-            zoom_factor = 1.1 if event.y > 0 else 1.0 / 1.1
-            self.zoom_level = max(self.min_zoom, min(self.max_zoom, self.zoom_level * zoom_factor))
+        if self.selected_tab == "build":
+            self._handle_build_input(event)
+        elif self.selected_tab == "storage":
+            self._handle_storage_input(event)
+
+    def _wheel_over_panel(self) -> bool:
+        return self._over_panel(pygame.mouse.get_pos())
+
+    def _handle_found_input(self, event):
+        ok, _ = self._founding()
+        if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            if ok:
+                self.found_base()
+        elif event.type in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN):
+            clicked = self.found_buttons.handle(event, self._ui)
+            if clicked == 0 and ok:
+                self.found_base()
+            elif clicked == 1:
+                self._leave()
+
+    def _handle_build_input(self, event):
+        system = self.construction_system
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self._over_panel(event.pos):                       # a click on the module list
+                index = self.module_list.index_at(self._ui, event.pos)
+                if index is not None:
+                    system.set_selected_module_type(BUILDABLE[index])
+                return
+            if system.handle_input(event):                        # a click on the grid
+                if system.construction_mode == ConstructionMode.PLACE:
+                    label = BaseModule.MODULE_DEFINITIONS[system.selected_module_type].label
+                    self.status = f"Building a {label}."
+                else:
+                    self.status = "Module removed."
+            elif system.construction_mode == ConstructionMode.PLACE:
+                missing = system.get_construction_info()["missing"]
+                if missing:
+                    self.status = "You are missing " + ", ".join(
+                        "credits" if k == "credits" else transfer.commodity_name(k) for k in missing) + "."
+                else:
+                    self.status = "It does not fit there."
+            return
+        if event.type == pygame.KEYDOWN and event.key in (pygame.K_UP, pygame.K_DOWN):
+            step = -1 if event.key == pygame.K_UP else 1
+            system.set_selected_module_type(BUILDABLE[(BUILDABLE.index(system.selected_module_type) + step) % len(BUILDABLE)])
+            return
+        system.handle_input(event)
+
+    def _handle_storage_input(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            clicked = self.storage_buttons.handle(event, self._ui)
+            if clicked is not None:
+                self.move_goods(1 if clicked < 2 else -1, everything=clicked in (1, 3))
+                return
+        if event.type == pygame.KEYDOWN:
+            mods = getattr(event, "mod", pygame.key.get_mods())
+            everything = bool(mods & pygame.KMOD_SHIFT)
+            if event.key in (pygame.K_RIGHT, pygame.K_RETURN, pygame.K_KP_ENTER):
+                self.move_goods(1, everything)
+                return
+            if event.key == pygame.K_LEFT:
+                self.move_goods(-1, everything)
+                return
+        if event.type == pygame.MOUSEMOTION:
+            self.storage_buttons.handle(event, self._ui)
+        self.storage_list.handle(event, self._ui, play_sounds=False)
 
     def _handle_tab_click(self, pos) -> bool:
-        """Handle a click on the tab row (pos is in window points)."""
         point = self._ui.to_px(pos)
         for (tab_id, _), rect in zip(TABS, self.tab_rects):
             if rect.collidepoint(point):

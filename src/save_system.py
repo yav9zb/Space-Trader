@@ -158,6 +158,7 @@ class SaveSystem:
             "universe": self._save_universe_data(game_engine),
             "missions": self._save_mission_data(game_engine),
             "story": self._save_story_data(game_engine),
+            "bases": self._save_base_data(),
             "economy": self._save_economy_data(),
             "game_state": self._save_game_state_data(game_engine)
         }
@@ -238,6 +239,11 @@ class SaveSystem:
             return game_engine.story_state.to_dict()
         return {}
 
+    def _save_base_data(self) -> Dict[str, Any]:
+        """Save the player's bases."""
+        from .base_building.base_manager import base_manager
+        return base_manager.save_bases()
+
     def _save_economy_data(self) -> Dict[str, Any]:
         """Save active market events."""
         from .economy_events import economy_events
@@ -265,6 +271,9 @@ class SaveSystem:
         # Load story state (missing in saves from before the campaign existed)
         self._load_story_data(save_data.get("story", {}), game_engine)
         
+        # The player's bases (absent in older saves, which have none)
+        self._load_base_data(save_data.get("bases", {}))
+
         # Market events (absent in older saves, which start with none)
         from .economy_events import economy_events
         economy_events.world_seed = getattr(game_engine, "world_seed", None)
@@ -392,6 +401,13 @@ class SaveSystem:
         an older save doesn't inherit the previous session's story progress."""
         if hasattr(game_engine, 'story_state'):
             game_engine.story_state.from_dict(story_data)
+
+    def _load_base_data(self, base_data: Dict[str, Any]):
+        """Load the player's bases. Always applied, so loading an older save never
+        keeps the bases of the game that was open."""
+        from .base_building.base_manager import base_manager
+        if not base_data or not base_manager.load_bases(base_data):
+            base_manager.reset()
 
     def _load_game_state_data(self, game_state_data: Dict[str, Any], game_engine):
         """Load general game state."""

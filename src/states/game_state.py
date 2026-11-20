@@ -222,6 +222,11 @@ class PlayingState(State):
         width, height = self.game.WINDOW_SIZE
         view_reach = math.hypot(width, height) / 2 + 300
         self.game.universe.update(delta_time, self.game.ship.position, view_reach)
+
+        # The player's bases keep building and producing, and say when you arrive
+        from ..base_building.base_manager import base_manager
+        base_manager.update(delta_time, self.game.ship.position)
+        self._announce_base_in_range(base_manager)
         
         # Update docking system
         self.game.docking_manager.update(
@@ -317,6 +322,17 @@ class PlayingState(State):
                 for fragment in fragments:
                     debris_field_manager.add_debris(fragment)
 
+    def _announce_base_in_range(self, base_manager):
+        """One notification each time the ship comes within reach of a base."""
+        nearby = base_manager.base_in_range(self.game.ship.position)
+        base_id = nearby[0] if nearby else None
+        if base_id is not None and base_id != getattr(self, "_base_in_range", None):
+            from ..ui.notifications import notifications
+            key_name = control_scheme_manager.get_key_name("base_construction")
+            notifications.push(f"{nearby[1].name} in range - press {key_name} to manage it",
+                               duration=5.0, color=(150, 230, 170))
+        self._base_in_range = base_id
+
     def render(self, screen):
         """Render the playing state"""
 
@@ -342,6 +358,10 @@ class PlayingState(State):
 
                 # Draw docking zones and feedback
                 self._draw_docking_feedback(screen, station, camera_offset)
+
+        # Draw the player's bases
+        from ..base_building.base_manager import base_manager
+        base_manager.draw(screen, camera_offset, self.game.ship.position)
 
         # Draw all planets
         for planet in self.game.universe.planets:

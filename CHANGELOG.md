@@ -1,5 +1,15 @@
 # Changelog
 
+## Beta 24
+
+### Added
+- **Bases you can actually build.** Press B in open space, away from stations, and found a base for 4,000 credits (up to three). It starts with a command center and a starter kit of goods.
+  - Build power generators, storage, mining facilities, refineries and factories. You pay in credits from your ship and goods taken from the base's own storage, so you haul supplies there. Modules take time to build and need power; with too little power everything slows down in proportion.
+  - Modules run by themselves: a mining facility digs up metal ore, a refinery turns 2 ore into electronics, a factory turns electronics and ore into machinery. Production waits when storage is full. Bases keep working wherever you are, including while you are docked or in a menu.
+  - The **Storage** tab moves goods between your hold and the base (mission cargo stays with you). The **Production** tab shows what each module is doing. Clicking a module in the list, or pressing 1 to 5, chooses what to build, and clicking the grid builds it. Remove mode (R) takes a module down and refunds half.
+  - Bases are drawn in flight, appear on the radar, say so when you come within reach, and are saved with the game. Starting a new game clears them.
+- The old base code (14 module types, costs of 50,000 credits for a command center, and a command center that could never be built) was replaced: nothing in it fitted the game's economy.
+
 ## Beta 23
 
 ### Added
