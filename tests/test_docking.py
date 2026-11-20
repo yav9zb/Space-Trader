@@ -226,7 +226,8 @@ class TestDockingManager:
         
         # Should stay in approaching state, not auto-dock
         assert self.docking_manager.docking_state == DockingState.APPROACHING
-        assert "Press D to dock" in self.docking_manager.get_status_message()
+        from src.input.control_schemes import control_scheme_manager
+        assert f"Press {control_scheme_manager.get_key_name('dock')} to dock" in self.docking_manager.get_status_message()
         
     def test_status_messages(self):
         """Test various status messages."""

@@ -5,6 +5,9 @@ from .docking_state import DockingState, DockingResult
 
 logger = logging.getLogger(__name__)
 
+# How fast the ship may still be going when it docks, by the Docking Speed setting
+DOCKING_SPEEDS = {"careful": 30.0, "standard": 50.0, "relaxed": 80.0}
+
 
 class DockingManager:
     """Manages ship docking operations and state transitions."""
@@ -31,9 +34,14 @@ class DockingManager:
         # cargo inspections, again supplied by the engine.
         self.inspection_hook = None
 
-        # Auto-docking settings (can be moved to settings later)
+        # Auto-docking; both are set from the player's settings by apply_settings
         self.auto_dock_enabled = True
         self.require_confirmation = False
+
+    def apply_settings(self, settings):
+        """Take the auto-dock switch and the speed limit from the player's settings."""
+        self.auto_dock_enabled = bool(settings.auto_dock)
+        self.max_docking_speed = DOCKING_SPEEDS.get(settings.docking_speed, DOCKING_SPEEDS["standard"])
         
     def update(self, ship, stations, delta_time):
         """Update docking system state and handle transitions."""
@@ -91,7 +99,9 @@ class DockingManager:
             if self.auto_dock_enabled and not self.require_confirmation:
                 self._initiate_docking(ship)
             else:
-                self.last_status_message = f"Ready to dock - Press D to dock with {self.target_station.name}"
+                from ..input.control_schemes import control_scheme_manager
+                dock_key = control_scheme_manager.get_key_name("dock")
+                self.last_status_message = f"Ready to dock - Press {dock_key} to dock with {self.target_station.name}"
         else:
             self._update_status_message_for_reason(reason)
             

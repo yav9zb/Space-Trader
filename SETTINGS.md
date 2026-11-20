@@ -30,6 +30,15 @@ The Space Trader game now includes a comprehensive settings system that allows p
 - **Smoothing**: Controls how quickly the smooth camera follows the ship (0.01 = very slow, 1.0 = instant)
 - **Deadzone Radius**: Size of the center area where the ship can move without triggering camera movement
 
+## Docking
+
+Settings > Docking:
+
+- **Auto-Docking** (ON by default): dock by yourself once you are close enough and slow enough. OFF: the ship waits in the approach zone and you press the dock key (the prompt names it).
+- **Docking Speed Limit**: the fastest you may still be going when you dock. Careful is 30, Standard is 50 (the original value), Relaxed is 80.
+
+Saved as `auto_dock` (true or false) and `docking_speed` ("careful", "standard" or "relaxed") in `settings.json`; anything else falls back to the defaults.
+
 ## Controls
 
 ### Main Menu

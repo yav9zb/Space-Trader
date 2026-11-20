@@ -48,6 +48,11 @@ class Settings:
         self.show_debug = False
         self.hud_scale = 1.0  # HUD scaling factor
         
+        # Docking: dock automatically when close and slow enough, and how fast
+        # the ship may still be going (careful, standard or relaxed)
+        self.auto_dock = True
+        self.docking_speed = "standard"
+
         # Dev View settings
         self.dev_view_enabled = False
         self.dev_show_fps = True
@@ -106,6 +111,8 @@ class Settings:
             "universe_type": self.universe_type,
             "difficulty": self.difficulty,
             "hints_seen": self.hints_seen,
+            "auto_dock": self.auto_dock,
+            "docking_speed": self.docking_speed,
             "dev_view_enabled": self.dev_view_enabled,
             "dev_show_fps": self.dev_show_fps,
             "dev_show_ship_pos": self.dev_show_ship_pos,
@@ -181,6 +188,12 @@ class Settings:
 
             # Load difficulty settings
             self.difficulty = settings_dict.get("difficulty", "normal")
+
+            # Load docking settings, ignoring values that are not valid
+            auto_dock = settings_dict.get("auto_dock", True)
+            self.auto_dock = auto_dock if isinstance(auto_dock, bool) else True
+            speed = settings_dict.get("docking_speed", "standard")
+            self.docking_speed = speed if speed in ("careful", "standard", "relaxed") else "standard"
 
             # Load onboarding hints already shown
             self.hints_seen = settings_dict.get("hints_seen", [])

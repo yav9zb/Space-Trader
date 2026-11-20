@@ -101,6 +101,7 @@ class GameEngine:
         self.docking_manager = DockingManager()
         self.docking_manager.refusal_check = self._docking_refusal
         self.docking_manager.inspection_hook = self._on_docked
+        self.docking_manager.apply_settings(self.settings)
 
         # Game objects
         self.ship = Ship(400, 300)

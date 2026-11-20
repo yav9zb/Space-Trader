@@ -25,13 +25,13 @@ This document tracks what's actually implemented versus genuinely still planned.
 - **Shifting borders and Liberation missions** - region control can change permanently (persisted); destroying a pirate stronghold frees its region. A player outpost (a claimable freed station that earns passive income) is in; the larger base-building system remains unintegrated.
 - **The full campaign** - four acts and 16 story missions across six station contacts, three paths (expose, join, stay independent), six endings, and New Game+ legacy perks. Starting a new game now gives a fresh ship in a clean universe.
 - **Resolution-independent menus** - every menu screen is laid out by a small measured-layout kit (`src/ui/menu_kit.py`) that sizes everything from the window and draws at its real pixels, so menus are sharp on Retina displays and use big windows well. Trading, Upgrades and the Mission Board have clickable rows and buttons; Settings is one page per category (`src/states/settings_state.py`); the Mission Board is in `src/states/mission_board_state.py`.
+- **Docking settings** - Settings > Docking turns auto-docking off (the dock key then does it) and sets the docking speed limit (Careful 30, Standard 50, Relaxed 80); both are saved. See `SETTINGS.md`.
 - **Achievements** - 19 achievements derived from saved game state, persisted across games, shown in the Logbook.
 - **Left-handed controls fix** - the default scheme shared keys between dock/trading and undock/upgrades, so a docked player could not undock; station services moved to Z/X/C/V.
 
 ## Planned / Not Yet Implemented
 
 ### Near-term
-- **Docking settings** - docking already starts automatically at a safe approach speed (with the dock key as a manual shortcut); a setting to turn auto-docking off and configurable sensitivity are not implemented.
 - **Steam Achievements / Cloud Saves** - in-game achievements now exist and are passed to a Steam hook, but that hook is a stub: it has to be wired to the real Steamworks SDK (ISteamUserStats), which this codebase has no access to. Cloud saves are not implemented.
 
 ### Longer-term / Concept

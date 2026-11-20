@@ -18,11 +18,11 @@ VALUE_COLOR = (150, 205, 255)
 WARN = (255, 100, 100)
 
 CATEGORY_PAGES = {
-    "Camera": "camera", "Display": "display", "Controls": "controls", "Audio": "audio",
+    "Camera": "camera", "Display": "display", "Controls": "controls", "Docking": "docking", "Audio": "audio",
     "Difficulty": "difficulty", "Dev View": "dev", "Help": "help",
 }
 PAGE_TITLES = {
-    "camera": "Camera Settings", "display": "Display Settings", "controls": "Control Settings",
+    "camera": "Camera Settings", "display": "Display Settings", "controls": "Control Settings", "docking": "Docking Settings",
     "audio": "Audio Settings", "difficulty": "Difficulty Settings", "dev": "Dev View Settings",
     "help": "Help & Controls",
 }
@@ -30,6 +30,7 @@ PAGE_HINTS = {
     "camera": "UP / DOWN choose  |  LEFT / RIGHT change  |  ESC back",
     "display": "UP / DOWN choose  |  LEFT / RIGHT change  |  ESC back",
     "controls": "UP / DOWN choose  |  LEFT / RIGHT or ENTER change the scheme  |  ESC back",
+    "docking": "UP / DOWN choose  |  LEFT / RIGHT or ENTER change  |  ESC back",
     "audio": "UP / DOWN choose  |  LEFT / RIGHT adjust volume  |  ESC back",
     "difficulty": "UP / DOWN choose  |  LEFT / RIGHT change  |  ESC back",
     "dev": "UP / DOWN choose  |  LEFT / RIGHT or ENTER toggle  |  ESC back",
@@ -146,6 +147,16 @@ class SettingsState(State):
         if page == "controls":
             info = control_scheme_manager.get_scheme_info()
             return [Row("control_scheme", "Control Scheme", info["name"], info["description"]), back]
+        if page == "docking":
+            level = s.docking_speed
+            from ..docking.docking_manager import DOCKING_SPEEDS
+            return [
+                Row("auto_dock", "Auto-Docking", "ON" if s.auto_dock else "OFF",
+                    "Dock by yourself when you are close and slow enough. Off: you press the dock key.",
+                    kind="toggle"),
+                Row("docking_speed", "Docking Speed Limit", f"{level.title()} ({DOCKING_SPEEDS[level]:.0f})",
+                    "How fast you may still be going when you dock. Careful is strict, Relaxed forgives."),
+                back]
         if page == "audio":
             return [Row(key, label, f"{int(getattr(s, attr) * 100)}%", kind="slider", bar=getattr(s, attr))
                     for key, label, attr in (("master", "Master Volume", "master_volume"),
@@ -394,6 +405,15 @@ class SettingsState(State):
             s.hud_scale = max(0.75, min(1.75, round(s.hud_scale + direction * 0.1, 2)))
             s.save()
             self.game._update_display()
+        elif rid == "auto_dock":
+            s.auto_dock = not s.auto_dock
+            s.save()
+            self.game.docking_manager.apply_settings(s)
+        elif rid == "docking_speed":
+            levels = ["careful", "standard", "relaxed"]
+            s.docking_speed = levels[(levels.index(s.docking_speed) + direction) % len(levels)]
+            s.save()
+            self.game.docking_manager.apply_settings(s)
         elif rid == "control_scheme":
             self._change_control_scheme(direction)
         elif rid in ("master", "sfx", "music"):
