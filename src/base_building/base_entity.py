@@ -90,8 +90,8 @@ class BaseModule:
         ModuleType.FACTORY: ModuleStats(
             label="Factory", short="FAC", power_consumption=60, size=2,
             cost_credits=6500, cost_goods={"metal_ore": 12, "electronics": 8}, build_time=150.0,
-            recipe=Recipe({"electronics": 2, "metal_ore": 1}, {"machinery": 1}, 25.0),
-            blurb="Turns 2 electronics and 1 metal ore into 1 machinery."),
+            recipe=Recipe({"electronics": 2, "metal_ore": 1}, {"machinery": 2}, 25.0),
+            blurb="Turns 2 electronics and 1 metal ore into 2 machinery."),
     }
 
     COLORS = {

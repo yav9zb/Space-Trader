@@ -3,6 +3,7 @@
 ## Beta 25
 
 ### Fixed
+- **A base factory lost money.** It turned 2 electronics and 1 metal ore (worth 700) into 1 machinery (worth 400). It now makes 2 machinery from the same inputs. A test now checks that no recipe makes goods worth less than it uses.
 - **Boxes behind text on Retina Macs.** The sharp-pixel path scaled the world onto a surface whose transparency was left at zero, and text drawn over it then took its own colour for the whole rectangle around each letter instead of blending. Headings, tabs and key hints over the world could show a pale box behind them. The surface is now made opaque after the world is scaled onto it, in the flight path and in the base screen.
 
 ## Beta 24

@@ -374,3 +374,23 @@ def test_loading_garbage_fails_cleanly_and_reset_empties_the_manager(manager):
     manager.found_base(Vector2(5000, 5000), [], Wallet(10 ** 7))
     manager.reset()
     assert manager.bases == {} and manager.active_base_id is None
+
+
+# --- balance ------------------------------------------------------------------------------------------------------
+
+def _worth(goods):
+    return sum(commodity_registry.get_commodity(c).base_price * n for c, n in goods.items())
+
+
+@pytest.mark.parametrize("module_type", [m for m in BUILDABLE if BaseModule.MODULE_DEFINITIONS[m].recipe])
+def test_every_recipe_makes_goods_worth_more_than_it_uses(module_type):
+    recipe = BaseModule.MODULE_DEFINITIONS[module_type].recipe
+    assert _worth(recipe.outputs) >= _worth(recipe.inputs)
+
+
+def test_a_mining_facility_earns_its_cost_back_in_a_reasonable_time():
+    stats = BaseModule.MODULE_DEFINITIONS[ModuleType.MINING_FACILITY]
+    per_minute = _worth(stats.recipe.outputs) * 60 / stats.recipe.seconds
+    goods_cost = _worth(stats.cost_goods)
+    minutes = (stats.cost_credits + goods_cost) / per_minute
+    assert 10 <= minutes <= 40, minutes
