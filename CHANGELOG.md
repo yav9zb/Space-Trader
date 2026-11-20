@@ -1,5 +1,10 @@
 # Changelog
 
+## Beta 25
+
+### Fixed
+- **Boxes behind text on Retina Macs.** The sharp-pixel path scaled the world onto a surface whose transparency was left at zero, and text drawn over it then took its own colour for the whole rectangle around each letter instead of blending. Headings, tabs and key hints over the world could show a pale box behind them. The surface is now made opaque after the world is scaled onto it, in the flight path and in the base screen.
+
 ## Beta 24
 
 ### Added

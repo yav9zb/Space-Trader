@@ -21,6 +21,7 @@ try:
     from ..base_building.base_entity import BaseModule, BUILDABLE
     from ..base_building.construction_system import ConstructionSystem, ConstructionMode
     from ..base_building import transfer
+    from ..hidpi import make_opaque
     from ..ui import menu_kit
     from ..ui.menu_style import MenuBackground, ACCENT_GOLD, ACCENT_BLUE, TEXT_PRIMARY, TEXT_DIM
 except ImportError:
@@ -29,6 +30,7 @@ except ImportError:
     from base_building.base_entity import BaseModule, BUILDABLE
     from base_building.construction_system import ConstructionSystem, ConstructionMode
     from base_building import transfer
+    from hidpi import make_opaque
     from ui import menu_kit
     from ui.menu_style import MenuBackground, ACCENT_GOLD, ACCENT_BLUE, TEXT_PRIMARY, TEXT_DIM
 
@@ -206,6 +208,7 @@ class BaseConstructionState(State):
             screen.blit(world, (0, 0))
         else:
             pygame.transform.smoothscale(world, screen.get_size(), screen)
+            make_opaque(screen)
 
     # Found a base -------------------------------------------------------------------------------------------------
 

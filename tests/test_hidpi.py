@@ -379,3 +379,71 @@ def test_notifications_scale_with_the_ratio():
         return sum(1 for x in range(s.get_width()) for y in range(s.get_height()) if sum(s.get_at((x, y))[:3]) > 300)
 
     assert 3.0 < lit(2.0) / lit(1.0) < 5.0
+
+
+class AlphaWindow(FakeWindow):
+    """The real window's surface has an alpha channel (ARGB), though the screen ignores it."""
+
+    def get_surface(self):
+        want = (self._size[0] * self.RATIO, self._size[1] * self.RATIO)
+        if self._surface is None or self._surface.get_size() != want:
+            self._surface = pygame.Surface(want, pygame.SRCALPHA)
+        return self._surface
+
+
+def test_the_pixel_surface_is_opaque_after_the_frame_is_scaled_onto_it():
+    """The screen ignores alpha, so text drawn onto pixels left with alpha 0 came out as
+    boxes of the text colour: a blend onto a transparent pixel takes the source colour
+    outright, glyph edges and all."""
+    presenter = hidpi.Presenter(AlphaWindow("t", (200, 100)))
+    frame = presenter.sync()
+    frame.fill((14, 16, 30))
+    seen = {}
+
+    def text_layer(pixels, ratio):
+        font = pygame.font.Font(None, 40)
+        surface = font.render("I", True, (240, 240, 250))
+        rect = surface.get_rect(center=(200, 100))
+        pixels.blit(surface, rect)
+        seen["rect"] = rect
+
+    presenter.queue(text_layer)
+    presenter.present()
+    pixels = presenter.pixel_surface
+
+    assert all(pixels.get_at((x, y)).a == 255 for x in (3, 100, 390) for y in (3, 100, 190))
+    # A corner of the glyph's rectangle that the letter "I" does not cover is still background
+    rect = seen["rect"]
+    assert tuple(pixels.get_at((rect.left + 1, rect.top + 1)))[:3] == (14, 16, 30)
+
+
+def test_the_base_screen_leaves_its_world_opaque_on_a_pixel_surface(retina):
+    """Same problem, in the screen that scales its own world onto the pixel surface."""
+    from src.base_building.base_manager import base_manager
+    from src.engine.game_engine import GameEngine
+    from src.states.game_state import GameStates
+
+    class AlphaPresenterWindow(AlphaWindow):
+        pass
+
+    hidpi.reset()
+    import src.hidpi as h
+    h.make_window = lambda title, size, resizable=True: AlphaPresenterWindow(title, size, resizable)
+    saved = (dict(base_manager.bases), base_manager.active_base_id)
+    try:
+        engine = GameEngine()
+        engine.create_new_universe(seed=4)
+        base_manager.reset()
+        engine.ship.position = Vector2(engine.ship.position.x + 40000, engine.ship.position.y + 40000)
+        engine.ship.credits = 10 ** 6
+        base_manager.found_base(engine.ship.position, engine.universe.stations, engine.ship)
+        engine.change_state(GameStates.BASE_CONSTRUCTION)
+        engine.fade_remaining = 0
+        engine.render()
+        pixels = engine.presenter.pixel_surface
+        assert pixels.get_at((pixels.get_width() // 2, pixels.get_height() // 2)).a == 255
+        assert pixels.get_at((5, pixels.get_height() - 5)).a == 255
+    finally:
+        base_manager.bases.clear()
+        base_manager.bases.update(saved[0])
+        base_manager.active_base_id = saved[1]

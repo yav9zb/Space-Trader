@@ -46,6 +46,17 @@ def make_window(title: str, size: Tuple[int, int], resizable: bool = True):
     return pygame.Window(title, size, resizable=resizable, allow_high_dpi=True)
 
 
+def make_opaque(surface: pygame.Surface) -> None:
+    """Set a surface's alpha channel to 255, leaving its colours alone.
+
+    The window's surface has an alpha channel that a scale onto it leaves at 0. The screen
+    ignores alpha, but a blend onto a transparent pixel takes the source colour outright, which
+    puts a box of the text colour behind every piece of text drawn afterwards. Call this after
+    scaling or copying a frame onto such a surface."""
+    if surface.get_masks()[3]:
+        surface.fill((0, 0, 0, 255), special_flags=pygame.BLEND_RGBA_MAX)
+
+
 class Presenter:
     """Owns the window, the point-sized surface the game draws into, and the
     layers drawn at full resolution after it is scaled up."""
@@ -94,6 +105,7 @@ class Presenter:
             pixels.blit(frame, (0, 0))
         else:
             pygame.transform.smoothscale(frame, pixels.get_size(), pixels)
+        make_opaque(pixels)
         ratio = self.ratio
         for layer in self.layers:
             layer(pixels, ratio)
