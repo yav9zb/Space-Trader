@@ -27,6 +27,7 @@ class ModuleType(Enum):
     REFINERY = "refinery"
     FACTORY = "factory"
     TURRET = "turret"
+    SERVICE_BAY = "service_bay"
 
 
 # What the player can build, in the order of the number keys
@@ -37,6 +38,7 @@ BUILDABLE = [
     ModuleType.REFINERY,
     ModuleType.FACTORY,
     ModuleType.TURRET,
+    ModuleType.SERVICE_BAY,
 ]
 
 CORE_POWER = 60            # the command center runs on its own reactor
@@ -49,6 +51,13 @@ TURRET_DEFENSE = 200       # what one working turret is worth against a raid (se
 TURRET_MIN_POWER = 0.5     # a turret needs at least this share of full power to fire
 REPAIR_RATE = 0.01         # share of its hull a module mends per second, when no raid is on
 RESTORE_AT = 0.5           # a knocked-out module works again once it is mended this far
+
+# The service bay: a ship within reach of the base is refuelled and repaired, from the base's own goods
+SERVICE_MIN_POWER = 0.5    # a bay needs at least this share of full power
+REFUEL_RATE = 8.0          # fuel the bay puts into the ship per second
+FUEL_PER_CELL = 10.0       # fuel one fuel cell is worth
+HULL_RATE = 5.0            # hull points the bay mends on the ship per second
+HULL_PER_MACHINERY = 20.0  # hull points one machinery is worth
 
 
 class Shooter:
@@ -132,6 +141,10 @@ class BaseModule:
             cost_credits=2500, cost_goods={"machinery": 2, "electronics": 2}, build_time=40.0,
             max_hull=250, weapon="basic_laser",
             blurb="Shoots raiders. Needs power. A base with none is easy prey."),
+        ModuleType.SERVICE_BAY: ModuleStats(
+            label="Service Bay", short="SVC", power_consumption=30,
+            cost_credits=3500, cost_goods={"machinery": 3, "electronics": 2}, build_time=60.0,
+            blurb="Refuels and repairs your ship while you are at the base, using its fuel cells and machinery."),
     }
 
     COLORS = {
@@ -142,6 +155,7 @@ class BaseModule:
         ModuleType.REFINERY: (255, 150, 100),
         ModuleType.FACTORY: (170, 120, 255),
         ModuleType.TURRET: (240, 90, 90),
+        ModuleType.SERVICE_BAY: (110, 210, 220),
     }
 
     _label_cache: Dict[tuple, pygame.Surface] = {}
@@ -313,6 +327,11 @@ class PlayerBase:
         self.raid_timer: Optional[float] = None
         self.under_attack = False
         self.focus = RaidFocus(self)
+
+        # The service bay: goods already turned into fuel or hull that have not gone into the ship yet
+        self._fuel_credit = 0.0
+        self._hull_credit = 0.0
+        self.service_lack: set = set()      # goods the bay ran out of while serving a ship
 
         core = BaseModule(ModuleType.COMMAND_CENTER, 0, 0)
         core.is_constructed = True
@@ -534,6 +553,47 @@ class PlayerBase:
     def defense_rating(self) -> int:
         """What the base can stand against: one working turret is worth TURRET_DEFENSE."""
         return len(self.working_turrets()) * TURRET_DEFENSE
+
+    # Service ------------------------------------------------------------------------------------------
+
+    def service_bays(self) -> List[BaseModule]:
+        return [m for m in self.unique_modules() if m.module_type == ModuleType.SERVICE_BAY]
+
+    def working_bays(self) -> List[BaseModule]:
+        return [m for m in self.service_bays() if m.is_operational and m.efficiency >= SERVICE_MIN_POWER]
+
+    def serve(self, ship, delta_time: float) -> Dict[str, float]:
+        """Refuel and repair a ship that is within reach, out of the base's own goods. Each working
+        bay adds its share of the rate. Returns what went into the ship: {"fuel": .., "hull": ..}."""
+        given = {"fuel": 0.0, "hull": 0.0}
+        bays = len(self.working_bays())
+        if bays == 0 or delta_time <= 0:
+            return given
+        max_hull = ship.get_effective_stats().get_effective_hull_points()
+        given["fuel"] = self._serve_one(ship.fuel_capacity - ship.current_fuel, REFUEL_RATE * bays * delta_time,
+                                        "fuel_cells", FUEL_PER_CELL, "_fuel_credit", ship.refuel)
+        given["hull"] = self._serve_one(max_hull - ship.current_hull, HULL_RATE * bays * delta_time,
+                                        "machinery", HULL_PER_MACHINERY, "_hull_credit",
+                                        lambda amount: (ship.repair_ship(amount), amount)[1])
+        return given
+
+    def _serve_one(self, needed: float, rate_step: float, commodity_id: str, per_unit: float,
+                   credit_attr: str, apply) -> float:
+        if needed <= 0:
+            self.service_lack.discard(commodity_id)
+            return 0.0
+        amount = min(needed, rate_step)
+        credit = getattr(self, credit_attr)
+        while credit < amount and self.remove_resource(commodity_id, 1):
+            credit += per_unit
+        amount = min(amount, credit)
+        if amount <= 0:
+            self.service_lack.add(commodity_id)
+            return 0.0
+        self.service_lack.discard(commodity_id)
+        setattr(self, credit_attr, credit - amount)
+        apply(amount)
+        return amount
 
     def wrecked_count(self) -> int:
         return sum(1 for m in self.unique_modules() if m.wrecked)

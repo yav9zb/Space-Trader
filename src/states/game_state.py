@@ -226,6 +226,7 @@ class PlayingState(State):
         # The player's bases keep building and producing, and say when you arrive
         from ..base_building.base_manager import base_manager
         base_manager.update(delta_time, self.game.ship.position)
+        base_manager.serve_ship(self.game.ship, delta_time)
         self._announce_base_in_range(base_manager)
         for text, color in base_manager.pop_events():
             from ..ui.notifications import notifications

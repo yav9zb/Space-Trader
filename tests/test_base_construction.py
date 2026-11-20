@@ -106,7 +106,7 @@ def test_remove_mode_targets_the_whole_module_and_never_the_command_center(setup
 def test_the_number_keys_choose_the_buildable_modules_and_nothing_else(setup):
     _, _, _, system = setup
     for index, module_type in enumerate(BUILDABLE):
-        key = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6][index]
+        key = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7][index]
         assert system.handle_input(pygame.event.Event(pygame.KEYDOWN, key=key))
         assert system.selected_module_type == module_type
     assert not system.handle_input(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_9))

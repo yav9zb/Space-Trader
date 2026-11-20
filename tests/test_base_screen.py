@@ -180,6 +180,7 @@ def busy_base(engine):
                               (ModuleType.REFINERY, (-5, 0)), (ModuleType.FACTORY, (-5, 3))):
         base.add_module(module_type, *spot, free=True)
     base.add_module(ModuleType.TURRET, -4, -4, free=True)
+    base.add_module(ModuleType.SERVICE_BAY, 4, 4, free=True)
     for _ in range(100):
         base.update(1.0)
     base.modules[(-5, 0)].take_damage(10 ** 6)          # a knocked-out refinery, in a raid: the longest panel
@@ -194,7 +195,7 @@ def test_the_panel_shows_turrets_defense_and_damage(engine, monkeypatch):
     state = open_screen(engine)
     engine.render()
     text = " ".join(t for t, _ in drawn)
-    for expected in ("Turrets", "Defense", "UNDER ATTACK", "Knocked out"):
+    for expected in ("Turrets", "Defense", "UNDER ATTACK", "Knocked out", "Service"):
         assert expected in text
 
 

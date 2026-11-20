@@ -111,6 +111,22 @@ class BaseManager:
         for base in self.bases.values():
             base.update(delta_time)
 
+    def serve_ship(self, ship, delta_time: float) -> None:
+        """A base's service bays refuel and repair a ship that is within reach of it. Says so once
+        when the base has run out of goods to do it with."""
+        nearby = self.base_in_range(ship.position)
+        if nearby is None:
+            for base in self.bases.values():
+                base.service_lack.clear()
+            return
+        base = nearby[1]
+        before = set(base.service_lack)
+        base.serve(ship, delta_time)
+        names = {"fuel_cells": "fuel cells", "machinery": "machinery"}
+        for commodity_id in sorted(base.service_lack - before):
+            self.events.append((f"{base.name} has no {names.get(commodity_id, commodity_id)} left for your ship.",
+                                (255, 205, 100)))
+
     def update_defense(self, delta_time: float, player_position: Vector2, combat, now: float) -> list:
         """Raids come and go, and the turrets fire. Returns the turret hits on raiders and other
         bandits, as (projectile, bandit) pairs, for the combat manager to apply."""

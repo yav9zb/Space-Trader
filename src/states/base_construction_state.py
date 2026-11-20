@@ -61,9 +61,9 @@ HELP_SECTIONS = [
     ]),
     ("Running it", [
         "Modules take time to build, and need power from generators",
-        "Mining makes metal ore; a refinery makes electronics; a factory makes machinery",
-        "Production stops when storage is full",
+        "Mining makes ore, a refinery electronics, a factory machinery; storage full stops them",
         "Collect what it makes from the Storage tab, and sell it at a station",
+        "A Service Bay refuels and repairs your ship nearby, from the base's fuel cells and machinery",
     ]),
 ]
 
@@ -133,6 +133,7 @@ class BaseConstructionState(State):
     def update(self, delta_time):
         """The base keeps working while you look at it."""
         base_manager.update(delta_time, self._ship_position())
+        base_manager.serve_ship(self.game.ship, delta_time)
         self._update_mouse_world_position()
         if self.construction_system.is_construction_active:
             self.construction_system.update_mouse_position(self.mouse_world_pos)
@@ -408,7 +409,20 @@ class BaseConstructionState(State):
         knocked_out = base.wrecked_count()
         if knocked_out:
             items.append(("kv", "Knocked out", knocked_out, BAD))
+        if base.service_bays():
+            items.append(self._service_item(base))
         return items
+
+    @staticmethod
+    def _service_item(base):
+        """One line for the service bays: ready, or what is stopping them."""
+        working = len(base.working_bays())
+        if working == 0:
+            return ("kv", "Service", "Offline", WARN)
+        if base.service_lack:
+            return ("kv", "Service", "Out of " + " and ".join(
+                transfer.commodity_name(c) for c in sorted(base.service_lack)), WARN)
+        return ("kv", "Service", f"{working} bay(s) ready", GOOD)
 
     # Build --------------------------------------------------------------------------------------------------------------
 

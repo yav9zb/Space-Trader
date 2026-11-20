@@ -1,5 +1,10 @@
 # Changelog
 
+## Beta 26
+
+### Added
+- **Service Bay** (key 7 in the build list, 3,500 credits plus 3 machinery and 2 electronics). While your ship is within reach of a base with a working bay, it is refuelled and its hull is repaired, paid for out of the base's own storage: fuel cells for fuel (10 fuel each) and machinery for hull (20 points each). Each extra bay adds to the rate. A bay needs at least half power, does not work while knocked out, and the base tells you once when it has run out of what it needs. The base screen shows a Service line (ready, offline, or out of what). Keep fuel cells and machinery in storage, or have a factory make the machinery.
+
 ## Beta 25
 
 ### Added
