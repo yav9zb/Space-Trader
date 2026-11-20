@@ -1,4 +1,5 @@
 import logging
+import math
 from enum import Enum, auto
 
 import pygame
@@ -217,7 +218,10 @@ class PlayingState(State):
         self.game.universe.ensure_chunks_around_position(self.game.ship.position)
         
         # Update universe (debris physics, etc.)
-        self.game.universe.update(delta_time, self.game.ship.position)
+        # Debris is simulated in full only a little beyond what the window shows
+        width, height = self.game.WINDOW_SIZE
+        view_reach = math.hypot(width, height) / 2 + 300
+        self.game.universe.update(delta_time, self.game.ship.position, view_reach)
         
         # Update docking system
         self.game.docking_manager.update(

@@ -39,6 +39,22 @@ def _bounded(cache, key, build):
     return surface
 
 
+def snap_radius(radius) -> int:
+    """Round a size to a nearby step (finer when small), so an effect whose
+    size drifts every frame uses a handful of cached surfaces instead of
+    building a new one each frame."""
+    radius = int(radius)
+    if radius < 16:
+        return radius
+    step = 1 + radius // 16
+    return int(round(radius / step)) * step
+
+
+def snap_color(color):
+    """Round each channel to the nearest multiple of 8 (0 and 255 stay put)."""
+    return tuple(255 if c >= 252 else int(c / 8 + 0.5) * 8 for c in clamp_color(color))
+
+
 def glow_surface(radius: int, color) -> pygame.Surface:
     """A soft round glow, bright in the middle and fading to black. Meant to
     be added to the screen (BLEND_RGB_ADD), so black costs nothing."""
@@ -65,7 +81,8 @@ def draw_glow(screen: pygame.Surface, pos, radius, color, strength: float = 1.0)
     radius = int(radius)
     if radius < 2 or strength <= 0:
         return
-    surface = glow_surface(radius, tuple(c * min(1.0, strength) for c in color[:3]))
+    radius = snap_radius(radius)
+    surface = glow_surface(radius, snap_color(tuple(c * min(1.0, strength) for c in color[:3])))
     screen.blit(surface, (int(pos[0]) - radius, int(pos[1]) - radius), special_flags=pygame.BLEND_RGB_ADD)
 
 
@@ -200,7 +217,8 @@ def draw_ring_glow(screen: pygame.Surface, pos, radius, width, color, strength: 
     radius = int(radius)
     if radius < 3 or strength <= 0:
         return
-    color = tuple(c * min(1.0, strength) for c in color[:3])
+    radius = snap_radius(radius)
+    color = snap_color(tuple(c * min(1.0, strength) for c in color[:3]))
     surface = ring_glow(radius, width, color)
     half = surface.get_width() // 2
     screen.blit(surface, (int(pos[0]) - half, int(pos[1]) - half), special_flags=pygame.BLEND_RGB_ADD)

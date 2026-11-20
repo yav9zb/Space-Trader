@@ -38,28 +38,39 @@ class SpatialGrid:
         nearby = []
         cell_radius = int(math.ceil(radius / self.cell_size))
         center_key = self._get_cell_key(position)
-        
-        # Check surrounding cells
+        px, py = position.x, position.y
+        radius_sq = radius * radius
+        grid = self.grid
+        append = nearby.append
+
+        # Check surrounding cells. Plain float maths: this runs for every piece
+        # of debris every frame, and building a vector per pair was the cost.
         for x_offset in range(-cell_radius, cell_radius + 1):
             for y_offset in range(-cell_radius, cell_radius + 1):
-                cell_key = (center_key[0] + x_offset, center_key[1] + y_offset)
-                if cell_key in self.grid:
-                    for debris in self.grid[cell_key]:
-                        distance = (debris.position - position).length()
-                        if distance <= radius:
-                            nearby.append(debris)
-        
+                cell = grid.get((center_key[0] + x_offset, center_key[1] + y_offset))
+                if cell:
+                    for debris in cell:
+                        pos = debris.position
+                        dx = pos.x - px
+                        dy = pos.y - py
+                        if dx * dx + dy * dy <= radius_sq:
+                            append(debris)
+
         return nearby
     
     def get_potential_collisions(self, debris: Debris) -> List[Debris]:
         """Get debris that might collide with the given debris."""
         nearby = self.get_nearby_debris(debris.position, debris.size * 3)
         potential_collisions = []
-        
+        px, py = debris.position.x, debris.position.y
+        size = debris.size
+
         for other in nearby:
-            if other != debris:
-                distance = (debris.position - other.position).length()
-                if distance <= (debris.size + other.size + 5):  # Small buffer
+            if other is not debris:
+                dx = other.position.x - px
+                dy = other.position.y - py
+                reach = size + other.size + 5  # Small buffer
+                if dx * dx + dy * dy <= reach * reach:
                     potential_collisions.append(other)
         
         return potential_collisions
@@ -171,15 +182,18 @@ class DebrisFieldManager:
     NEAR_RADIUS = 2500.0
     FAR_PERIOD = 4
 
-    def update(self, delta_time: float, focus: Optional[Vector2] = None):
+    def update(self, delta_time: float, focus: Optional[Vector2] = None,
+               near_radius: Optional[float] = None):
         """Update all debris with advanced physics. `focus` is the point
         (the player) debris is simulated in full detail around; without one,
-        everything is updated every frame."""
+        everything is updated every frame. `near_radius` replaces NEAR_RADIUS:
+        the caller passes a little more than what the window can show."""
         # Reset frame statistics
         self.stats['collisions_this_frame'] = 0
         self.collision_pairs_processed.clear()
         self._frame = getattr(self, "_frame", 0) + 1
-        near_sq = self.NEAR_RADIUS * self.NEAR_RADIUS
+        near = self.NEAR_RADIUS if near_radius is None else near_radius
+        near_sq = near * near
         
         # Rebuild spatial grid
         self.spatial_grid.clear()

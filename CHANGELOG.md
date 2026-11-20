@@ -1,5 +1,13 @@
 # Changelog
 
+## Beta 22
+
+### Fixed
+- **Flight is smoother, especially on Retina Macs.** In a real Retina window flight ran at about 43 frames a second and now holds 60. Three causes:
+  - Debris physics did its neighbour search and gravity with a vector object per pair of pieces. It now uses plain numbers, and only simulates in full the debris near what the window can show (a little beyond its edge, so a bigger window sees further), the rest updating every fourth frame.
+  - Pulsing glows (explosive and radioactive asteroids, station lights) built a new cached image almost every frame. Sizes and colours are now rounded to nearby steps, so a handful of images are reused. The difference is not visible.
+  - The first-time hints loaded their font and redrew their text every frame they were on screen. They are now drawn once.
+
 ## Beta 21
 
 ### Changed

@@ -14,6 +14,30 @@ HINT_DURATION = 8.0
 FADE_DURATION = 0.6
 
 
+_font = None
+_line_cache = {}
+
+
+def _hint_font():
+    global _font
+    if _font is None:
+        _font = pygame.font.Font(None, 26)
+    return _font
+
+
+def _line_surfaces(lines):
+    """The rendered text of a hint, kept between frames (the text itself is the
+    key, so a changed key binding renders again)."""
+    key = tuple(lines)
+    surfaces = _line_cache.get(key)
+    if surfaces is None:
+        if len(_line_cache) > 32:
+            _line_cache.clear()
+        font = _hint_font()
+        surfaces = _line_cache[key] = [font.render(line, True, (230, 235, 245)) for line in lines]
+    return surfaces
+
+
 def _flight_controls_lines():
     k = control_scheme_manager.get_key_name
     return [
@@ -99,8 +123,8 @@ class OnboardingHints:
             return
 
         lines = HINTS[self.active_hint]()
-        font = pygame.font.Font(None, 26)
-        line_surfaces = [font.render(line, True, (230, 235, 245)) for line in lines]
+        font = _hint_font()
+        line_surfaces = _line_surfaces(lines)
 
         padding = 14
         line_spacing = 26

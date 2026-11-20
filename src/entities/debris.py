@@ -172,12 +172,31 @@ class Debris:
         # Reset acceleration for this frame
         self.acceleration = Vector2(0, 0)
         
-        # Apply gravitational forces from nearby debris
+        # Apply gravitational forces from nearby debris. This is
+        # DebrisPhysics.calculate_gravity summed in plain floats: it runs for
+        # every pair in range every frame, and a vector per pair was the cost.
         if nearby_debris:
+            px, py = self.position.x, self.position.y
+            mass = self.mass
+            min_sq = DebrisPhysics.MIN_INTERACTION_DISTANCE ** 2
+            max_sq = DebrisPhysics.MAX_INTERACTION_DISTANCE ** 2
+            constant = DebrisPhysics.GRAVITATIONAL_CONSTANT
+            ax = ay = 0.0
             for other in nearby_debris:
-                if other != self:
-                    gravity_force = DebrisPhysics.calculate_gravity(self, other)
-                    self.acceleration += gravity_force / self.mass
+                if other is self or other.mass < mass * 2:
+                    continue
+                dx = other.position.x - px
+                dy = other.position.y - py
+                dist_sq = dx * dx + dy * dy
+                if dist_sq < min_sq or dist_sq > max_sq:
+                    continue
+                distance = math.sqrt(dist_sq)
+                # F = G * m1 * m2 / r^2, along the unit vector toward `other`,
+                # then divided by this piece's mass for the acceleration
+                scale = constant * mass * other.mass / dist_sq / distance / mass
+                ax += dx * scale
+                ay += dy * scale
+            self.acceleration.update(ax, ay)
         
         # Apply space friction
         self.velocity *= self.friction

@@ -480,3 +480,36 @@ def test_menu_panels_get_the_gradient_and_corner_brackets():
 
     tiny = screen(100, 60)
     draw_panel(tiny, pygame.Rect(5, 5, 50, 30))                              # too small for brackets: no crash
+
+
+def test_a_pulsing_glow_reuses_a_few_surfaces_instead_of_building_one_per_frame():
+    import math
+    screen = pygame.Surface((300, 300))
+    gfx.clear_caches()
+    built = []
+    original = gfx._bounded
+
+    def spy(cache, key, build):
+        if key not in cache:
+            built.append(key)
+        return original(cache, key, build)
+
+    gfx._bounded = spy
+    try:
+        for frame in range(120):
+            pulse = 0.5 + 0.5 * math.sin(frame * 0.2)
+            gfx.draw_glow(screen, (150, 150), 30 + 8 * pulse, (200 * pulse, 90, 20), 1.0)
+            gfx.draw_ring_glow(screen, (150, 150), 40 + 6 * pulse, 3, (60, 120 * pulse, 200), 1.0)
+    finally:
+        gfx._bounded = original
+    # 240 draws; the colour sweep here is far wider than any real pulse
+    assert len(built) < 60
+
+
+def test_snapping_keeps_a_glow_within_a_few_percent_of_what_was_asked():
+    assert gfx.snap_radius(5) == 5
+    for r in (16, 23, 37, 64, 150, 400):
+        assert abs(gfx.snap_radius(r) - r) <= max(1, r * 0.07)
+    assert gfx.snap_color((0, 0, 0)) == (0, 0, 0)
+    assert gfx.snap_color((255, 255, 255)) == (255, 255, 255)
+    assert all(abs(a - b) <= 4 for a, b in zip(gfx.snap_color((93, 119, 37)), (93, 119, 37)))
