@@ -55,6 +55,7 @@ A 2D space trading simulation game built with Python and Pygame. Navigate throug
 - **It Runs Itself**: mining makes metal ore, a refinery turns ore into electronics, a factory turns electronics and ore into machinery, all while you fly. Collect the goods from the Storage tab and sell them at a station
 - **Raids and Turrets**: pirates raid bases that have something built, and bigger bases draw bigger raids. Build turrets to shoot them down; a raid that gets through steals goods and knocks modules out until they mend. Fly in to help, or let the turrets handle it while you are away
 - **Service Bay**: a base module that refuels and repairs your ship while you are near the base, using the base's own fuel cells and machinery
+- **Trade Hub**: a base module that buys the base's goods for credits, so you can sell what it makes without hauling it to a station
 - **Saved With The Game**: up to three bases, shown on the radar
 
 #### Difficulty & Accessibility

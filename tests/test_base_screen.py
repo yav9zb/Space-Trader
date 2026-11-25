@@ -17,7 +17,7 @@ from src.base_building.base_manager import base_manager
 from src.ui import menu_kit as mk
 
 SIZES = [(1024, 640), (1280, 720), (1280, 800), (1512, 945), (2560, 1440), (3440, 1440)]
-TABS = ["build", "storage", "production"]
+TABS = ["build", "storage", "production", "trade"]
 
 
 class Clock:
@@ -181,6 +181,7 @@ def busy_base(engine):
         base.add_module(module_type, *spot, free=True)
     base.add_module(ModuleType.TURRET, -4, -4, free=True)
     base.add_module(ModuleType.SERVICE_BAY, 4, 4, free=True)
+    base.add_module(ModuleType.TRADE_HUB, 6, 4, free=True)
     for _ in range(100):
         base.update(1.0)
     base.modules[(-5, 0)].take_damage(10 ** 6)          # a knocked-out refinery, in a raid: the longest panel
@@ -229,7 +230,7 @@ def test_every_tab_fits_every_window(engine, size, tab, monkeypatch):
     assert drawn
     assert all(window.contains(rect) for _, rect in drawn), [t for t, r in drawn if not window.contains(r)]
     assert not state.panel_overflows
-    assert len(state.tab_rects) == 3 and all(window.contains(r) for r in state.tab_rects)
+    assert len(state.tab_rects) == len(TABS) and all(window.contains(r) for r in state.tab_rects)
 
 
 @pytest.mark.parametrize("size", SIZES)
@@ -422,7 +423,7 @@ def test_q_w_e_switch_tabs_and_tabs_take_clicks(engine):
     base_id, base = with_base(engine)
     state = open_screen(engine)
     engine.render()
-    for k, tab in ((pygame.K_w, "storage"), (pygame.K_e, "production"), (pygame.K_q, "build")):
+    for k, tab in ((pygame.K_w, "storage"), (pygame.K_e, "production"), (pygame.K_t, "trade"), (pygame.K_q, "build")):
         state.handle_input(key(k))
         assert state.selected_tab == tab
     for index, tab in enumerate(TABS):

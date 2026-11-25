@@ -4,6 +4,7 @@
 
 ### Added
 - **Service Bay** (key 7 in the build list, 3,500 credits plus 3 machinery and 2 electronics). While your ship is within reach of a base with a working bay, it is refuelled and its hull is repaired, paid for out of the base's own storage: fuel cells for fuel (10 fuel each) and machinery for hull (20 points each). Each extra bay adds to the rate. A bay needs at least half power, does not work while knocked out, and the base tells you once when it has run out of what it needs. The base screen shows a Service line (ready, offline, or out of what). Keep fuel cells and machinery in storage, or have a factory make the machinery.
+- **Trade Hub** (key 8 in the build list, 6,000 credits plus 6 electronics and 4 machinery; 2x2). A base with a working hub buys its own goods for credits, so you can sell what it makes without hauling it to a station. The new **Trade** tab (key T) lists the base's goods with what the hub pays, sells one (ENTER or RIGHT) or all (SHIFT, or the Sell all button) of the selected good. The hub pays 70 percent of a good's standard price, less than a station would, and each unit sold pushes that good's price down 1 percent (down to half at most); the drop heals over a few minutes. A second hub pays no more than one. A hub needs half power and does not trade while being built or knocked out. The price drops are saved.
 
 ## Beta 25
 

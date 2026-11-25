@@ -28,6 +28,7 @@ class ModuleType(Enum):
     FACTORY = "factory"
     TURRET = "turret"
     SERVICE_BAY = "service_bay"
+    TRADE_HUB = "trade_hub"
 
 
 # What the player can build, in the order of the number keys
@@ -39,6 +40,7 @@ BUILDABLE = [
     ModuleType.FACTORY,
     ModuleType.TURRET,
     ModuleType.SERVICE_BAY,
+    ModuleType.TRADE_HUB,
 ]
 
 CORE_POWER = 60            # the command center runs on its own reactor
@@ -58,6 +60,10 @@ REFUEL_RATE = 8.0          # fuel the bay puts into the ship per second
 FUEL_PER_CELL = 10.0       # fuel one fuel cell is worth
 HULL_RATE = 5.0            # hull points the bay mends on the ship per second
 HULL_PER_MACHINERY = 20.0  # hull points one machinery is worth
+
+# The trade hub: sells the base's goods for credits (see trade.py)
+HUB_MIN_POWER = 0.5        # a hub needs at least this share of full power
+HUB_RECOVERY = 0.001       # how much of a good's price-drop heals per second
 
 
 class Shooter:
@@ -145,6 +151,10 @@ class BaseModule:
             label="Service Bay", short="SVC", power_consumption=30,
             cost_credits=3500, cost_goods={"machinery": 3, "electronics": 2}, build_time=60.0,
             blurb="Refuels and repairs your ship while you are at the base, using its fuel cells and machinery."),
+        ModuleType.TRADE_HUB: ModuleStats(
+            label="Trade Hub", short="HUB", power_consumption=40, size=2,
+            cost_credits=6000, cost_goods={"electronics": 6, "machinery": 4}, build_time=90.0,
+            blurb="Buys the base's goods for credits, so you can sell what it makes without hauling it away."),
     }
 
     COLORS = {
@@ -156,6 +166,7 @@ class BaseModule:
         ModuleType.FACTORY: (170, 120, 255),
         ModuleType.TURRET: (240, 90, 90),
         ModuleType.SERVICE_BAY: (110, 210, 220),
+        ModuleType.TRADE_HUB: (235, 190, 90),
     }
 
     _label_cache: Dict[tuple, pygame.Surface] = {}
@@ -333,6 +344,9 @@ class PlayerBase:
         self._hull_credit = 0.0
         self.service_lack: set = set()      # goods the bay ran out of while serving a ship
 
+        # The trade hub: how far each good's price has been pushed down by what was sold (0 to 1)
+        self.hub_saturation: Dict[str, float] = {}
+
         core = BaseModule(ModuleType.COMMAND_CENTER, 0, 0)
         core.is_constructed = True
         self._place(core)
@@ -483,6 +497,12 @@ class PlayerBase:
             for module in modules:
                 if module.is_operational and module.stats.recipe is not None:
                     self._run_production(module, delta_time)
+            for commodity_id in list(self.hub_saturation):
+                left = self.hub_saturation[commodity_id] - HUB_RECOVERY * delta_time
+                if left > 0:
+                    self.hub_saturation[commodity_id] = left
+                else:
+                    del self.hub_saturation[commodity_id]
 
     def _run_production(self, module: BaseModule, delta_time: float) -> None:
         recipe = module.stats.recipe
@@ -553,6 +573,12 @@ class PlayerBase:
     def defense_rating(self) -> int:
         """What the base can stand against: one working turret is worth TURRET_DEFENSE."""
         return len(self.working_turrets()) * TURRET_DEFENSE
+
+    # Trade --------------------------------------------------------------------------------------------
+
+    def working_hubs(self) -> List[BaseModule]:
+        return [m for m in self.unique_modules()
+                if m.module_type == ModuleType.TRADE_HUB and m.is_operational and m.efficiency >= HUB_MIN_POWER]
 
     # Service ------------------------------------------------------------------------------------------
 

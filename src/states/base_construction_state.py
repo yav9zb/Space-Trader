@@ -20,7 +20,7 @@ try:
     from ..base_building.base_manager import base_manager
     from ..base_building.base_entity import BaseModule, BUILDABLE
     from ..base_building.construction_system import ConstructionSystem, ConstructionMode
-    from ..base_building import transfer
+    from ..base_building import trade, transfer
     from ..hidpi import make_opaque
     from ..ui import menu_kit
     from ..ui.menu_style import MenuBackground, ACCENT_GOLD, ACCENT_BLUE, TEXT_PRIMARY, TEXT_DIM
@@ -29,14 +29,14 @@ except ImportError:
     from base_building.base_manager import base_manager
     from base_building.base_entity import BaseModule, BUILDABLE
     from base_building.construction_system import ConstructionSystem, ConstructionMode
-    from base_building import transfer
+    from base_building import trade, transfer
     from hidpi import make_opaque
     from ui import menu_kit
     from ui.menu_style import MenuBackground, ACCENT_GOLD, ACCENT_BLUE, TEXT_PRIMARY, TEXT_DIM
 
 DEFAULT_ZOOM = 0.8          # a little out, so a whole base fits between the panels
 
-TABS = [("build", "Build"), ("storage", "Storage"), ("production", "Production")]
+TABS = [("build", "Build"), ("storage", "Storage"), ("production", "Production"), ("trade", "Trade")]
 
 GOOD = (120, 230, 150)
 WARN = (255, 215, 90)
@@ -62,7 +62,7 @@ HELP_SECTIONS = [
     ("Running it", [
         "Modules take time to build, and need power from generators",
         "Mining makes ore, a refinery electronics, a factory machinery; storage full stops them",
-        "Collect what it makes from the Storage tab, and sell it at a station",
+        "Collect what it makes from the Storage tab, or sell it on the Trade tab with a Trade Hub",
         "A Service Bay refuels and repairs your ship nearby, from the base's fuel cells and machinery",
     ]),
 ]
@@ -107,6 +107,8 @@ class BaseConstructionState(State):
         self.module_list = menu_kit.RowList(len(BUILDABLE), wrap_keys=True)
         self.storage_list = menu_kit.RowList(0, wrap_keys=True)
         self.storage_buttons = menu_kit.ButtonBar(["Deposit 1", "Deposit all", "Withdraw 1", "Withdraw all"])
+        self.trade_list = menu_kit.RowList(0, wrap_keys=True)
+        self.trade_buttons = menu_kit.ButtonBar(["Sell 1", "Sell all"])
         self.found_buttons = menu_kit.ButtonBar(["Found base", "Cancel"])
 
         if self.base_id:
@@ -191,10 +193,12 @@ class BaseConstructionState(State):
 
     def _footer_hint(self):
         if self.selected_tab == "build":
-            return f"1-{len(BUILDABLE)}: module  |  click the grid: build  |  R: remove  |  TAB: grid  |  Q / W / E: tabs  |  F1: help  |  ESC: leave"
+            return f"1-{len(BUILDABLE)}: module  |  click the grid: build  |  R: remove  |  TAB: grid  |  Q / W / E / T: tabs  |  F1: help  |  ESC: leave"
         if self.selected_tab == "storage":
-            return "UP / DOWN: goods  |  RIGHT: deposit  |  LEFT: withdraw  |  SHIFT: all  |  Q / W / E: tabs  |  ESC: leave"
-        return "Q / W / E: tabs  |  F1: help  |  ESC: leave"
+            return "UP / DOWN: goods  |  RIGHT: deposit  |  LEFT: withdraw  |  SHIFT: all  |  Q / W / E / T: tabs  |  ESC: leave"
+        if self.selected_tab == "trade":
+            return "UP / DOWN: goods  |  RIGHT or ENTER: sell one  |  SHIFT: sell all  |  Q / W / E / T: tabs  |  ESC: leave"
+        return "Q / W / E / T: tabs  |  F1: help  |  ESC: leave"
 
     def _draw_world(self, ui, screen):
         """The base and its grid, drawn in points at the current zoom and scaled
@@ -321,6 +325,8 @@ class BaseConstructionState(State):
             self._draw_build(ui, screen, base, area)
         elif self.selected_tab == "storage":
             self._draw_storage(ui, screen, base, area)
+        elif self.selected_tab == "trade":
+            self._draw_trade(ui, screen, base, area)
         else:
             self._draw_production(ui, screen, base, area)
 
@@ -574,6 +580,87 @@ class BaseConstructionState(State):
             for line_no in range(2) for column in range(2)]
         self.storage_buttons.draw(ui, screen)
 
+    # Trade -----------------------------------------------------------------------------------------------------------------
+
+    def trade_rows(self):
+        """[(commodity_id, in the base, price now)] for the base's goods, by name."""
+        base = self._base()
+        if base is None:
+            return []
+        rows = [(c, n, trade.quote(base, c)) for c, n in base.stored_resources.items() if n > 0]
+        return sorted(rows, key=lambda row: transfer.commodity_name(row[0]))
+
+    def selected_trade_commodity(self):
+        rows = self.trade_rows()
+        if not rows:
+            return None
+        return rows[max(0, min(self.trade_list.selected, len(rows) - 1))][0]
+
+    def sell_goods(self, everything: bool = False) -> int:
+        """Sell the selected goods to the trade hub. Returns how many units were sold."""
+        base, commodity_id = self._base(), self.selected_trade_commodity()
+        if base is None or commodity_id is None:
+            return 0
+        if not trade.is_open(base):
+            self.status = "The trade hub is not working."
+            return 0
+        sold, paid = trade.sell(base, self.game.ship, commodity_id, 10 ** 6 if everything else 1)
+        if sold:
+            self.status = f"Sold {sold} {transfer.commodity_name(commodity_id)} for {paid:,} credits."
+        else:
+            self.status = "Nothing to sell."
+        return sold
+
+    def _draw_trade(self, ui, screen, base, area):
+        ui.text(screen, "Trade Hub", "body", ACCENT_GOLD, topleft=area.topleft)
+        line = ui.line_height("small")
+        y = area.top + ui.line_height("body") + ui.px(4)
+        if not base.unique_modules() or not any(m.module_type.value == "trade_hub" for m in base.unique_modules()):
+            ui.text(screen, "This base has no Trade Hub. Build one (8) to sell what the base makes here, "
+                            "without hauling it away.", "small", TEXT_DIM, max_width=area.width, topleft=(area.left, y))
+            return
+        if not trade.is_open(base):
+            ui.text(screen, "The Trade Hub is not working: it is still being built, knocked out, or short of power.",
+                    "small", WARN, max_width=area.width, topleft=(area.left, y))
+            return
+        ui.text(screen, f"Your credits {self._credits():,}", "small", TEXT_PRIMARY, topleft=(area.left, y))
+        y += line + ui.px(4)
+        ui.text(screen, "Prices drop as you sell and recover with time.", "tiny", TEXT_DIM, topleft=(area.left, y))
+        y += ui.line_height("tiny") + ui.px(8)
+        col = max(ui.px(70), area.width // 5)
+        ui.text(screen, "Stored", "tiny", TEXT_DIM, topright=(area.right - col - ui.px(10), y))
+        ui.text(screen, "Pays", "tiny", TEXT_DIM, topright=(area.right - ui.px(10), y))
+        y += ui.line_height("tiny") + ui.px(4)
+
+        button_row = ui.px(36)
+        status_height = line + ui.px(8)
+        list_area = pygame.Rect(area.left, y, area.width,
+                                max(ui.px(40), area.bottom - y - button_row - status_height - ui.px(14)))
+        rows = self.trade_rows()
+        self.trade_list.set_count(len(rows))
+        self.trade_list.layout(ui, list_area, 28)
+        self.trade_list.draw_chrome(ui, screen)
+        if not rows:
+            ui.text(screen, "Nothing stored to sell.", "small", TEXT_DIM, topleft=(list_area.left, list_area.top))
+        for index, rect in self.trade_list.rects.items():
+            commodity_id, stored, price = rows[index]
+            ui.text(screen, f"{price:,}", "small", GOOD, midright=(rect.right - ui.px(10), rect.centery))
+            ui.text(screen, str(stored), "small", TEXT_PRIMARY, midright=(rect.right - col - ui.px(10), rect.centery))
+            ui.text(screen, transfer.commodity_name(commodity_id), "small", TEXT_PRIMARY,
+                    max_width=rect.width - 2 * col - ui.px(30), midleft=(rect.left + ui.px(10), rect.centery))
+        counter = self.trade_list.counter()
+        if counter:
+            ui.text(screen, counter, "tiny", TEXT_DIM, bottomright=(area.right, list_area.bottom + ui.px(1)))
+        if self.status:
+            ui.text(screen, self.status, "small", WARN if self.status.startswith(("Nothing", "The trade")) else GOOD,
+                    max_width=area.width, topleft=(area.left, list_area.bottom + ui.px(6)))
+        self.trade_buttons.enabled = [bool(rows), bool(rows)]
+        gap = ui.px(8)
+        width = (area.width - gap) // 2
+        self.trade_buttons.rects = [pygame.Rect(area.left + i * (width + gap), area.bottom - button_row, width, button_row)
+                                    for i in range(2)]
+        self.trade_buttons.draw(ui, screen)
+
     # Production ----------------------------------------------------------------------------------------------------------
 
     def _draw_production(self, ui, screen, base, area):
@@ -662,7 +749,7 @@ class BaseConstructionState(State):
             if event.key == pygame.K_F2:
                 self.show_base_info = not self.show_base_info
                 return
-            tab = {pygame.K_q: "build", pygame.K_w: "storage", pygame.K_e: "production"}.get(event.key)
+            tab = {pygame.K_q: "build", pygame.K_w: "storage", pygame.K_e: "production", pygame.K_t: "trade"}.get(event.key)
             if tab:
                 self.selected_tab = tab
                 return
@@ -675,6 +762,8 @@ class BaseConstructionState(State):
             self._handle_build_input(event)
         elif self.selected_tab == "storage":
             self._handle_storage_input(event)
+        elif self.selected_tab == "trade":
+            self._handle_trade_input(event)
 
     def _wheel_over_panel(self) -> bool:
         return self._over_panel(pygame.mouse.get_pos())
@@ -737,6 +826,21 @@ class BaseConstructionState(State):
         if event.type == pygame.MOUSEMOTION:
             self.storage_buttons.handle(event, self._ui)
         self.storage_list.handle(event, self._ui, play_sounds=False)
+
+    def _handle_trade_input(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            clicked = self.trade_buttons.handle(event, self._ui)
+            if clicked is not None:
+                self.sell_goods(everything=clicked == 1)
+                return
+        if event.type == pygame.KEYDOWN:
+            mods = getattr(event, "mod", pygame.key.get_mods())
+            if event.key in (pygame.K_RIGHT, pygame.K_RETURN, pygame.K_KP_ENTER):
+                self.sell_goods(bool(mods & pygame.KMOD_SHIFT))
+                return
+        if event.type == pygame.MOUSEMOTION:
+            self.trade_buttons.handle(event, self._ui)
+        self.trade_list.handle(event, self._ui, play_sounds=False)
 
     def _handle_tab_click(self, pos) -> bool:
         point = self._ui.to_px(pos)

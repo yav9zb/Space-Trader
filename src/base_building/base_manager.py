@@ -161,6 +161,7 @@ class BaseManager:
                 "position": [base.position.x, base.position.y],
                 "stored_resources": dict(base.stored_resources),
                 "raid_timer": base.raid_timer,
+                "hub_saturation": dict(base.hub_saturation),
                 "core_hull": base.modules[(0, 0)].hull,
                 "modules": [{
                     "type": module.module_type.value,
@@ -186,6 +187,8 @@ class BaseManager:
                 base.stored_resources = {str(c): int(n) for c, n in data.get("stored_resources", {}).items()}
                 timer = data.get("raid_timer")
                 base.raid_timer = None if timer is None else float(timer)
+                base.hub_saturation = {str(c): max(0.0, float(v))
+                                       for c, v in data.get("hub_saturation", {}).items()}
                 core = base.modules[(0, 0)]
                 core.hull = max(0.0, min(float(data.get("core_hull", core.hull)), core.stats.max_hull))
                 core.wrecked = core.hull <= 0
