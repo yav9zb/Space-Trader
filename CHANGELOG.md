@@ -1,5 +1,10 @@
 # Changelog
 
+## Beta 28
+
+### Fixed
+- **You could not undock.** After undocking, the ship came to rest only about 40 units from the station's centre, well inside its docking range, so auto-docking took it straight back in a moment later. A ship that has just undocked no longer auto-docks with that station until it has flown clear of it; it says "Fly clear of the station to dock with it again" while it is still beside it. The dock key still docks at once, and other stations are unaffected. If auto-docking is still too eager for you, Settings > Docking turns it off or lowers the speed limit.
+
 ## Beta 27
 
 ### Changed

@@ -68,6 +68,10 @@ def dock_at(game, station):
     distance = station.size + game.ship.size + manager.docking_range_buffer - 10
     approach = Vector2(station.position.x - distance, station.position.y)
 
+    # A ship that has just undocked does not auto-dock with that station until it has flown clear
+    game.ship.position = Vector2(station.position.x - 1000, station.position.y)
+    frames(game, render=False)
+
     for attempt in range(5):
         clear_hazards_near(station.position)
         game.ship.position = Vector2(approach)
@@ -243,3 +247,13 @@ def test_the_real_hud_points_at_the_current_story_objective(game, monkeypatch):
     arrived = still_frame()
     monkeypatch.setattr(objective_pointer, "draw", lambda *args, **kwargs: None)
     assert whole_screen(arrived, still_frame()) < 400               # a station turning, not the 1,600-pixel pointer
+
+
+def test_the_ship_stays_undocked_after_the_undock_key_in_the_real_game(game):
+    hale = station(game, game.story_state.npc_stations["hale"])
+    dock_at(game, hale)
+    undock(game)
+    clear_hazards_near(hale.position)
+    frames(game, 300, render=False)
+    assert game.docking_manager.docking_state != DockingState.DOCKED
+    assert not game.docking_manager.is_docked()

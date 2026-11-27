@@ -8,6 +8,9 @@ logger = logging.getLogger(__name__)
 # How fast the ship may still be going when it docks, by the Docking Speed setting
 DOCKING_SPEEDS = {"careful": 30.0, "standard": 50.0, "relaxed": 80.0}
 
+# After undocking, how far beyond docking range the ship must be before it can auto-dock again
+CLEAR_OF_STATION = 60.0
+
 
 class DockingManager:
     """Manages ship docking operations and state transitions."""
@@ -34,6 +37,10 @@ class DockingManager:
         # cargo inspections, again supplied by the engine.
         self.inspection_hook = None
 
+        # The station the ship has just left: it does not dock with it again by itself until it
+        # has flown clear, or it would be pulled straight back in
+        self.undocked_from = None
+
         # Auto-docking; both are set from the player's settings by apply_settings
         self.auto_dock_enabled = True
         self.require_confirmation = False
@@ -46,6 +53,8 @@ class DockingManager:
     def update(self, ship, stations, delta_time):
         """Update docking system state and handle transitions."""
         previous_state = self.docking_state
+
+        self._forget_a_station_left_behind(ship)
         
         if self.docking_state == DockingState.FREE_FLIGHT:
             self._update_free_flight(ship, stations)
@@ -62,6 +71,15 @@ class DockingManager:
         if previous_state != self.docking_state:
             logger.info(f"Docking state changed: {previous_state.value} -> {self.docking_state.value}")
             
+    def _forget_a_station_left_behind(self, ship):
+        """Once the ship is clear of the station it undocked from, auto-docking works with it again."""
+        station = self.undocked_from
+        if station is None or self.docking_state in (DockingState.DOCKED, DockingState.UNDOCKING):
+            return
+        clear = station.size + ship.size + self.docking_range_buffer + CLEAR_OF_STATION
+        if (ship.position - station.position).length() > clear:
+            self.undocked_from = None
+
     def _update_free_flight(self, ship, stations):
         """Handle free flight state - detect approaching stations."""
         nearest_station = self._find_nearest_station(ship, stations)
@@ -96,7 +114,9 @@ class DockingManager:
         can_dock, reason = self._can_dock(ship, self.target_station)
         
         if can_dock:
-            if self.auto_dock_enabled and not self.require_confirmation:
+            if self.target_station is self.undocked_from:
+                self.last_status_message = f"Fly clear of {self.target_station.name} to dock with it again"
+            elif self.auto_dock_enabled and not self.require_confirmation:
                 self._initiate_docking(ship)
             else:
                 from ..input.control_schemes import control_scheme_manager
@@ -131,6 +151,7 @@ class DockingManager:
         if self.docking_timer >= self.docking_duration:
             # Undocking complete
             self.docking_state = DockingState.FREE_FLIGHT
+            self.undocked_from = self.target_station
             self.target_station = None
             self.docking_timer = 0.0
             self.last_status_message = "Undocked successfully"
