@@ -227,6 +227,8 @@ class PlayingState(State):
         from ..base_building.base_manager import base_manager
         base_manager.update(delta_time, self.game.ship.position)
         base_manager.serve_ship(self.game.ship, delta_time)
+        from ..audio.sound_manager import sound_manager
+        sound_manager.listener = pygame.math.Vector2(self.game.ship.position)
         self._announce_base_in_range(base_manager)
         for text, color in base_manager.pop_events():
             from ..ui.notifications import notifications

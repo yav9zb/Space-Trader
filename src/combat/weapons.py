@@ -170,7 +170,7 @@ class Weapon:
             WeaponType.MISSILE: "missile_launch",
             WeaponType.RAILGUN: "railgun_fire",
         }
-        sound_manager.play(fire_sounds.get(self.weapon_type, "laser_fire"))
+        sound_manager.play(fire_sounds.get(self.weapon_type, "laser_fire"), position)
 
         return projectile
     

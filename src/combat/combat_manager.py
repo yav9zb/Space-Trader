@@ -447,7 +447,7 @@ class CombatManager:
         self.explosions.append(explosion)
 
         from ..audio.sound_manager import sound_manager
-        sound_manager.play("explosion")
+        sound_manager.play("explosion", Vector2(position))
     
     def _apply_explosion_damage(self, explosion_pos: Vector2, explosion_radius: float, 
                                base_damage: float, game_engine):

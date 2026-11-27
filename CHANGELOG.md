@@ -1,5 +1,10 @@
 # Changelog
 
+## Beta 27
+
+### Changed
+- **Gunfire and explosions are quieter with distance.** Every shot and explosion used to play at full volume wherever it happened, so a distant raid or a far-off pirate fight was as loud as one beside you. Sounds are now full volume within about 700 units, fade with distance, and are silent beyond about 2,600.
+
 ## Beta 26
 
 ### Added
